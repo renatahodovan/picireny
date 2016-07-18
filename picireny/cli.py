@@ -12,8 +12,7 @@ import picire
 import pkgutil
 
 from argparse import ArgumentParser
-from glob import glob
-from os.path import abspath, basename, exists, join, relpath
+from os.path import abspath, basename, exists, expanduser, join, relpath
 from shutil import rmtree
 
 from antlr4 import *
@@ -129,9 +128,9 @@ def execute():
                             help='The grammar file(s) describing the input format.')
     arg_parser.add_argument('-r', '--replacements', help='JSON file defining the default replacements for '
                                                          'any lexer or parser rules.')
-    arg_parser.add_argument('--antlr', default=max(glob(join('/', 'usr', 'local', 'lib', 'antlr-*-complete.jar')), default=None),
-                            help='The path where the antlr jar file is installed'
-                                 '(default: /usr/local/lib/antlr-*-complete.jar).')
+    antlr_default_path = join(expanduser('~'), '.picireny', 'antlr4.jar')
+    arg_parser.add_argument('--antlr', default=antlr_default_path,
+                            help='The path where the antlr jar file is installed (default: %s).' % antlr_default_path)
     arg_parser.add_argument('--islands',
                             help='Python source describing how to process island languages.')
     arg_parser.add_argument('--version', action='version', version='%(prog)s {version}'.format(version=__version__))

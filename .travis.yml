@@ -8,7 +8,5 @@ matrix:
 sudo: false
 
 install:
-  - wget https://github.com/akosthekiss/antlr4/releases/download/4.5.4-SNAPSHOT%2Bpy3fixes-20160705-1111/antlr4-4.5.4-SNAPSHOT.py3fixes-20160705-1111.jar -O antlr.jar
-  - export ANTLR=$PWD/antlr.jar
   - pip install -U tox
 script: tox

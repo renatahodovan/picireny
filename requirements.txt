@@ -1,1 +1,0 @@
-git+https://github.com/akosthekiss/antlr4.git@4.5.4-SNAPSHOT+py3fixes-20160705-1111#subdirectory=runtime/Python3&egg=antlr4-python3-runtime
