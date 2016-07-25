@@ -17,6 +17,10 @@ resources_dir = os.path.join(tests_dir, 'resources')
 antlr = os.getenv('ANTLR')
 
 
+@pytest.mark.parametrize('args_cache', [
+    (),
+    ('--disable-cache', ),
+])
 class TestCli:
 
     @pytest.mark.parametrize('test,inp,exp,grammar,rule', [
@@ -25,13 +29,14 @@ class TestCli:
         ('test-json-obj-arr-baz.sh', 'inp-obj-arr.json', 'exp-obj-arr-baz.json', 'JSON.g4', 'json'),
         ('test-json-obj-arr-87.sh', 'inp-obj-arr.json', 'exp-obj-arr-87.json', 'JSON.g4', 'json'),
     ])
-    def test_cli(self, test, inp, exp, grammar, rule, tmpdir):
+    def test_cli(self, test, inp, exp, grammar, rule, tmpdir, args_cache):
         out_dir = '%s' % tmpdir
         cmd = (sys.executable, '-m', 'picireny') \
               + ('--test=' + test, '--input=' + inp, '--out=' + out_dir) \
               + ('--grammar=' + grammar, '--start-rule=' + rule)
         if antlr:
               cmd += ('--antlr=' + antlr, )
+        cmd += args_cache
         proc = subprocess.Popen(cmd, cwd=resources_dir)
         proc.communicate()
         assert proc.returncode == 0

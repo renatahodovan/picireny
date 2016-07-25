@@ -65,7 +65,8 @@ def hddmin(hdd_tree, reduce_class, reduce_config, tester_class, tester_config, t
                           **reduce_config)
         logger.info('Checking subsets: %s' % str(list(range(count))))
         c = dd.ddmin(list(range(count)))
-        global_structures.outcome_cache.clear()
+        if global_structures.outcome_cache:
+            global_structures.outcome_cache.clear()
 
         hdd_tree.commit_remove(level, c)
         hdd_tree.clear_remove()
