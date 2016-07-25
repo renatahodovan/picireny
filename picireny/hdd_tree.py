@@ -174,7 +174,7 @@ class HDDTree:
             assert isinstance(node, HDDToken) or None not in node.children, 'Bad parent node: %s' % node.name
         self.traverse(bad_parent)
 
-    def tree_str(self, *, current):
+    def tree_str(self, *, current=None):
         """
         Pretty print HDD tree to help debugging.
 
@@ -194,7 +194,7 @@ class HDDTree:
                                                 node.end.idx)) if self.start is not None and self.end is not None else '',
                 '*' if node == current else '',
                 node.replace,
-                re.sub('^', '    ', ''.join(attrib), flags=re.MULTILINE))
+                ''.join(['    ' + line + '\n' for line in ''.join(attrib).splitlines()]))
 
         return self.synthetic_attribute(_tree_str)
 
