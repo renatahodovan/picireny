@@ -9,7 +9,6 @@ import logging
 import re
 
 from antlr4 import *
-from functools import reduce
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +31,7 @@ class ANTLRElement(object):
         Replacements are defined if the node has at least one child and all of the children
         have a replacement set.
         """
-        return self.children and reduce(lambda x, y: x and y is not None, [x.replacement for x in self.children], True)
+        return self.children and all(x.replacement is not None for x in self.children)
 
     def has_defined_replacement(self):
         """
@@ -40,7 +39,7 @@ class ANTLRElement(object):
         Needed by alternations since the replacement of a recursive rule wouldn't be possible to
         determine if waiting for all the children set.
         """
-        return self.children and reduce(lambda x, y: x or y is not None, [x.replacement for x in self.children], False)
+        return self.children and any(x.replacement is not None for x in self.children)
 
     def calc_replacement(self):
         """
@@ -103,11 +102,11 @@ class ANTLRLexerElement(ANTLRElement):
         self.start_intervals = None
 
     def starters_defined(self):
-        return self.children and reduce(lambda x, y: x and y is not None, [x.start_intervals for x in self.children], True)
+        return self.children and all(x.start_intervals is not None for x in self.children)
 
     def calc_starters(self):
         if self.start_intervals is None and self.starters_defined():
-            self.start_intervals = reduce(lambda x, y: x + y, [x.start_intervals for x in self.children], [])
+            self.start_intervals = sum((x.start_intervals for x in self.children), [])
             return True
         return False
 
