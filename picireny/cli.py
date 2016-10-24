@@ -21,6 +21,7 @@ from .hdd import hddmin
 
 logger = logging.getLogger('picireny')
 __version__ = pkgutil.get_data(__package__, 'VERSION').decode('ascii').strip()
+antlr_default_path = join(expanduser('~'), '.picireny', 'antlr4.jar')
 
 
 def process_args(arg_parser, args):
@@ -118,21 +119,19 @@ def execute():
     """
 
     arg_parser = ArgumentParser(description='CLI for the Picireny Hierarchical Delta Debugging Framework',
-                                prog='Picireny',
                                 parents=[picire.cli.create_parser()], add_help=False)
 
     # Grammar specific settings.
-    arg_parser.add_argument('-s', '--start-rule', required=True,
-                            help='The start rule of the grammar.')
-    arg_parser.add_argument('-g', '--grammar', nargs='+', required=True,
-                            help='The grammar file(s) describing the input format.')
-    arg_parser.add_argument('-r', '--replacements', help='JSON file defining the default replacements for '
-                                                         'any lexer or parser rules.')
-    antlr_default_path = join(expanduser('~'), '.picireny', 'antlr4.jar')
-    arg_parser.add_argument('--antlr', default=antlr_default_path,
-                            help='The path where the antlr jar file is installed (default: %s).' % antlr_default_path)
-    arg_parser.add_argument('--islands',
-                            help='Python source describing how to process island languages.')
+    arg_parser.add_argument('-s', '--start-rule', metavar='NAME', required=True,
+                            help='start rule of the grammar')
+    arg_parser.add_argument('-g', '--grammar', metavar='FILE', nargs='+', required=True,
+                            help='grammar file(s) describing the input format')
+    arg_parser.add_argument('-r', '--replacements', metavar='FILE',
+                            help='JSON file defining the default replacements for lexer or parser rules')
+    arg_parser.add_argument('--antlr', metavar='FILE', default=antlr_default_path,
+                            help='path where the antlr jar file is installed (default: %(default)s)')
+    arg_parser.add_argument('--islands', metavar='FILE',
+                            help='python source describing how to process island languages')
     arg_parser.add_argument('--version', action='version', version='%(prog)s {version}'.format(version=__version__))
 
     args = arg_parser.parse_args()

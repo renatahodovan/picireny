@@ -11,9 +11,9 @@ import urllib.request
 
 from argparse import ArgumentParser
 from os import makedirs
-from os.path import exists, expanduser, join
+from os.path import dirname, exists, join
 
-from ..cli import __version__
+from ..cli import __version__, antlr_default_path
 
 
 def execute():
@@ -22,21 +22,20 @@ def execute():
     version of the ANTLR v4 tool jar.
     """
 
-    arg_parser = ArgumentParser(description='Install helper tool to download the right version of the ANTLR v4 tool jar.',
-                                prog='picireny-install-antlr4', add_help=True)
+    arg_parser = ArgumentParser(description='Install helper tool to download the right version of the ANTLR v4 tool jar.')
 
     arg_parser.add_argument('--version', action='version', version='%(prog)s {version}'.format(version=__version__))
 
     mode_group = arg_parser.add_mutually_exclusive_group()
     mode_group.add_argument('-f', '--force', action='store_true', default=False,
-                            help='Force download even if local antlr4.jar already exists.')
+                            help='force download even if local antlr4.jar already exists')
     mode_group.add_argument('-l', '--lazy', action='store_true', default=False,
-                            help='Don\'t report an error if local antlr4.jar already exists and don\'t try to download it either.')
+                            help='don\'t report an error if local antlr4.jar already exists and don\'t try to download it either')
 
     args = arg_parser.parse_args()
 
-    local_dir = join(expanduser('~'), '.picireny')
-    tool_path = join(local_dir, 'antlr4.jar')
+    tool_path = antlr_default_path
+    local_dir = dirname(tool_path)
 
     if exists(tool_path):
         if args.lazy:
