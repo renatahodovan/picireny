@@ -5,18 +5,22 @@
 # This file may not be copied, modified, or distributed except
 # according to those terms.
 
+import json
 import logging
 import re
 import sys
 
 from antlr4 import *
 from pkgutil import get_data
-from os import makedirs
+from os import makedirs, pathsep
 from os.path import basename, join
+from string import Template
+from subprocess import Popen, check_call, PIPE
 
 from .grammar_analyzer import analyze_grammars
 from .parser_builder import build_grammars
 from ..hdd_tree import HDDRule, HDDToken, HDDTree
+
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +30,16 @@ class HDDStar(HDDRule):
     Special rule type in the HDD tree to support optional quantifiers.
     """
     def __init__(self, *, start=None, end=None):
-        HDDRule.__init__(self, '', '', start=start, end=end)
+        HDDRule.__init__(self, '', start=start, end=end)
+
+
+class HDDErrorToken(HDDToken):
+    """
+    Special token type that represents unmatched tokens. The minimal replacement of such nodes
+    is an empty string.
+    """
+    def __init__(self, text, *, start, end):
+        HDDToken.__init__(self, '', text, start=start, end=end)
 
 
 # Override ConsoleErrorListener to suppress parse issues in non-verbose mode.
@@ -36,7 +49,7 @@ class ConsoleListener(error.ErrorListener.ConsoleErrorListener):
 error.ErrorListener.ConsoleErrorListener.INSTANCE = ConsoleListener()
 
 
-def create_hdd_tree(input_stream, grammar, start_rule, antlr, work_dir, *, replacements=None, island_desc=None):
+def create_hdd_tree(input_stream, grammar, start_rule, antlr, work_dir, *, replacements=None, island_desc=None, lang='python'):
     """
     Build a tree that the HDD algorithm can work with.
 
@@ -47,8 +60,11 @@ def create_hdd_tree(input_stream, grammar, start_rule, antlr, work_dir, *, repla
     :param work_dir: Working directory.
     :param replacements: Dictionary containing the minimal replacements of the target grammar's rules.
     :param island_desc: List of IslandDescriptor objects.
+    :param lang: The target language of the parser.
     :return: The root of the created HDD tree.
     """
+
+    grammar_workdir = join(work_dir, 'target')
 
     def inject_optional_actions(grammar, positions, target_file):
         """
@@ -62,18 +78,26 @@ def create_hdd_tree(input_stream, grammar, start_rule, antlr, work_dir, *, repla
         with open(grammar, 'rb') as f:
             lines = f.read().splitlines(keepends=True)
 
-        prefix = b' ({self.enter_optional()} '
-        postfix = b' {self.exit_optional()})'
+        languages = {
+            'python': {
+                'prefix': b'({self.enter_optional()} ',
+                'postfix': b' {self.exit_optional()})'
+            },
+            'java': {
+                'prefix': b'({ try { getClass().getMethod("enter_optional").invoke(this); } catch (Exception e) { assert false; }} ',
+                'postfix': b' { try { getClass().getMethod("exit_optional").invoke(this); } catch (Exception e) { assert false; }})'
+            }
+        }
 
         for ln in positions:
             offset = 0
             for i, position in enumerate(sorted(positions[ln], key=lambda x: x[1])):
                 if position[0] == 's':
-                    lines[ln - 1] = lines[ln - 1][0:position[1] + offset] + prefix + lines[ln - 1][position[1] + offset:]
-                    offset += len(prefix)
+                    lines[ln - 1] = lines[ln - 1][0:position[1] + offset] + languages[lang]['prefix'] + lines[ln - 1][position[1] + offset:]
+                    offset += len(languages[lang]['prefix'])
                 elif position[0] == 'e':
-                    lines[ln - 1] = lines[ln - 1][0:position[1] + offset] + postfix + lines[ln - 1][position[1] + offset:]
-                    offset += len(postfix)
+                    lines[ln - 1] = lines[ln - 1][0:position[1] + offset] + languages[lang]['postfix'] + lines[ln - 1][position[1] + offset:]
+                    offset += len(languages[lang]['postfix'])
 
         with open(target_file, 'wb') as f:
             f.write(b''.join(lines))
@@ -93,14 +117,29 @@ def create_hdd_tree(input_stream, grammar, start_rule, antlr, work_dir, *, repla
             with open(join(antlr4_workdir, resource), 'wb') as f:
                 f.write(get_data(__package__, join('resources', resource)))
 
-        antlr_lexer_class, antlr_parser_class, _ = build_grammars([join(antlr4_workdir, 'ANTLRv4Lexer.g4'),
+        antlr_lexer_class, antlr_parser_class, _ = build_grammars((join(antlr4_workdir, 'ANTLRv4Lexer.g4'),
                                                                    join(antlr4_workdir, 'ANTLRv4Parser.g4'),
-                                                                   join(antlr4_workdir, 'LexBasic.g4')],
+                                                                   join(antlr4_workdir, 'LexBasic.g4')),
                                                                   antlr4_workdir,
                                                                   antlr)
         logger.debug('ANTLR4 grammars processed...')
-
         return antlr_lexer_class, antlr_parser_class
+
+    def java_classpath():
+        return pathsep.join([antlr, grammar_workdir])
+
+    def compile_java_sources(lexer, parser, listener):
+        executor = Template(get_data(__package__, join('resources', 'ExtendedTargetParser.java')).decode('utf-8'))
+        with open(join(grammar_workdir, 'Extended{parser}.java'.format(parser=parser)), 'w') as f:
+            f.write(executor.substitute(dict(lexer_class=lexer,
+                                             parser_class=parser,
+                                             listener_class=listener)))
+        check_call('javac -classpath {classpath} *.java'.format(classpath=java_classpath()),
+                   shell=True, cwd=grammar_workdir)
+
+    def island_desc_to_list(island_desc):
+        island_desc = island_desc if island_desc else []
+        return island_desc if isinstance(island_desc, list) else [island_desc]
 
     def prepare_parsing(grammar, *, replacements=None, island_desc=None):
         """
@@ -110,13 +149,12 @@ def create_hdd_tree(input_stream, grammar, start_rule, antlr, work_dir, *, repla
         :param grammar: List of the grammars describing the input format.
         :param replacements: Dictionary containing the minimal replacements of the target grammar's rules.
         :param island_desc: List of IslandDescriptor objects.
-        :return: Tuple of lexer, parser and listener class references.
+        :return: Tuple of lexer, parser, listener class references and the replacement dictionary.
         """
         antlr_lexer_class, antlr_parser_class = build_antlr_grammars()
         replacements, action_positions = analyze_grammars(antlr_lexer_class, antlr_parser_class, grammar, replacements)
         logger.debug('Replacements are calculated...')
 
-        grammar_workdir = join(work_dir, 'target')
         makedirs(grammar_workdir, exist_ok=True)
         sys.path.append(grammar_workdir)
 
@@ -125,12 +163,14 @@ def create_hdd_tree(input_stream, grammar, start_rule, antlr, work_dir, *, repla
             grammar[i] = join(grammar_workdir, basename(g))
             inject_optional_actions(g, action_positions[g], grammar[i])
 
-        target_lexer_class, target_parser_class, target_listener_class = build_grammars(grammar, grammar_workdir, antlr)
+        target_lexer_class, target_parser_class, target_listener_class = build_grammars(tuple(grammar), grammar_workdir, antlr, lang)
         logger.debug('Target grammars are processed...')
 
-        island_desc = island_desc if island_desc else []
-        island_desc = island_desc if isinstance(island_desc, list) else [island_desc]
-        island_rules = [desc.rule for desc in island_desc]
+        if lang == 'java':
+            compile_java_sources(target_lexer_class, target_parser_class, target_listener_class)
+            return target_lexer_class, target_parser_class, target_listener_class, replacements
+
+        island_rules = [desc.rule for desc in island_desc_to_list(island_desc)]
 
         class ExtendedTargetParser(target_parser_class):
             """
@@ -180,7 +220,7 @@ def create_hdd_tree(input_stream, grammar, start_rule, antlr, work_dir, *, repla
 
             def recursion_enter(self):
                 assert isinstance(self.current_node, HDDRule)
-                node = HDDRule(self.current_node.name, self.current_node.replace)
+                node = HDDRule(self.current_node.name)
                 self.current_node.add_child(node)
                 self.current_node.recursive_rule = True
                 self.current_node = node
@@ -208,7 +248,7 @@ def create_hdd_tree(input_stream, grammar, start_rule, antlr, work_dir, *, repla
 
             def enterEveryRule(self, ctx:ParserRuleContext):
                 name = self.parser.ruleNames[ctx.getRuleIndex()]
-                node = HDDRule(name, replacements[name])
+                node = HDDRule(name)
                 if not self.root:
                     self.root = node
                 else:
@@ -244,7 +284,6 @@ def create_hdd_tree(input_stream, grammar, start_rule, antlr, work_dir, *, repla
                 start, end = self.tokenBoundaries(ctx.symbol)
 
                 node = HDDToken(name,
-                                replacements[name] if name in replacements else ctx.symbol.text,
                                 text,
                                 start=start,
                                 end=end)
@@ -255,7 +294,7 @@ def create_hdd_tree(input_stream, grammar, start_rule, antlr, work_dir, *, repla
             def visitErrorNode(self, ctx:ErrorNode):
                 if hasattr(ctx, 'symbol'):
                     start, end = self.tokenBoundaries(ctx.symbol)
-                    self.current_node.add_child(HDDToken(ctx.symbol.text, '', ctx.symbol.text, start=start, end=end))
+                    self.current_node.add_child(HDDErrorToken(ctx.symbol.text, start=start, end=end))
 
             def enter_optional(self):
                 star_node = HDDStar()
@@ -274,9 +313,9 @@ def create_hdd_tree(input_stream, grammar, start_rule, antlr, work_dir, *, repla
                 if self.root and logger.isEnabledFor(logging.DEBUG):
                     logger.debug(self.root.tree_str(current=self.current_node))
 
-        return target_lexer_class, ExtendedTargetParser, ExtendedTargetListener
+        return target_lexer_class, ExtendedTargetParser, ExtendedTargetListener, replacements
 
-    def build_hdd_tree(input_stream, lexer_class, parser_class, listener_class, start_rule, island_desc):
+    def build_hdd_tree(input_stream, lexer_class, parser_class, listener_class, start_rule, island_desc, replacements):
         """
         Parse the input with the provided ANTLR classes.
 
@@ -286,41 +325,88 @@ def create_hdd_tree(input_stream, grammar, start_rule, antlr, work_dir, *, repla
         :param listener_class: Reference to the listener class.
         :param start_rule: The name of the start rule of the parser.
         :param island_desc: List of IslandDescriptor objects.
+        :param replacements: Dictionary containing the minimal replacements of the target grammar's rules.
         :return: The root of the created HDD tree.
         """
-        target_parser = parser_class(CommonTokenStream(lexer_class(input_stream)))
-        parser_listener = listener_class(target_parser)
-        target_parser.addParseListener(parser_listener)
 
-        logger.debug('Parse input with %s rule' % start_rule)
-        getattr(target_parser, start_rule)()
-        target_parser.syntax_error_warning()
+        def set_replacement(node):
+            if isinstance(node, (HDDStar, HDDErrorToken)):
+                node.replace = ''
+            elif isinstance(node, HDDRule):
+                node.replace = replacements[node.name]
+            else:
+                node.replace = replacements.get(node.name, node.text)
 
-        process_island_nodes(parser_listener.island_nodes, island_desc)
+        island_nodes = []
 
+        logger.debug('Parse input with {start_rule} rule'.format(start_rule=start_rule))
+        if lang != 'python':
+            island_rules = [desc.rule for desc in island_desc_to_list(island_desc)]
+
+            def hdd_tree_from_json(node_dict):
+                # Convert interval dictionaries to Position objects.
+                node_dict.update({
+                    'start': HDDTree.Position(**node_dict['start']),
+                    'end': HDDTree.Position(**node_dict['end'])})
+
+                name = node_dict.get('name', None)
+                children = node_dict.pop('children', None)
+                cls = eval(node_dict.pop('type'))
+                node = cls(**node_dict)
+
+                if children:
+                    for child in children:
+                        node.add_child(hdd_tree_from_json(child))
+                elif name:
+                    if name in island_rules:
+                        island_nodes.append(node)
+                return node
+
+            with Popen('java -classpath {classpath} Extended{parser} {start_rule}'.format(classpath=java_classpath(),
+                                                                                          parser=parser_class,
+                                                                                          start_rule=start_rule),
+                       cwd=grammar_workdir,
+                       shell=True,
+                       stdin=PIPE,
+                       stdout=PIPE,
+                       stderr=PIPE,
+                       universal_newlines=True) as proc:
+                output, _ = proc.communicate(input=input_stream.strdata)
+            tree_root = hdd_tree_from_json(json.loads(output))
+        else:
+            target_parser = parser_class(CommonTokenStream(lexer_class(input_stream)))
+            parser_listener = listener_class(target_parser)
+            target_parser.addParseListener(parser_listener)
+
+            getattr(target_parser, start_rule)()
+            target_parser.syntax_error_warning()
+            island_nodes = parser_listener.island_nodes
+            assert parser_listener.root == parser_listener.current_node
+            tree_root = parser_listener.root
+
+        # Traverse the HDD tree and set minimal replacements for nodes.
+        tree_root.traverse(set_replacement)
+        process_island_nodes(island_nodes, island_desc)
         logger.debug('Parse done.')
-
-        assert parser_listener.root == parser_listener.current_node
-        return parser_listener.root
+        return tree_root
 
     def process_island_nodes(island_nodes, island_desc):
         islands = dict()
-        island_desc = island_desc if island_desc else []
-        island_desc = island_desc if isinstance(island_desc, list) else [island_desc]
+        island_desc = island_desc_to_list(island_desc)
 
         for node in island_nodes:
             if node.name not in islands:
                 island = next(filter(lambda island: island.rule == node.name, island_desc))
-                lexer, parser, listener = prepare_parsing(grammar=island.grammars,
-                                                          replacements=island.replacements,
-                                                          island_desc=island.island_desc)
-                islands[node.name] = (island.pattern, island.island_desc, lexer, parser, listener)
+                lexer, parser, listener, replacements = prepare_parsing(grammar=island.grammars,
+                                                                        replacements=island.replacements,
+                                                                        island_desc=island.island_desc)
+                islands[node.name] = (island.pattern, island.island_desc, lexer, parser, listener, replacements)
 
-            new_node = HDDRule(node.name, node.replace, start=node.start, end=node.end)
+            new_node = HDDRule(node.name, start=node.start, end=node.end)
             new_node.add_children(build_island_subtree(node, *islands[node.name]))
             node.replace_with(new_node)
 
-    def build_island_subtree(node, pattern, desc, lexer, parser, listener):
+    def build_island_subtree(node, pattern, desc, lexer, parser, listener, replacements):
         """
         Process terminal with an island grammar.
 
@@ -342,7 +428,7 @@ def create_hdd_tree(input_stream, grammar, start_rule, antlr, work_dir, *, repla
             if last_processed < interval[1]:
                 next_token_text = content[last_processed:interval[1]]
                 prefix = content[0:last_processed]
-                children.append(HDDToken(next_token_text, '', next_token_text,
+                children.append(HDDToken(next_token_text, next_token_text,
                                          start=HDDTree.Position(node.start.line + content[0:last_processed].count('\n'),
                                                                 len(prefix) - prefix.rfind('\n')),
                                          end=HDDTree.Position(node.start.line + next_token_text.count('\n'),
@@ -354,26 +440,28 @@ def create_hdd_tree(input_stream, grammar, start_rule, antlr, work_dir, *, repla
                                            parser_class=parser,
                                            listener_class=listener,
                                            start_rule=interval[0],
-                                           island_desc=desc))
+                                           island_desc=desc,
+                                           replacements=replacements))
             last_processed = interval[2]
 
         # Create simple HDDToken of the substring following the last subgroup if any.
         if last_processed < len(content):
             next_token_text = content[last_processed:]
             prefix = content[0:last_processed]
-            children.append(HDDToken(next_token_text, '', next_token_text,
+            children.append(HDDToken(next_token_text, next_token_text,
                                      start=HDDTree.Position(node.start.line + content[0:last_processed].count('\n'),
                                                             len(prefix) - prefix.rfind('\n')),
                                      end=HDDTree.Position(node.start.line + next_token_text.count('\n'),
                                                           len(next_token_text) - next_token_text.rfind('\n'))))
         return children
 
-    lexer_class, parser_class, listener_class = prepare_parsing(grammar=grammar,
-                                                                replacements=replacements,
-                                                                island_desc=island_desc)
+    lexer_class, parser_class, listener_class, replacements = prepare_parsing(grammar=grammar,
+                                                                              replacements=replacements,
+                                                                              island_desc=island_desc)
     return build_hdd_tree(input_stream=input_stream,
                           lexer_class=lexer_class,
                           parser_class=parser_class,
                           listener_class=listener_class,
                           start_rule=start_rule,
-                          island_desc=island_desc)
+                          island_desc=island_desc,
+                          replacements=replacements)

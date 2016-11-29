@@ -60,7 +60,7 @@ def call(*,
          reduce_class, reduce_config,
          tester_class, tester_config,
          input, src, encoding, out,
-         antlr, grammar, start_rule, replacements=None, islands=None,
+         antlr, grammar, start_rule, replacements=None, islands=None, lang='python',
          parallel=False, disable_cache=False, cleanup=True):
     """
     Execute picireny as if invoked from command line, however, control its
@@ -90,7 +90,7 @@ def call(*,
     tests_workdir = join(out, 'tests')
 
     hdd_tree = create_hdd_tree(InputStream(src.decode(encoding)), grammar, start_rule, antlr, grammar_workdir,
-                               replacements=replacements, island_desc=islands)
+                               replacements=replacements, island_desc=islands, lang=lang)
 
     # Start reduce and save result to a file named the same like the original.
     with codecs.open(join(out, basename(input)), 'w', encoding=encoding, errors='ignore') as f:
@@ -128,6 +128,9 @@ def execute():
                             help='path where the antlr jar file is installed (default: %(default)s)')
     arg_parser.add_argument('--islands', metavar='FILE',
                             help='python source describing how to process island languages')
+    arg_parser.add_argument('--parser', metavar='LANG', default='python', choices=['python', 'java'],
+                            help='language of the generated parsers [%(choices)s; default: %(default)s] '
+                                 '(using Java might gain performance, but needs JDK)')
     arg_parser.add_argument('--version', action='version', version='%(prog)s {version}'.format(version=__version__))
 
     args = arg_parser.parse_args()
@@ -149,6 +152,7 @@ def execute():
          antlr=args.antlr,
          grammar=args.grammar,
          start_rule=args.start_rule,
+         lang=args.parser,
          replacements=args.replacements,
          islands=args.islands,
          parallel=args.parallel,

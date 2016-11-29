@@ -35,10 +35,12 @@ Requirements
 * pip_ and setuptools Python packages (the latter is automatically installed by
   pip).
 * ANTLR_ v4
+* Java_ SE >= 7 JRE or JDK (the latter is optional, only needed if Java is used as the parser language)
 
 .. _Python: https://www.python.org
 .. _pip: https://pip.pypa.io
 .. _ANTLR: http://www.antlr.org
+.. _Java: https://www.oracle.com/java/
 
 Install
 =======
@@ -68,6 +70,8 @@ On top of the inherited ones, *picireny* accepts several further arguments:
   `ANTLR v4 grammars repository`_.
 * `--start-rule` (required): Name of the rule where parsing has to start.
 * `--antlr` (optional): Path the ANTLR tool jar.
+* `--parser` (optional): Language of the generated parser. Currently 'python'
+  (default) and 'java' targets (faster, but needs JDK) are supported.
 * `--islands` (optional): File describing how to process island grammars if
   needed.
 
