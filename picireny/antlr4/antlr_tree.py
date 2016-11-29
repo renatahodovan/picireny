@@ -8,8 +8,6 @@
 import logging
 import re
 
-from antlr4 import *
-
 logger = logging.getLogger(__name__)
 
 

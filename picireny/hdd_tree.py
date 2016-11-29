@@ -6,8 +6,6 @@
 # This file may not be copied, modified, or distributed except
 # according to those terms.
 
-import re
-
 
 class HDDTree:
     # Node states for unparsing.
