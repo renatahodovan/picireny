@@ -207,11 +207,15 @@ def prepare_parsing(grammar, antlr, base_dir, sub_dir, *, replacements=None, isl
             assert self.current_node.recursive_rule
             assert len(self.current_node.children) == 1 and self.current_node.name == self.current_node.children[0].name
             children_to_lift = self.current_node.children[0].children
-            self.current_node.children = []
-            self.current_node.add_children(children_to_lift)
-            self.current_node.start = self.current_node.children[0].start
-            self.current_node.end = self.current_node.children[-1].end
-            self.current_node = self.current_node.parent
+            parent = self.current_node.parent
+            if children_to_lift:
+                self.current_node.children = []
+                self.current_node.add_children(children_to_lift)
+                self.current_node.start = self.current_node.children[0].start
+                self.current_node.end = self.current_node.children[-1].end
+            else:
+                del self.current_node
+            self.current_node = parent
 
         def enterEveryRule(self, ctx:ParserRuleContext):
             name = self.parser.ruleNames[ctx.getRuleIndex()]
