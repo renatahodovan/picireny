@@ -8,8 +8,8 @@
 import logging
 import sys
 
-from glob import glob
-from os.path import join, split, splitext
+from os import listdir
+from os.path import basename, commonprefix, split, splitext
 from subprocess import Popen, PIPE, STDOUT
 
 logger = logging.getLogger(__name__)
@@ -39,13 +39,21 @@ def build_grammars(grammars, out, antlr):
                 logger.critical('Building grammars (%s) failed: %s' % (grammar_list, output))
                 sys.exit(1)
 
-        # Extract the name of lexer and parser from their path.
-        lexer = splitext(split(glob(join(out, '*Lexer.py'))[0])[1])[0]
-        parser = splitext(split(glob(join(out, '*Parser.py'))[0])[1])[0]
-        listener = splitext(split(glob(join(out, '*Listener.py'))[0])[1])[0]
+            files = listdir(out)
+            filename = basename(grammars[0])
 
-        grammar_cache[grammar_list] = [getattr(__import__(x, globals(), locals(), [x], 0), x) for x in [lexer, parser, listener]]
-        return grammar_cache[grammar_list]
+            def file_endswith(end_pattern):
+                return splitext(split(list(
+                    filter(lambda x: len(commonprefix([filename, x])) > 0 and x.endswith(end_pattern), files))[0])[1])[0]
+
+            # Extract the name of lexer and parser from their path.
+            lexer = file_endswith('Lexer.py')
+            parser = file_endswith('Parser.py')
+            listener = file_endswith('Listener.py')
+
+            grammar_cache[grammar_list] = [getattr(__import__(x, globals(), locals(), [x], 0), x) for x in
+                                           [lexer, parser, listener]]
+            return grammar_cache[grammar_list]
     except Exception as e:
         logger.critical('Exception while loading parser modules: %s' % e)
         sys.exit(1)

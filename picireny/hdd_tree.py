@@ -13,17 +13,19 @@ class HDDTree:
     REMOVE_TEMP = 1
     REMOVED = 2
 
-    def __init__(self, name, replace):
+    def __init__(self, name, replace, *, start=None, end=None):
         """
         Initialize a HDD tree/node.
 
         :param name: The name of the node.
         :param replace: The minimal replacement string of the current node.
+        :param start: Position object describing the start of the HDDTree node.
+        :param end: Position object describing the end of the HDDTree node.
         """
         self.name = name
         self.replace = replace
-        self.start = None
-        self.end = None
+        self.start = start
+        self.end = end
         self.parent = None
         self.state = self.KEEP
         self.level = 0
@@ -196,12 +198,19 @@ class HDDTree:
 
         return self.synthetic_attribute(_tree_str)
 
+    def replace_with(self, other):
+        """
+        Replace the current node with `other` in the HDD tree.
+
+        :param other: Node to replace the current with.
+        """
+        self.parent.children[self.parent.children.index(self)] = other
+        other.parent = self.parent
+
 
 class HDDToken(HDDTree):
-    def __init__(self, name, replace, *, start, end, text):
-        HDDTree.__init__(self, name, replace)
-        self.start = start
-        self.end = end
+    def __init__(self, name, replace, text, *, start, end):
+        HDDTree.__init__(self, name, replace, start=start, end=end)
         self.text = text
 
     def traverse(self, visitor):
@@ -215,8 +224,8 @@ class HDDToken(HDDTree):
 
 
 class HDDRule(HDDTree):
-    def __init__(self, name, replace):
-        HDDTree.__init__(self, name, replace)
+    def __init__(self, name, replace, *, start=None, end=None):
+        HDDTree.__init__(self, name, replace, start=start, end=end)
         self.children = []
 
     def add_child(self, child):

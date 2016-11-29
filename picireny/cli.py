@@ -50,12 +50,8 @@ def process_args(arg_parser, args):
     if args.islands:
         if not exists(args.islands):
             arg_parser.error('%s does not exist.' % args.islands)
-        with open(args.islands, 'rb') as f:
-            islands_src = f.read()
-            try:
-                args.islands = eval(islands_src)
-            except Exception as err:
-                arg_parser.error('Exception in island descriptor: ' % err)
+        with open(args.islands, 'r') as f:
+            args.islands = json.load(f, object_hook=IslandDescriptor.json_load_object_hook)
 
     picire.cli.process_args(arg_parser, args)
 
