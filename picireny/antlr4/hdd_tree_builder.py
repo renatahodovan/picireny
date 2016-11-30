@@ -252,6 +252,11 @@ def create_hdd_tree(input_stream, grammar, start_rule, antlr, work_dir, *, repla
                 if name in island_rules:
                     self.island_nodes.append(node)
 
+            def visitErrorNode(self, ctx:ErrorNode):
+                if hasattr(ctx, 'symbol'):
+                    start, end = self.tokenBoundaries(ctx.symbol)
+                    self.current_node.add_child(HDDToken(ctx.symbol.text, '', ctx.symbol.text, start=start, end=end))
+
             def enter_optional(self):
                 star_node = HDDStar()
                 self.current_node.add_child(star_node)
