@@ -61,7 +61,7 @@ def call(*,
          tester_class, tester_config,
          input, src, encoding, out,
          antlr, grammar, start_rule, replacements=None, islands=None, lang='python',
-         hdd_star=True,
+         hdd_star=True, squeeze_tree=True,
          cache_class=None, cleanup=True):
     """
     Execute picireny as if invoked from command line, however, control its
@@ -82,6 +82,7 @@ def call(*,
     :param islands: Path to the Python3 file describing how to process island grammars.
     :param lang: The target language of the parser.
     :param hdd_star: Boolean to enable the HDD star algorithm.
+    :param squeeze_tree: Boolean to enable the tree squeezing optimization.
     :param cache_class: Reference to the cache class to use.
     :param cleanup: Binary flag denoting whether removing auxiliary files at the end is enabled (default: True).
     :return: The path to the minimal test case.
@@ -99,6 +100,9 @@ def call(*,
 
     hdd_tree = create_hdd_tree(InputStream(src.decode(encoding)), grammar, start_rule, antlr, grammar_workdir,
                                replacements=replacements, island_desc=islands, lang=lang)
+
+    if squeeze_tree:
+        hdd_tree = hdd_tree.squeeze_tree()
 
     # Start reduce and save result to a file named the same like the original.
     out_file = join(out, basename(input))
@@ -145,6 +149,8 @@ def execute():
                                  '(using Java might gain performance, but needs JDK)')
     arg_parser.add_argument('--no-hdd-star', dest='hdd_star', default=True, action='store_false',
                             help='run the hddmin algorithm only once')
+    arg_parser.add_argument('--no-squeeze-tree', dest='squeeze_tree', default=True, action='store_false',
+                            help='don\'t squeeze rule chains in tree representation')
     arg_parser.add_argument('--version', action='version', version='%(prog)s {version}'.format(version=__version__))
 
     args = arg_parser.parse_args()
@@ -169,5 +175,6 @@ def execute():
          replacements=args.replacements,
          islands=args.islands,
          hdd_star=args.hdd_star,
+         squeeze_tree=args.squeeze_tree,
          cache_class=args.cache,
          cleanup=args.cleanup)

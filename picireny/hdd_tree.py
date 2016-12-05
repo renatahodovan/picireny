@@ -1,5 +1,5 @@
 # Copyright (c) 2007 Ghassan Misherghi.
-# Copyright (c) 2016 Renata Hodovan, Akos Kiss.
+# Copyright (c) 2016-2017 Renata Hodovan, Akos Kiss.
 #
 # Licensed under the BSD 3-Clause License
 # <LICENSE.rst or https://opensource.org/licenses/BSD-3-Clause>.
@@ -201,6 +201,13 @@ class HDDTree:
 
         return self.synthetic_attribute(_tree_str)
 
+    def squeeze_tree(self):
+        """
+        Suppress single line chains in the HDD tree whose minimal replacements are the
+        same and hence they would result in redundant checks during the minimization.
+        """
+        return self
+
     def replace_with(self, other):
         """
         Replace the current node with `other` in the HDD tree.
@@ -262,3 +269,12 @@ class HDDRule(HDDTree):
 
         for child in self.children:
             child.inherited_attribute(visitor, inherit_value)
+
+    def squeeze_tree(self):
+        for i, child in enumerate(self.children):
+            self.children[i].replace_with(child.squeeze_tree())
+
+        if len(self.children) == 1 and self.children[0].replace == self.replace:
+            return self.children[0]
+
+        return self
