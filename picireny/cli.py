@@ -61,7 +61,7 @@ def call(*,
          tester_class, tester_config,
          input, src, encoding, out,
          antlr, grammar, start_rule, replacements=None, islands=None, lang='python',
-         hdd_star=True, squeeze_tree=True,
+         hdd_star=True, squeeze_tree=True, skip_unremovable_tokens=True,
          cache_class=None, cleanup=True):
     """
     Execute picireny as if invoked from command line, however, control its
@@ -83,6 +83,7 @@ def call(*,
     :param lang: The target language of the parser.
     :param hdd_star: Boolean to enable the HDD star algorithm.
     :param squeeze_tree: Boolean to enable the tree squeezing optimization.
+    :param skip_unremovable_tokens: Boolean to enable hiding unremovable tokens from ddmin.
     :param cache_class: Reference to the cache class to use.
     :param cleanup: Binary flag denoting whether removing auxiliary files at the end is enabled (default: True).
     :return: The path to the minimal test case.
@@ -103,6 +104,9 @@ def call(*,
 
     if squeeze_tree:
         hdd_tree = hdd_tree.squeeze_tree()
+
+    if skip_unremovable_tokens:
+        hdd_tree.skip_unremovable_tokens()
 
     # Start reduce and save result to a file named the same like the original.
     out_file = join(out, basename(input))
@@ -151,6 +155,8 @@ def execute():
                             help='run the hddmin algorithm only once')
     arg_parser.add_argument('--no-squeeze-tree', dest='squeeze_tree', default=True, action='store_false',
                             help='don\'t squeeze rule chains in tree representation')
+    arg_parser.add_argument('--no-skip-unremovable-tokens', dest='skip_unremovable_tokens', default=True, action='store_false',
+                            help='don\'t hide unremovable tokens from the ddmin algorithm')
     arg_parser.add_argument('--version', action='version', version='%(prog)s {version}'.format(version=__version__))
 
     args = arg_parser.parse_args()
@@ -176,5 +182,6 @@ def execute():
          islands=args.islands,
          hdd_star=args.hdd_star,
          squeeze_tree=args.squeeze_tree,
+         skip_unremovable_tokens=args.skip_unremovable_tokens,
          cache_class=args.cache,
          cleanup=args.cleanup)

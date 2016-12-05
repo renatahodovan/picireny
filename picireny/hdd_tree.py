@@ -208,6 +208,13 @@ class HDDTree:
         """
         return self
 
+    def skip_unremovable_tokens(self):
+        """
+        Mark those tokens as removed whose text is the same as their minimal replacement,
+        thus hiding them from hddmin, because they just cause extra test runs but cannot reduce the input.
+        """
+        pass
+
     def replace_with(self, other):
         """
         Replace the current node with `other` in the HDD tree.
@@ -231,6 +238,10 @@ class HDDToken(HDDTree):
 
     def inherited_attribute(self, visitor, attribute=None):
         visitor(self, attribute)
+
+    def skip_unremovable_tokens(self):
+        if self.text == self.replace:
+            self.state = self.REMOVED
 
 
 class HDDRule(HDDTree):
@@ -278,3 +289,7 @@ class HDDRule(HDDTree):
             return self.children[0]
 
         return self
+
+    def skip_unremovable_tokens(self):
+        for child in self.children:
+            child.skip_unremovable_tokens()
