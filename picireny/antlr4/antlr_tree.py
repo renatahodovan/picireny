@@ -176,6 +176,7 @@ class ANTLRDotElement(ANTLRLexerElement):
 class ANTLRString(ANTLRLexerElement):
     def __init__(self, src):
         ANTLRLexerElement.__init__(self)
+        src = ANTLRSetElement.resolve_escapes(src)
         self.start_intervals = [(ord(src[0]), ord(src[0]))]
         self.replacement = src
 
