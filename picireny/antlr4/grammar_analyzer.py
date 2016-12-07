@@ -167,7 +167,7 @@ def analyze_grammars(antlr_lexer, antlr_parser, grammars, replacements):
 
         return None
 
-    def is_optional(children, idx):
+    def get_quantifier(children, idx):
         """
         Check whether an quantifier is defined on the idx-th children.
 
@@ -182,7 +182,10 @@ def analyze_grammars(antlr_lexer, antlr_parser, grammars, replacements):
             suffix = children[idx + 1].start.text
         elif isinstance(children[idx + 1], parser.BlockSuffixContext):
             suffix = children[idx + 1].children[0].start.text
-        return suffix and suffix.startswith(('*', '?', '+'))
+        return suffix
+
+    def is_optional(quantifier):
+        return quantifier.startswith(('*', '?'))
 
     def create_grammar_tree(node, positions, parent_idx, optional, parser_rule):
         """
@@ -209,10 +212,10 @@ def analyze_grammars(antlr_lexer, antlr_parser, grammars, replacements):
             # TerminalNodeImpl nodes already have been added by create_node
             # when processing their parent since at this point we don't know their type.
             for i, c in enumerate([x for x in node.children if not isinstance(x, tree.Tree.TerminalNodeImpl)]):
-                optional = is_optional(node.children, i)
+                quantifier = get_quantifier(node.children, i)
 
                 # Mark positions in parser rules that have any quantifier applied on them.
-                if optional and parser_rule:
+                if quantifier and parser_rule:
                     start_token = parser.getInputStream().get(c.getSourceInterval()[0])
                     end_token = parser.getInputStream().get(c.getSourceInterval()[1])
 
@@ -232,7 +235,7 @@ def analyze_grammars(antlr_lexer, antlr_parser, grammars, replacements):
                     positions[start_ln].append(('s', start))
                     positions[end_ln].append(('e', end))
 
-                create_grammar_tree(c, positions, idx, optional,
+                create_grammar_tree(c, positions, idx, quantifier and is_optional(quantifier),
                                     parser_rule and not isinstance(element, ANTLRLexerRule))
 
     # EOF is a special token provided by the ANTLR framework. It's added preliminarily to
