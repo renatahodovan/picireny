@@ -1,10 +1,11 @@
-# Picireny
-_Hierarchical Delta Debugging Framework_
+========
+Picireny
+========
+*Hierarchical Delta Debugging Framework*
 
-Picireny is a Python3 implementation of the Hierarchical Delta Debugging
-(HDD in short) algorithm adapted to use [ANTLR v4](http://www.antlr.org/)
-for parsing both the input and the grammar(s) describing the format of
-the input. It relies on [*picire*](https://github.com/renatahodovan/picire)
+Picireny is a Python 3 implementation of the Hierarchical Delta Debugging
+(HDD in short) algorithm adapted to use ANTLR_ v4 for parsing both the input
+and the grammar(s) describing the format of the input. It relies on picire_
 to provide the implementation of the core Delta Debugging algorithm along
 with various tweaks like parallelization. Just like the *picire* framework,
 *picireny* can also be used either as a command line tool or as a library.
@@ -22,18 +23,24 @@ level of the tree from top to bottom, and DD is an iterative process itself,
 too. Finally, the nodes kept in the tree are "unparsed" to yield a reduced but
 still "interesting" output.
 
+.. _picire: https://github.com/renatahodovan/picire
 
-## Requirements
+Requirements
+============
 
-* Python >= 3.4
-* pip and setuptools Python packages (the latter is automatically installed by
+* Python_ >= 3.4
+* pip_ and setuptools Python packages (the latter is automatically installed by
   pip).
-* ANTLR v4
+* ANTLR_ v4
 
+.. _Python: https://www.python.org
+.. _pip: https://pip.pypa.io
+.. _ANTLR: http://www.antlr.org
 
-## Install
+Install
+=======
 
-Clone the project and run setuptools:
+Clone the project and run setuptools::
 
     python setup.py install
 
@@ -41,33 +48,38 @@ Clone the project and run setuptools:
 released containing important fixes to the Python target and runtime.)
 
 Once the project is installed, a helper script becomes available that downloads
-the right version of the ANTLR v4 tool jar.
+the right version of the ANTLR v4 tool jar::
 
     picireny-install-antlr4
 
 
-## Usage
+Usage
+=====
 
 *picireny* uses the same CLI as *picire* and hence accepts the same
-[options](https://github.com/renatahodovan/picire/blob/master/README.md#usage).
+options_.
 On top of the inherited ones, *picireny* accepts several further arguments:
 
 * `--grammars` (required): List of grammars describing the input format. (You
-  can write them by hand or simply download them from the [ANTLR v4 grammars
-  repository](https://github.com/antlr/grammars-v4)).
+  can write them by hand or simply download them from the
+  `ANTLR v4 grammars repository`_.
 * `--start-rule` (required): Name of the rule where parsing has to start.
 * `--antlr` (optional): Path the ANTLR tool jar.
 * `--islands` (optional): File describing how to process island grammars if
   needed.
 
-Example usage to reduce an HTML file:
+.. _`ANTLR v4 grammars repository`: https://github.com/antlr/grammars-v4
+.. _options: https://github.com/renatahodovan/picire/blob/master/README.rst#usage
+
+Example usage to reduce an HTML file::
 
     picireny --input=<path/to/the/input.html> --test=<path/to/the/tester> \
              --grammars "HTMLLexer.g4 HTMLParser.g4" --start-rule document \
              --parallel --subset-iterator=skip --complement-iterator=backward
 
 
-## Compatibility
+Compatibility
+=============
 
 *picireny* was tested on:
 
@@ -75,6 +87,9 @@ Example usage to reduce an HTML file:
 * Mac OS X (OS X El Capitan - 10.11).
 
 
-## Copyright and Licensing
+Copyright and Licensing
+=======================
 
-See [LICENSE](LICENSE.md).
+See LICENSE_.
+
+.. _LICENSE: LICENSE.rst
