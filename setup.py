@@ -16,7 +16,6 @@ with open(join(dirname(__file__), 'picireny/VERSION'), 'rb') as f:
 with open(join(dirname(__file__), 'picireny/antlr4/resources/dependencies.json'), 'r') as f:
     deps_json = json.load(f)
     runtime_req = deps_json['runtime_req']
-    runtime_url = deps_json['runtime_url']
 
 
 setup(
@@ -30,7 +29,6 @@ setup(
     description='Picireny Hierarchical Delta Debugging Framework',
     long_description=open('README.rst').read(),
     install_requires=['picire', runtime_req],
-    dependency_links=[runtime_url],
     zip_safe=False,
     include_package_data=True,
     entry_points={

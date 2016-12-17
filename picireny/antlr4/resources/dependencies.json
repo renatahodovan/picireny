@@ -1,5 +1,4 @@
 {
-  "runtime_req": "antlr4-python3-runtime<=4.5.4",
-  "runtime_url": "https://github.com/akosthekiss/antlr4/releases/download/4.5.4-SNAPSHOT%2Bpy3fixes-20160705-1111/antlr4-python3-runtime-4.5.4.tar.gz#egg=antlr4-python3-runtime-4.5.4",
-  "tool_url": "https://github.com/akosthekiss/antlr4/releases/download/4.5.4-SNAPSHOT%2Bpy3fixes-20160705-1111/antlr4-4.5.4-SNAPSHOT.py3fixes-20160705-1111.jar"
+  "runtime_req": "antlr4-python3-runtime==4.6",
+  "tool_url": "http://www.antlr.org/download/antlr-4.6-complete.jar"
 }
