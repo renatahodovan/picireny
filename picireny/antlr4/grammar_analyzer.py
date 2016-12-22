@@ -19,7 +19,7 @@ def analyze_grammars(antlr_lexer, antlr_parser, grammars, replacements):
     :param grammars: List of the grammars describing the input format.
     :param replacements: Dictionary that contains the predefined minimal
                          replacement of any lexer or parser rules. These won't be overridden later.
-    :return: Pair of the replacement dictionary and the list of positions of optional elements.
+    :return: Pair of the replacement dictionary and the positions of quantified elements in the grammars.
     """
 
     def set_replacements(tree):
@@ -169,11 +169,11 @@ def analyze_grammars(antlr_lexer, antlr_parser, grammars, replacements):
 
     def get_quantifier(children, idx):
         """
-        Check whether an quantifier is defined on the idx-th children.
+        Check whether a quantifier is defined on the idx-th children.
 
         :param children: All the siblings of the current node.
         :param idx: The index of the current node among the siblings.
-        :return: Boolean indicating whether the idx-th context is optional or not.
+        :return: Quantifier string of the idx-th context if one is defined, None otherwise.
         """
         if len(children) <= idx + 1:
             return None
@@ -185,6 +185,13 @@ def analyze_grammars(antlr_lexer, antlr_parser, grammars, replacements):
         return suffix
 
     def is_optional(quantifier):
+        """
+        Check whether a quantifier string makes its quantified expression optional,
+        i.e., if it allows the expression to occur 0 times.
+
+        :param quantifier: Quantifier string.
+        :return: Boolean indicating whether the quantifier is optional or not.
+        """
         return quantifier.startswith(('*', '?'))
 
     def create_grammar_tree(node, positions, parent_idx, optional, parser_rule):
