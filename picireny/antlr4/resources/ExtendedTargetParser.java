@@ -76,10 +76,10 @@ public class Extended$parser_class extends $parser_class {
             public Position end;
 
             public HDDNode(String _name) {
-                 name = _name;
-                 parent = null;
-                 start = null;
-                 end = null;
+                name = _name;
+                parent = null;
+                start = null;
+                end = null;
             }
 
             public JsonObjectBuilder createJsonObjectBuilder() {
@@ -95,28 +95,28 @@ public class Extended$parser_class extends $parser_class {
         }
 
         private static class HDDRule extends HDDNode {
-             public ArrayList<HDDNode> children;
-             public boolean recursive_rule;
+            public ArrayList<HDDNode> children;
+            public boolean recursive_rule;
 
-             public HDDRule(String _name) {
-                 super(_name);
-                 children = new ArrayList<HDDNode>();
-                 recursive_rule = false;
-             }
+            public HDDRule(String _name) {
+                super(_name);
+                children = new ArrayList<HDDNode>();
+                recursive_rule = false;
+            }
 
-             public void addChild(HDDNode node) {
-                 children.add(node);
-                 node.parent = this;
-             }
+            public void addChild(HDDNode node) {
+                children.add(node);
+                node.parent = this;
+            }
 
-             public JsonObjectBuilder createJsonObjectBuilder() {
+            public JsonObjectBuilder createJsonObjectBuilder() {
                 JsonArrayBuilder children_array = Json.createArrayBuilder();
                 for (HDDNode child : children)
                     children_array.add(child.createJsonObjectBuilder());
 
                 return super.createJsonObjectBuilder()
                     .add("children", children_array);
-             }
+            }
         }
 
         private static class HDDToken extends HDDNode {
@@ -130,8 +130,8 @@ public class Extended$parser_class extends $parser_class {
             }
 
             public JsonObjectBuilder createJsonObjectBuilder() {
-               return super.createJsonObjectBuilder()
-                   .add("text", text);
+                return super.createJsonObjectBuilder()
+                    .add("text", text);
             }
         }
 
