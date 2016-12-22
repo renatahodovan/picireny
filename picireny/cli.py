@@ -79,6 +79,7 @@ def call(*,
     :param start_rule: Name of the start rule of the top-level grammar.
     :param replacements: Dictionary containing the minimal replacement of every lexer and parser rules.
     :param islands: Path to the Python3 file describing how to process island grammars.
+    :param lang: The target language of the parser.
     :param parallel: Boolean to enable parallel mode (default: False).
     :param disable_cache: Boolean to disable cache (default: False).
     :param cleanup: Binary flag denoting whether removing auxiliary files at the end is enabled (default: True).
