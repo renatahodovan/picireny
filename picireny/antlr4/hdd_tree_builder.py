@@ -25,7 +25,7 @@ from ..hdd_tree import HDDRule, HDDToken, HDDTree
 logger = logging.getLogger(__name__)
 
 
-class HDDStar(HDDRule):
+class HDDQuantifier(HDDRule):
     """
     Special rule type in the HDD tree to support optional quantifiers.
     """
@@ -69,10 +69,10 @@ def create_hdd_tree(input_stream, grammar, start_rule, antlr, work_dir, *, repla
     def inject_optional_actions(grammar, positions, target_file):
         """
         Update the original parser grammar by injecting actions to the start and
-        end of every optional parts.
+        end of every quantified part.
 
         :param grammar: Path to the grammar to be updated.
-        :param positions: List of positions containing start and end locations.
+        :param positions: Start and end locations of quantified elements.
         :param target_file: Path to the updated grammar.
         """
         with open(grammar, 'rb') as f:
@@ -258,7 +258,7 @@ def create_hdd_tree(input_stream, grammar, start_rule, antlr, work_dir, *, repla
 
             def exitEveryRule(self, ctx:ParserRuleContext):
                 # If the input contains syntax error, then the last optional block was may not closed.
-                while isinstance(self.current_node, HDDStar):
+                while isinstance(self.current_node, HDDQuantifier):
                     self.exit_optional()
 
                 assert self.current_node.name == self.parser.ruleNames[ctx.getRuleIndex()],\
@@ -297,13 +297,13 @@ def create_hdd_tree(input_stream, grammar, start_rule, antlr, work_dir, *, repla
                     self.current_node.add_child(HDDErrorToken(ctx.symbol.text, start=start, end=end))
 
             def enter_optional(self):
-                star_node = HDDStar()
-                self.current_node.add_child(star_node)
-                self.current_node = star_node
+                quant_node = HDDQuantifier()
+                self.current_node.add_child(quant_node)
+                self.current_node = quant_node
 
             def exit_optional(self):
-                assert self.current_node.parent, 'Star node has no parent.'
-                assert self.current_node.children, 'Star node has no children.'
+                assert self.current_node.parent, 'Quantifier node has no parent.'
+                assert self.current_node.children, 'Quantifier node has no children.'
 
                 self.current_node.start = self.current_node.children[0].start
                 self.current_node.end = self.current_node.children[-1].end
@@ -330,7 +330,7 @@ def create_hdd_tree(input_stream, grammar, start_rule, antlr, work_dir, *, repla
         """
 
         def set_replacement(node):
-            if isinstance(node, (HDDStar, HDDErrorToken)):
+            if isinstance(node, (HDDQuantifier, HDDErrorToken)):
                 node.replace = ''
             elif isinstance(node, HDDRule):
                 node.replace = replacements[node.name]

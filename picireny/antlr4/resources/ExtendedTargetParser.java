@@ -135,8 +135,8 @@ public class Extended$parser_class extends $parser_class {
             }
         }
 
-        private static class HDDStar extends HDDRule {
-            public HDDStar() {
+        private static class HDDQuantifier extends HDDRule {
+            public HDDQuantifier() {
                 super(null);
             }
         }
@@ -198,7 +198,7 @@ public class Extended$parser_class extends $parser_class {
 
         public void exitEveryRule(ParserRuleContext ctx) {
             // If the input contains syntax error, then the last optional block might not have been closed.
-            while (current_node instanceof HDDStar)
+            while (current_node instanceof HDDQuantifier)
                 exit_optional();
 
             assert current_node.name.equals(parser.getRuleNames()[ctx.getRuleIndex()]) : current_node.name + " (" + current_node.toString() + ") != " + parser.getRuleNames()[ctx.getRuleIndex()];
@@ -244,14 +244,14 @@ public class Extended$parser_class extends $parser_class {
         }
 
         public void enter_optional() {
-            HDDStar star_node = new HDDStar();
-            current_node.addChild(star_node);
-            current_node = star_node;
+            HDDQuantifier quant_node = new HDDQuantifier();
+            current_node.addChild(quant_node);
+            current_node = quant_node;
         }
 
         public void exit_optional() {
-            assert current_node.parent != null : "Star node has no parent.";
-            assert current_node.children.size() > 0 : "Star node has no children.";
+            assert current_node.parent != null : "Quantifier node has no parent.";
+            assert current_node.children.size() > 0 : "Quantifier node has no children.";
 
             current_node.start = current_node.children.get(0).start;
             current_node.end = current_node.children.get(current_node.children.size() - 1).end;
