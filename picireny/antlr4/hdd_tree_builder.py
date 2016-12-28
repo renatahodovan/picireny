@@ -110,7 +110,8 @@ def create_hdd_tree(input_stream, grammar, start_rule, antlr, work_dir, *, repla
         """
         antlr4_workdir = join(work_dir, 'antlr4')
         makedirs(antlr4_workdir, exist_ok=True)
-        sys.path.append(antlr4_workdir)
+        if antlr4_workdir not in sys.path:
+            sys.path.append(antlr4_workdir)
 
         # Copy the resources needed to interpret the input grammars.
         for resource in ['LexerAdaptor.py', 'ANTLRv4Lexer.g4', 'ANTLRv4Parser.g4', 'LexBasic.g4']:
@@ -156,7 +157,8 @@ def create_hdd_tree(input_stream, grammar, start_rule, antlr, work_dir, *, repla
         logger.debug('Replacements are calculated...')
 
         makedirs(grammar_workdir, exist_ok=True)
-        sys.path.append(grammar_workdir)
+        if grammar_workdir not in sys.path:
+            sys.path.append(grammar_workdir)
 
         # Inject actions into the target grammars to help localizing part of the test case that are optional.
         for i, g in enumerate(grammar):
