@@ -10,13 +10,33 @@ import logging
 
 from os.path import join
 
-from picire import *
-
 logger = logging.getLogger(__name__)
 
 
+class Unparser(object):
+    """Class defines how to build test case from an HDD tree."""
+
+    def __init__(self, tree, level):
+        """
+        Initialize the unparser object.
+
+        :param tree: Tree representing the current test case.
+        """
+        self.tree = tree
+        self.level = level
+
+    def __call__(self, config):
+        """
+        :param config: List of tree units/deltas will be kept in the next test case.
+        :return: The unparsed test case containing only the units defined in config.
+        """
+        self.tree.clear_remove()
+        self.tree.set_remove(self.level, config)
+        return self.tree.unparse()
+
+
 def hddmin(hdd_tree, reduce_class, reduce_config, tester_class, tester_config, test_name, work_dir,
-           *, hdd_star=True):
+           *, hdd_star=True, cache_class=None):
     """
     Run the main reduce algorithm.
 
@@ -29,32 +49,13 @@ def hddmin(hdd_tree, reduce_class, reduce_config, tester_class, tester_config, t
     :param test_name: Name of the test case file.
     :param work_dir: Directory to save temporary test files.
     :param hdd_star: Boolean to enable the HDD star algorithm.
+    :param cache_class: Reference to the cache class to use.
     :return: The 1-minimal test case.
     """
 
-    class Unparser(object):
-        """Class defines how to build test case from an HDD tree."""
-
-        def __init__(self, tree, level):
-            """
-            Initialize the unparser object.
-
-            :param tree: Tree representing the current test case.
-            :param level: The current level or granularity that the reducer work with.
-            """
-            self.tree = tree
-            self.level = level
-
-        def __call__(self, config):
-            """
-            :param config: List of tree units/deltas will be kept in the next test case.
-            :return: The unparsed test case containing only the units defined in config.
-            """
-            self.tree.clear_remove()
-            self.tree.set_remove(self.level, config)
-            return self.tree.unparse()
-
+    cache = cache_class() if cache_class else None
     iter_cnt = 0
+
     while True:
         logger.info('Iteration #%d', iter_cnt)
         hdd_tree.check()
@@ -66,14 +67,20 @@ def hddmin(hdd_tree, reduce_class, reduce_config, tester_class, tester_config, t
 
         while count:
             logger.info('Checking level %d ...', level)
-            dd = reduce_class(tester_class(test_builder=Unparser(hdd_tree, level),
+
+            test_builder = Unparser(hdd_tree, level)
+            if hasattr(cache, 'set_test_builder'):
+                cache.set_test_builder(test_builder)
+
+            dd = reduce_class(tester_class(test_builder=test_builder,
                                            test_pattern=join(work_dir, 'iter_%d' % iter_cnt, 'level_%d' % level, '%s', test_name),
                                            **tester_config),
+                              cache=cache,
                               **reduce_config)
             c = dd.ddmin(list(range(count)))
             changed = changed or count > len(c)
-            if global_structures.outcome_cache:
-                global_structures.outcome_cache.clear()
+            if cache:
+                cache.clear()
 
             hdd_tree.commit_remove(level, c)
             hdd_tree.clear_remove()

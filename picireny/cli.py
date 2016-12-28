@@ -62,7 +62,7 @@ def call(*,
          input, src, encoding, out,
          antlr, grammar, start_rule, replacements=None, islands=None, lang='python',
          hdd_star=True,
-         parallel=False, disable_cache=False, cleanup=True):
+         cache_class=None, cleanup=True):
     """
     Execute picireny as if invoked from command line, however, control its
     behaviour not via command line arguments but function parameters.
@@ -82,8 +82,7 @@ def call(*,
     :param islands: Path to the Python3 file describing how to process island grammars.
     :param lang: The target language of the parser.
     :param hdd_star: Boolean to enable the HDD star algorithm.
-    :param parallel: Boolean to enable parallel mode (default: False).
-    :param disable_cache: Boolean to disable cache (default: False).
+    :param cache_class: Reference to the cache class to use.
     :param cleanup: Binary flag denoting whether removing auxiliary files at the end is enabled (default: True).
     :return: The path to the minimal test case.
     """
@@ -95,7 +94,6 @@ def call(*,
     logger.info('Reduce session starts for %s\n%s',
                 input, ''.join(['\t%s: %s\n' % (k, v) for k, v in sorted(args.items())]))
 
-    picire.global_structures.init(parallel=parallel, disable_cache=disable_cache)
     grammar_workdir = join(out, 'grammar')
     tests_workdir = join(out, 'tests')
 
@@ -112,7 +110,8 @@ def call(*,
                        tester_config,
                        basename(input),
                        tests_workdir,
-                       hdd_star=hdd_star))
+                       hdd_star=hdd_star,
+                       cache_class=cache_class))
     logger.info('Result is saved to %s.', out_file)
 
     if cleanup:
@@ -170,6 +169,5 @@ def execute():
          replacements=args.replacements,
          islands=args.islands,
          hdd_star=args.hdd_star,
-         parallel=args.parallel,
-         disable_cache=args.disable_cache,
+         cache_class=args.cache,
          cleanup=args.cleanup)

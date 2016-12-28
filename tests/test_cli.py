@@ -18,8 +18,9 @@ antlr = os.getenv('ANTLR')
 
 
 @pytest.mark.parametrize('args_cache', [
-    (),
-    ('--disable-cache', ),
+    ('--cache=none', ),
+    ('--cache=config', ),
+    ('--cache=content', ),
 ])
 @pytest.mark.parametrize('args_parser', [
     (),

@@ -1,4 +1,4 @@
-# Copyright (c) 2016 Renata Hodovan, Akos Kiss.
+# Copyright (c) 2016-2017 Renata Hodovan, Akos Kiss.
 #
 # Licensed under the BSD 3-Clause License
 # <LICENSE.rst or https://opensource.org/licenses/BSD-3-Clause>.
@@ -28,7 +28,7 @@ setup(
     author_email='hodovan@inf.u-szeged.hu, akiss@inf.u-szeged.hu',
     description='Picireny Hierarchical Delta Debugging Framework',
     long_description=open('README.rst').read(),
-    install_requires=['picire==16.7', runtime_req],
+    install_requires=['picire==17.1', runtime_req],
     zip_safe=False,
     include_package_data=True,
     entry_points={
