@@ -27,7 +27,7 @@ antlr = os.getenv('ANTLR')
 ])
 class TestCli:
 
-    @pytest.mark.parametrize('test,inp,exp,grammar,rule', [
+    @pytest.mark.parametrize('test, inp, exp, grammar, rule', [
         ('test-json-obj-arr-foo.sh', 'inp-obj-arr.json', 'exp-obj-arr-foo.json', 'JSON.g4', 'json'),
         ('test-json-obj-arr-bar.sh', 'inp-obj-arr.json', 'exp-obj-arr-bar.json', 'JSON.g4', 'json'),
         ('test-json-obj-arr-baz.sh', 'inp-obj-arr.json', 'exp-obj-arr-baz.json', 'JSON.g4', 'json'),
