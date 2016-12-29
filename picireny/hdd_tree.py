@@ -115,6 +115,9 @@ class HDDTree:
             if node.level == level and node.state == self.KEEP:
                 node.tagID = count[0]
                 count[0] += 1
+            else:
+                # Make sure that tags will not be messed up even if HDD star runs.
+                node.tagID = None
 
         count = [0]
         self.traverse(tag_visitor)

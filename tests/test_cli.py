@@ -25,6 +25,10 @@ antlr = os.getenv('ANTLR')
     (),
     ('--parser=java', ),
 ])
+@pytest.mark.parametrize('args_hdd_star', [
+    (),
+    ('--no-hdd-star', ),
+])
 class TestCli:
 
     @pytest.mark.parametrize('test, inp, exp, grammar, rule', [
@@ -33,7 +37,7 @@ class TestCli:
         ('test-json-obj-arr-baz.sh', 'inp-obj-arr.json', 'exp-obj-arr-baz.json', 'JSON.g4', 'json'),
         ('test-json-obj-arr-87.sh', 'inp-obj-arr.json', 'exp-obj-arr-87.json', 'JSON.g4', 'json'),
     ])
-    def test_cli(self, test, inp, exp, grammar, rule, tmpdir, args_cache, args_parser):
+    def test_cli(self, test, inp, exp, grammar, rule, tmpdir, args_cache, args_parser, args_hdd_star):
         out_dir = '%s' % tmpdir
         cmd = (sys.executable, '-m', 'picireny')\
               + ('--test=' + test, '--input=' + inp, '--out=' + out_dir) \
@@ -42,6 +46,7 @@ class TestCli:
               cmd += ('--antlr=' + antlr, )
         cmd += args_cache
         cmd += args_parser
+        cmd += args_hdd_star
         proc = subprocess.Popen(cmd, cwd=resources_dir)
         proc.communicate()
         assert proc.returncode == 0

@@ -61,6 +61,7 @@ def call(*,
          tester_class, tester_config,
          input, src, encoding, out,
          antlr, grammar, start_rule, replacements=None, islands=None, lang='python',
+         hdd_star=True,
          parallel=False, disable_cache=False, cleanup=True):
     """
     Execute picireny as if invoked from command line, however, control its
@@ -80,6 +81,7 @@ def call(*,
     :param replacements: Dictionary containing the minimal replacement of every lexer and parser rules.
     :param islands: Path to the Python3 file describing how to process island grammars.
     :param lang: The target language of the parser.
+    :param hdd_star: Boolean to enable the HDD star algorithm.
     :param parallel: Boolean to enable parallel mode (default: False).
     :param disable_cache: Boolean to disable cache (default: False).
     :param cleanup: Binary flag denoting whether removing auxiliary files at the end is enabled (default: True).
@@ -101,7 +103,8 @@ def call(*,
                        tester_class,
                        tester_config,
                        basename(input),
-                       tests_workdir))
+                       tests_workdir,
+                       hdd_star=hdd_star))
 
     if cleanup:
         rmtree(grammar_workdir)
@@ -132,6 +135,8 @@ def execute():
     arg_parser.add_argument('--parser', metavar='LANG', default='python', choices=['python', 'java'],
                             help='language of the generated parsers [%(choices)s; default: %(default)s] '
                                  '(using Java might gain performance, but needs JDK)')
+    arg_parser.add_argument('--no-hdd-star', dest='hdd_star', default=True, action='store_false',
+                            help='run the hddmin algorithm only once')
     arg_parser.add_argument('--version', action='version', version='%(prog)s {version}'.format(version=__version__))
 
     args = arg_parser.parse_args()
@@ -156,6 +161,7 @@ def execute():
          lang=args.parser,
          replacements=args.replacements,
          islands=args.islands,
+         hdd_star=args.hdd_star,
          parallel=args.parallel,
          disable_cache=args.disable_cache,
          cleanup=args.cleanup)
