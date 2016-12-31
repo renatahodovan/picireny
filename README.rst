@@ -3,6 +3,8 @@ Picireny
 ========
 *Hierarchical Delta Debugging Framework*
 
+.. image:: https://badge.fury.io/py/picireny.svg
+   :target: https://badge.fury.io/py/picireny
 .. image:: https://travis-ci.org/renatahodovan/picireny.svg?branch=master
    :target: https://travis-ci.org/renatahodovan/picireny
 
@@ -35,7 +37,8 @@ Requirements
 * pip_ and setuptools Python packages (the latter is automatically installed by
   pip).
 * ANTLR_ v4
-* Java_ SE >= 7 JRE or JDK (the latter is optional, only needed if Java is used as the parser language)
+* Java_ SE >= 7 JRE or JDK (the latter is optional, only needed if Java is used
+  as the parser language)
 
 .. _Python: https://www.python.org
 .. _pip: https://pip.pypa.io
@@ -45,12 +48,13 @@ Requirements
 Install
 =======
 
-Clone the project and run setuptools::
+The quick way::
+
+    pip install picireny
+
+Alternatively, by cloning the project and running setuptools::
 
     python setup.py install
-
-(Quick pip install from PyPi will be available when ANTLR 4.5.4 is officially
-released containing important fixes to the Python target and runtime.)
 
 Once the project is installed, a helper script becomes available that downloads
 the right version of the ANTLR v4 tool jar::
