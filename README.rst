@@ -30,6 +30,7 @@ still "interesting" output.
 
 .. _picire: https://github.com/renatahodovan/picire
 
+
 Requirements
 ============
 
@@ -44,6 +45,7 @@ Requirements
 .. _pip: https://pip.pypa.io
 .. _ANTLR: http://www.antlr.org
 .. _Java: https://www.oracle.com/java/
+
 
 Install
 =======
@@ -69,14 +71,14 @@ Usage
 options_.
 On top of the inherited ones, *picireny* accepts several further arguments:
 
-* `--grammars` (required): List of grammars describing the input format. (You
+* ``--grammars`` (required): List of grammars describing the input format. (You
   can write them by hand or simply download them from the
   `ANTLR v4 grammars repository`_.
-* `--start-rule` (required): Name of the rule where parsing has to start.
-* `--antlr` (optional): Path the ANTLR tool jar.
-* `--parser` (optional): Language of the generated parser. Currently 'python'
+* ``--start-rule`` (required): Name of the rule where parsing has to start.
+* ``--antlr`` (optional): Path the ANTLR tool jar.
+* ``--parser`` (optional): Language of the generated parser. Currently 'python'
   (default) and 'java' targets (faster, but needs JDK) are supported.
-* `--islands` (optional): File describing how to process island grammars if
+* ``--islands`` (optional): File describing how to process island grammars if
   needed.
 
 .. _`ANTLR v4 grammars repository`: https://github.com/antlr/grammars-v4
