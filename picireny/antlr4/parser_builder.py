@@ -1,4 +1,4 @@
-# Copyright (c) 2016 Renata Hodovan, Akos Kiss.
+# Copyright (c) 2016-2017 Renata Hodovan, Akos Kiss.
 #
 # Licensed under the BSD 3-Clause License
 # <LICENSE.rst or https://opensource.org/licenses/BSD-3-Clause>.
@@ -33,7 +33,7 @@ def build_grammars(grammars, out, antlr, lang='python'):
     if lang not in grammar_cache:
         grammar_cache[lang] = {}
     if grammars in grammar_cache[lang]:
-        logger.debug('{grammars} is already built with {lang} target.'.format(grammars=', '.join(grammars), lang=lang))
+        logger.debug('%r is already built with %s target.', grammars, lang)
         return grammar_cache[lang][grammars]
 
     try:
@@ -49,7 +49,7 @@ def build_grammars(grammars, out, antlr, lang='python'):
                    stdout=PIPE, stderr=STDOUT, shell=True, cwd=out) as proc:
             output, exit_code = proc.stdout.read().decode(), proc.returncode
             if exit_code:
-                logger.critical('Building grammars ({grammars}) failed: {error}'.format(grammars=', '.join(grammars), error=output))
+                logger.critical('Building grammars %r failed: %s', grammars, output)
                 sys.exit(1)
 
         files = listdir(out)
@@ -72,5 +72,5 @@ def build_grammars(grammars, out, antlr, lang='python'):
 
         return grammar_cache[lang][grammars]
     except Exception as e:
-        logger.critical('Exception while loading parser modules: %s' % e)
+        logger.critical('Exception while loading parser modules: %s', e)
         sys.exit(1)

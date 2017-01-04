@@ -45,7 +45,7 @@ class HDDErrorToken(HDDToken):
 # Override ConsoleErrorListener to suppress parse issues in non-verbose mode.
 class ConsoleListener(error.ErrorListener.ConsoleErrorListener):
     def syntaxError(self, recognizer, offendingSymbol, line, column, msg, e):
-        logger.debug('line %d:%d %s' % (line, column, msg))
+        logger.debug('line %d:%d %s', line, column, msg)
 error.ErrorListener.ConsoleErrorListener.INSTANCE = ConsoleListener()
 
 
@@ -205,8 +205,8 @@ def create_hdd_tree(input_stream, grammar, start_rule, antlr, work_dir, *, repla
 
             def syntax_error_warning(self):
                 if self._syntaxErrors:
-                    logger.warn('%s finished with %d syntax errors. This may decrease reduce quality.' %
-                                (target_parser_class.__name__, self._syntaxErrors))
+                    logger.warning('%s finished with %d syntax errors. This may decrease reduce quality.',
+                                   target_parser_class.__name__, self._syntaxErrors)
 
         class ExtendedTargetListener(target_listener_class):
             """
@@ -341,7 +341,7 @@ def create_hdd_tree(input_stream, grammar, start_rule, antlr, work_dir, *, repla
 
         island_nodes = []
 
-        logger.debug('Parse input with {start_rule} rule'.format(start_rule=start_rule))
+        logger.debug('Parse input with %s rule', start_rule)
         if lang != 'python':
             island_rules = [desc.rule for desc in island_desc_to_list(island_desc)]
 

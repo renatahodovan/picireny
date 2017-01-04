@@ -1,5 +1,5 @@
 # Copyright (c) 2007 Ghassan Misherghi.
-# Copyright (c) 2016 Renata Hodovan, Akos Kiss.
+# Copyright (c) 2016-2017 Renata Hodovan, Akos Kiss.
 #
 # Licensed under the BSD 3-Clause License
 # <LICENSE.rst or https://opensource.org/licenses/BSD-3-Clause>.
@@ -56,7 +56,7 @@ def hddmin(hdd_tree, reduce_class, reduce_config, tester_class, tester_config, t
 
     iter_cnt = 0
     while True:
-        logger.info('Iteration #%d' % iter_cnt)
+        logger.info('Iteration #%d', iter_cnt)
         hdd_tree.check()
         hdd_tree.set_levels()
 
@@ -65,12 +65,11 @@ def hddmin(hdd_tree, reduce_class, reduce_config, tester_class, tester_config, t
         count = hdd_tree.tag(level)
 
         while count:
-            logger.info('Checking level %d ...' % level)
+            logger.info('Checking level %d ...', level)
             dd = reduce_class(tester_class(test_builder=Unparser(hdd_tree, level),
                                            test_pattern=join(work_dir, 'iter_%d' % iter_cnt, 'level_%d' % level, '%s', test_name),
                                            **tester_config),
                               **reduce_config)
-            logger.info('Checking subsets: %s' % str(list(range(count))))
             c = dd.ddmin(list(range(count)))
             changed = changed or count > len(c)
             if global_structures.outcome_cache:
