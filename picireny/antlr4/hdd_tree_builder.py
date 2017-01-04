@@ -1,4 +1,4 @@
-# Copyright (c) 2016 Renata Hodovan, Akos Kiss.
+# Copyright (c) 2016-2017 Renata Hodovan, Akos Kiss.
 #
 # Licensed under the BSD 3-Clause License
 # <LICENSE.rst or https://opensource.org/licenses/BSD-3-Clause>.
@@ -430,11 +430,13 @@ def create_hdd_tree(input_stream, grammar, start_rule, antlr, work_dir, *, repla
             if last_processed < interval[1]:
                 next_token_text = content[last_processed:interval[1]]
                 prefix = content[0:last_processed]
-                children.append(HDDToken(next_token_text, next_token_text,
+                children.append(HDDToken(name='',
+                                         text=next_token_text,
                                          start=HDDTree.Position(node.start.line + content[0:last_processed].count('\n'),
                                                                 len(prefix) - prefix.rfind('\n')),
                                          end=HDDTree.Position(node.start.line + next_token_text.count('\n'),
-                                                              len(next_token_text) - next_token_text.rfind('\n'))))
+                                                              len(next_token_text) - next_token_text.rfind('\n')),
+                                         replace=next_token_text))
 
             # Process a island and save its subtree.
             children.append(build_hdd_tree(input_stream=InputStream(content[interval[1]:interval[2]]),
@@ -450,11 +452,13 @@ def create_hdd_tree(input_stream, grammar, start_rule, antlr, work_dir, *, repla
         if last_processed < len(content):
             next_token_text = content[last_processed:]
             prefix = content[0:last_processed]
-            children.append(HDDToken(next_token_text, next_token_text,
+            children.append(HDDToken(name='',
+                                     text=next_token_text,
                                      start=HDDTree.Position(node.start.line + content[0:last_processed].count('\n'),
                                                             len(prefix) - prefix.rfind('\n')),
                                      end=HDDTree.Position(node.start.line + next_token_text.count('\n'),
-                                                          len(next_token_text) - next_token_text.rfind('\n'))))
+                                                          len(next_token_text) - next_token_text.rfind('\n')),
+                                     replace=next_token_text))
         return children
 
     lexer_class, parser_class, listener_class, replacements = prepare_parsing(grammar=grammar,
