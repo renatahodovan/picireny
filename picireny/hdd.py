@@ -67,7 +67,7 @@ def hddmin(hdd_tree, reduce_class, reduce_config, tester_class, tester_config, t
         while count:
             logger.info('Checking level %d ...' % level)
             dd = reduce_class(tester_class(test_builder=Unparser(hdd_tree, level),
-                                           test_pattern=join(work_dir, 'level_%d' % level, '%s', test_name),
+                                           test_pattern=join(work_dir, 'iter_%d' % iter_cnt, 'level_%d' % level, '%s', test_name),
                                            **tester_config),
                               **reduce_config)
             logger.info('Checking subsets: %s' % str(list(range(count))))
