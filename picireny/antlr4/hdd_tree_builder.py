@@ -1,4 +1,4 @@
-# Copyright (c) 2016-2017 Renata Hodovan, Akos Kiss.
+# Copyright (c) 2016-2018 Renata Hodovan, Akos Kiss.
 #
 # Licensed under the BSD 3-Clause License
 # <LICENSE.rst or https://opensource.org/licenses/BSD-3-Clause>.
@@ -35,6 +35,13 @@ class HDDQuantifier(HDDRule):
         HDDRule.__init__(self, '', start=start, end=end)
 
 
+class HDDHiddenToken(HDDToken):
+    """
+    Special token type that represents tokens from hidden channels.
+    """
+    pass
+
+
 class HDDErrorToken(HDDToken):
     """
     Special token type that represents unmatched tokens. The minimal replacement of such nodes
@@ -51,7 +58,7 @@ class ConsoleListener(error.ErrorListener.ConsoleErrorListener):
 error.ErrorListener.ConsoleErrorListener.INSTANCE = ConsoleListener()
 
 
-def create_hdd_tree(input_stream, input_format, start, antlr, work_dir, *, lang='python'):
+def create_hdd_tree(input_stream, input_format, start, antlr, work_dir, *, hidden_tokens=False, lang='python'):
     """
     Build a tree that the HDD algorithm can work with.
 
@@ -60,6 +67,7 @@ def create_hdd_tree(input_stream, input_format, start, antlr, work_dir, *, lang=
     :param start: Name of the start rule in [grammarname:]rulename format.
     :param antlr: Path to the ANTLR4 tool (Java jar binary).
     :param work_dir: Working directory.
+    :param hidden_tokens: Build hidden tokens of the input format into the HDD tree.
     :param lang: The target language of the parser.
     :return: The root of the created HDD tree.
     """
@@ -172,6 +180,21 @@ def create_hdd_tree(input_stream, input_format, start, antlr, work_dir, *, lang=
             input_format[grammar_name].update({'lexer': target_lexer_class, 'parser': target_parser_class, 'listener': target_listener_class, 'replacements': replacements})
             return
 
+        class ExtendedTargetLexer(target_lexer_class):
+            """
+            ExtendedTargetLexer is a subclass of the original lexer implementation.
+            It can recognize skipped tokens and instead of eliminating them from the parser
+            they can be redirected to the dedicated PICIRENY_CHANNEL for later use.
+            """
+
+            PICIRENY_CHANNEL = -3
+
+            # Skipped tokens cannot be accessed from the parser but we still need them to
+            # unparse test cases correctly. Sending these tokens to a dedicated channel won't
+            # alter the parse but makes these tokens available.
+            def skip(self):
+                self._channel = self.PICIRENY_CHANNEL
+
         class ExtendedTargetParser(target_parser_class):
             """
             ExtendedTargetParser is a subclass of the original parser implementation.
@@ -215,8 +238,9 @@ def create_hdd_tree(input_stream, input_format, start, antlr, work_dir, *, lang=
             def __init__(self, parser):
                 self.parser = parser
                 self.current_node = None
-                self.island_nodes = []
                 self.root = None
+                self.seen_terminal = False
+                self.island_nodes = []
 
             def recursion_enter(self):
                 assert isinstance(self.current_node, HDDRule)
@@ -272,19 +296,38 @@ def create_hdd_tree(input_stream, input_format, start, antlr, work_dir, *, lang=
                                 token.column + len(token.text) if not line_breaks else
                                 len(token.text) - token.text.rfind('\n'))
 
-            def visitTerminal(self, ctx:TerminalNode):
-                name, text = (self.parser.symbolicNames[ctx.symbol.type], ctx.symbol.text) if ctx.symbol.type != Token.EOF else ('EOF', '')
-                start, end = self.tokenBoundaries(ctx.symbol)
+            def addToken(self, node, child):
+                if not self.seen_terminal:
+                    hidden_tokens = self.parser.getTokenStream().getHiddenTokensToLeft(node.symbol.tokenIndex, -1) or []
+                    for token in hidden_tokens:
+                        start, end = self.tokenBoundaries(token)
+                        self.current_node.add_child(HDDHiddenToken(self.parser.symbolicNames[token.type], token.text,
+                                                                   start=start, end=end))
+                self.seen_terminal = True
 
-                node = HDDToken(name, text, start=start, end=end)
-                self.current_node.add_child(node)
+                self.current_node.add_child(child)
+
+                hidden_tokens = self.parser.getTokenStream().getHiddenTokensToRight(node.symbol.tokenIndex, -1) or []
+                for token in hidden_tokens:
+                    start, end = self.tokenBoundaries(token)
+                    self.current_node.add_child(HDDHiddenToken(self.parser.symbolicNames[token.type], token.text,
+                                                               start=start, end=end))
+
+            def visitTerminal(self, node:TerminalNode):
+                token = node.symbol
+                name, text = (self.parser.symbolicNames[token.type], token.text) if token.type != Token.EOF else ('EOF', '')
+                start, end = self.tokenBoundaries(token)
+
+                child = HDDToken(name, text, start=start, end=end)
+                self.addToken(node, child)
                 if name in grammar['islands']:
-                    self.island_nodes.append(node)
+                    self.island_nodes.append(child)
 
-            def visitErrorNode(self, ctx:ErrorNode):
-                if hasattr(ctx, 'symbol'):
-                    start, end = self.tokenBoundaries(ctx.symbol)
-                    self.current_node.add_child(HDDErrorToken(ctx.symbol.text, start=start, end=end))
+            def visitErrorNode(self, node:ErrorNode):
+                if hasattr(node, 'symbol'):
+                    token = node.symbol
+                    start, end = self.tokenBoundaries(token)
+                    self.addToken(node, HDDErrorToken(token.text, start=start, end=end))
 
             def enter_optional(self):
                 quant_node = HDDQuantifier()
@@ -301,7 +344,7 @@ def create_hdd_tree(input_stream, input_format, start, antlr, work_dir, *, lang=
                 if self.root and logger.isEnabledFor(logging.DEBUG):
                     logger.debug(self.root.tree_str(current=self.current_node))
 
-        input_format[grammar_name].update({'lexer': target_lexer_class, 'parser': ExtendedTargetParser, 'listener': ExtendedTargetListener, 'replacements': replacements})
+        input_format[grammar_name].update({'lexer': ExtendedTargetLexer, 'parser': ExtendedTargetParser, 'listener': ExtendedTargetListener, 'replacements': replacements})
 
     class ExtendedErrorListener(error.ErrorListener.ErrorListener):
 
@@ -470,6 +513,19 @@ def create_hdd_tree(input_stream, input_format, start, antlr, work_dir, *, lang=
 
         return node
 
+    def remove_hidden_tokens(node):
+        if isinstance(node, HDDRule):
+            non_hidden_children = []
+
+            for child in node.children:
+                if not isinstance(child, HDDHiddenToken):
+                    remove_hidden_tokens(child)
+                    non_hidden_children.append(child)
+
+            node.children[:] = non_hidden_children
+
+        return node
+
     _NAMED_GRP_PATTERN = re.compile(r'(?<!\\)(\(\?P<[^>]*>)')  # "(?P<NAME>" not prefixed by a "\"
     _NAMED_GRP_PREFIX = '(?P<'
     _NAMED_GRP_SUFFIX = '>'
@@ -547,6 +603,8 @@ def create_hdd_tree(input_stream, input_format, start, antlr, work_dir, *, lang=
     tree = build_hdd_tree(input_stream=input_stream,
                           grammar_name=start_grammar,
                           start_rule=start_rule)
+    if not hidden_tokens:
+        tree = remove_hidden_tokens(tree)
     tree = remove_empty_nodes(tree)
     tree = calculate_rule_boundaries(tree)
     return tree

@@ -111,7 +111,7 @@ def call(*,
          tester_class, tester_config,
          input, src, encoding, out,
          hddmin,
-         antlr, input_format, start, lang='python',
+         antlr, input_format, start, build_hidden_tokens=False, lang='python',
          hdd_star=True, squeeze_tree=True, skip_unremovable_tokens=True,
          flatten_recursion=False,
          cache_class=None, cleanup=True):
@@ -131,6 +131,7 @@ def call(*,
     :param antlr: Path to the ANTLR4 tool (Java jar binary).
     :param input_format: Dictionary describing the input format.
     :param start: Name of the start rule in [grammarname:]rulename format.
+    :param build_hidden_tokens: Build hidden tokens of the input format into the HDD tree.
     :param lang: The target language of the parser.
     :param hdd_star: Boolean to enable the HDD star algorithm.
     :param squeeze_tree: Boolean to enable the tree squeezing optimization.
@@ -151,7 +152,7 @@ def call(*,
     grammar_workdir = join(out, 'grammar')
     makedirs(grammar_workdir, exist_ok=True)
     hdd_tree = create_hdd_tree(InputStream(src.decode(encoding)), input_format, start, antlr, grammar_workdir,
-                               lang=lang)
+                               hidden_tokens=build_hidden_tokens, lang=lang)
     log_tree('Initial tree', hdd_tree)
 
     if flatten_recursion:
@@ -179,7 +180,8 @@ def call(*,
                        basename(input),
                        tests_workdir,
                        hdd_star=hdd_star,
-                       cache=cache_class() if cache_class else None))
+                       cache=cache_class() if cache_class else None,
+                       unparse_with_whitespace=not build_hidden_tokens))
     logger.info('Result is saved to %s.', out_file)
 
     if cleanup:
@@ -213,6 +215,8 @@ def execute():
                             help='path where the antlr jar file is installed (default: %(default)s)')
     arg_parser.add_argument('--format', metavar='FILE',
                             help='JSON file describing a (possibly complex) input format')
+    arg_parser.add_argument('--build-hidden-tokens', default=False, action='store_true',
+                            help='build hidden tokens of the grammar(s) into the HDD tree')
     arg_parser.add_argument('--parser', metavar='LANG', default='python', choices=['python', 'java'],
                             help='language of the generated parsers (%(choices)s; default: %(default)s) '
                                  '(using Java might gain performance, but needs JDK)')
@@ -250,6 +254,7 @@ def execute():
          antlr=args.antlr,
          input_format=args.input_format,
          start=args.start,
+         build_hidden_tokens=args.build_hidden_tokens,
          lang=args.parser,
          hdd_star=args.hdd_star,
          squeeze_tree=args.squeeze_tree,

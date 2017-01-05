@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Renata Hodovan, Akos Kiss.
+ * Copyright (c) 2016-2018 Renata Hodovan, Akos Kiss.
  *
  * Licensed under the BSD 3-Clause License
  * <LICENSE.rst or https://opensource.org/licenses/BSD-3-Clause>.
@@ -48,7 +48,7 @@ public class Extended$parser_class extends $parser_class {
 
     public static void main(String[] args) {
         try {
-            $lexer_class lexer = new $lexer_class(new ANTLRInputStream(new DataInputStream(System.in)));
+            ExtendedTargetLexer lexer = new ExtendedTargetLexer(new ANTLRInputStream(new DataInputStream(System.in)));
             lexer.addErrorListener(new ExtendedErrorListener());
             CommonTokenStream tokens = new CommonTokenStream(lexer);
             Extended$parser_class parser = new Extended$parser_class(tokens);
@@ -67,6 +67,28 @@ public class Extended$parser_class extends $parser_class {
     }
 
     /**
+     * ExtendedTargetLexer is a subclass of the original lexer implementation.
+     * It can recognize skipped tokens and instead of eliminating them from the parser
+     * they can be redirected to the dedicated PICIRENY_CHANNEL for later use.
+     */
+    private static class ExtendedTargetLexer extends $lexer_class {
+
+        public static final int PICIRENY_CHANNEL = -3;
+
+        public ExtendedTargetLexer(CharStream input) {
+            super(input);
+        }
+
+        // Skipped tokens cannot be accessed from the parser but we still need them to
+        // unparse test cases correctly. Sending these tokens to a dedicated channel won't
+        // alter the parse but makes these tokens available.
+        @Override
+        public void skip() {
+            _channel = PICIRENY_CHANNEL;
+        }
+    }
+
+    /**
      * ExtendedTargetListener is a subclass of the original listener implementation.
      * It can trigger state changes that are needed to identify parts of the input
      * that are not needed to keep it syntactically correct.
@@ -76,6 +98,7 @@ public class Extended$parser_class extends $parser_class {
         private HDDRule current_node;
         private Parser parser;
         private HDDRule root;
+        private boolean seen_terminal;
 
         private static class Position {
             public int line;
@@ -167,6 +190,12 @@ public class Extended$parser_class extends $parser_class {
             }
         }
 
+        private static class HDDHiddenToken extends HDDToken {
+            public HDDHiddenToken(String _name, String _text, Position _start, Position _end) {
+                super(_name, _text, _start, _end);
+            }
+        }
+
         private static class HDDErrorToken extends HDDToken {
             public HDDErrorToken(String _text, Position _start, Position _end) {
                 super(null, _text, _start, _end);
@@ -177,6 +206,7 @@ public class Extended$parser_class extends $parser_class {
             parser = _parser;
             current_node = null;
             root = null;
+            seen_terminal = false;
         }
 
         public void recursion_enter() {
@@ -239,27 +269,42 @@ public class Extended$parser_class extends $parser_class {
                                                 line_breaks == 0 ? token.getCharPositionInLine() + text.length() : text.length() - text.lastIndexOf("\n"))};
         }
 
-        public void visitTerminal(TerminalNode ctx) {
-            String name = null;
-            String text = null;
-
-            if (ctx.getSymbol().getType() == Token.EOF) {
-                name = "EOF";
-                text = "";
-            } else {
-                name = parser.getTokenNames()[ctx.getSymbol().getType()];
-                text = ctx.getSymbol().getText();
+        private void addToken(TerminalNode node, HDDToken child) {
+            if (!seen_terminal) {
+                List<Token> hiddenTokens = ((BufferedTokenStream)parser.getTokenStream()).getHiddenTokensToLeft(node.getSymbol().getTokenIndex(), -1);
+                if (hiddenTokens != null) {
+                    for (Token token : hiddenTokens) {
+                        Position[] boundaries = tokenBoundaries(token);
+                        current_node.addChild(new HDDHiddenToken(parser.getTokenNames()[token.getType()], token.getText(), boundaries[0], boundaries[1]));
+                    }
+                }
             }
+            seen_terminal = true;
 
-            Position[] boundaries = tokenBoundaries(ctx.getSymbol());
-            current_node.addChild(new HDDToken(name, text, boundaries[0], boundaries[1]));
+            current_node.addChild(child);
+
+            List<Token> hiddenTokens = ((BufferedTokenStream)parser.getTokenStream()).getHiddenTokensToRight(node.getSymbol().getTokenIndex(), -1);
+            if (hiddenTokens != null) {
+                for (Token token : hiddenTokens) {
+                    Position[] boundaries = tokenBoundaries(token);
+                    current_node.addChild(new HDDHiddenToken(parser.getTokenNames()[token.getType()], token.getText(), boundaries[0], boundaries[1]));
+                }
+            }
+        }
+
+        public void visitTerminal(TerminalNode node) {
+            Token token = node.getSymbol();
+            Position[] boundaries = tokenBoundaries(token);
+            addToken(node, token.getType() != Token.EOF
+                           ? new HDDToken(parser.getTokenNames()[token.getType()], token.getText(), boundaries[0], boundaries[1])
+                           : new HDDToken("EOF", "", boundaries[0], boundaries[1]));
         }
 
         public void visitErrorNode(ErrorNode node) {
-            if (node.getSymbol() != null) {
-                String text = node.getText();
-                Position[] boundaries = tokenBoundaries(node.getSymbol());
-                current_node.addChild(new HDDErrorToken(text, boundaries[0], boundaries[1]));
+            Token token = node.getSymbol();
+            if (token != null) {
+                Position[] boundaries = tokenBoundaries(token);
+                addToken(node, new HDDErrorToken(node.getText(), boundaries[0], boundaries[1]));
             }
         }
 

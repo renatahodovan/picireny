@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 
 def hddmin(hdd_tree, reduce_class, reduce_config, tester_class, tester_config, test_name, work_dir,
-           *, hdd_star=True, cache=None):
+           *, hdd_star=True, cache=None, unparse_with_whitespace=True):
     """
     Run the hierarchical delta debugging reduce algorithm.
 
@@ -32,6 +32,7 @@ def hddmin(hdd_tree, reduce_class, reduce_config, tester_class, tester_config, t
     :param work_dir: Directory to save temporary test files.
     :param hdd_star: Boolean to enable the HDD star algorithm.
     :param cache: Cache to use.
+    :param unparse_with_whitespace: Build test case by adding whitespace between nonadjacent tree nodes during unparsing.
     :return: The 1-tree-minimal test case.
     """
 
@@ -68,7 +69,7 @@ def hddmin(hdd_tree, reduce_class, reduce_config, tester_class, tester_config, t
 
             level_ids_set = set(level_ids)
 
-            test_builder = Unparser(hdd_tree, level_ids_set)
+            test_builder = Unparser(hdd_tree, level_ids_set, with_whitespace=unparse_with_whitespace)
             if hasattr(cache, 'set_test_builder'):
                 cache.set_test_builder(test_builder)
 
@@ -95,4 +96,4 @@ def hddmin(hdd_tree, reduce_class, reduce_config, tester_class, tester_config, t
 
         iter_cnt += 1
 
-    return hdd_tree.unparse()
+    return hdd_tree.unparse(with_whitespace=unparse_with_whitespace)

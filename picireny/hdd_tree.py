@@ -1,5 +1,5 @@
 # Copyright (c) 2007 Ghassan Misherghi.
-# Copyright (c) 2016-2017 Renata Hodovan, Akos Kiss.
+# Copyright (c) 2016-2018 Renata Hodovan, Akos Kiss.
 #
 # Licensed under the BSD 3-Clause License
 # <LICENSE.rst or https://opensource.org/licenses/BSD-3-Clause>.
@@ -68,10 +68,11 @@ class HDDTree:
         """
         assert False, 'Should never be reached: it should be overridden in sub-classes.'
 
-    def unparse(self):
+    def unparse(self, *, with_whitespace=True):
         """
         Build test case from a HDD tree.
 
+        :param with_whitespace: Add whitespace (space, new line) to separate nonadjacent nodes.
         :return: The unparsed test case.
         """
         def unparse_attribute(node, attribs):
@@ -93,10 +94,11 @@ class HDDTree:
                     # Do not add extra spaces if the next chunk is empty.
                     if not attribs[i]:
                         continue
-                    if node.children[i].start.line > node.children[i - 1].end.line:
-                        test_src += '\n'
-                    elif node.children[i].start.idx > node.children[i - 1].end.idx:
-                        test_src += ' '
+                    if with_whitespace:
+                        if node.children[i].start.line > node.children[i - 1].end.line:
+                            test_src += '\n'
+                        elif node.children[i].start.idx > node.children[i - 1].end.idx:
+                            test_src += ' '
                     test_src += attribs[i]
 
             return test_src
