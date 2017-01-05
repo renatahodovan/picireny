@@ -1,4 +1,4 @@
-# Copyright (c) 2016 Renata Hodovan, Akos Kiss.
+# Copyright (c) 2016-2017 Renata Hodovan, Akos Kiss.
 #
 # Licensed under the BSD 3-Clause License
 # <LICENSE.rst or https://opensource.org/licenses/BSD-3-Clause>.
@@ -88,6 +88,13 @@ def call(*,
     :return: The path to the minimal test case.
     """
 
+    # Get the parameters in a dictionary so that they can be pretty-printed
+    # (minus src, as that parameter can be arbitrarily large)
+    args = locals().copy()
+    del args['src']
+    logger.info('Reduce session starts for %s\n%s',
+                input, ''.join(['\t%s: %s\n' % (k, v) for k, v in sorted(args.items())]))
+
     picire.global_structures.init(parallel=parallel, disable_cache=disable_cache)
     grammar_workdir = join(out, 'grammar')
     tests_workdir = join(out, 'tests')
@@ -96,7 +103,8 @@ def call(*,
                                replacements=replacements, island_desc=islands, lang=lang)
 
     # Start reduce and save result to a file named the same like the original.
-    with codecs.open(join(out, basename(input)), 'w', encoding=encoding, errors='ignore') as f:
+    out_file = join(out, basename(input))
+    with codecs.open(out_file, 'w', encoding=encoding, errors='ignore') as f:
         f.write(hddmin(hdd_tree,
                        reduce_class,
                        reduce_config,
@@ -105,12 +113,13 @@ def call(*,
                        basename(input),
                        tests_workdir,
                        hdd_star=hdd_star))
+    logger.info('Result is saved to %s.', out_file)
 
     if cleanup:
         rmtree(grammar_workdir)
         rmtree(tests_workdir)
 
-    return join(out, basename(input))
+    return out_file
 
 
 def execute():
@@ -140,12 +149,11 @@ def execute():
     arg_parser.add_argument('--version', action='version', version='%(prog)s {version}'.format(version=__version__))
 
     args = arg_parser.parse_args()
+    process_args(arg_parser, args)
 
     logging.basicConfig(format='%(message)s')
     logger.setLevel(args.log_level)
     logging.getLogger('picire').setLevel(logger.level)
-
-    process_args(arg_parser, args)
 
     call(reduce_class=args.reduce_class,
          reduce_config=args.reduce_config,
