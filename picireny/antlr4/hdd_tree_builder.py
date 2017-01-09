@@ -11,6 +11,7 @@ import re
 import sys
 
 from antlr4 import *
+from antlr4.Token import CommonToken
 from pkgutil import get_data
 from os import makedirs, pathsep
 from os.path import basename, join
@@ -321,6 +322,19 @@ def create_hdd_tree(input_stream, grammar, start_rule, antlr, work_dir, *, repla
 
         return target_lexer_class, ExtendedTargetParser, ExtendedTargetListener, replacements
 
+    class ExtendedErrorListener(error.ErrorListener.ErrorListener):
+
+        def syntaxError(self, recognizer, offendingSymbol, line, column, msg, e):
+            t = CommonToken(source=(recognizer, recognizer._input),
+                            type=Token.INVALID_TYPE,
+                            channel=Token.DEFAULT_CHANNEL,
+                            start=recognizer._tokenStartCharIndex,
+                            stop=recognizer._tokenStartCharIndex)
+            t.line = recognizer._tokenStartLine
+            t.column = recognizer._tokenStartColumn
+            recognizer._type = Token.MIN_USER_TOKEN_TYPE
+            recognizer.emitToken(t)
+
     def build_hdd_tree(input_stream, lexer_class, parser_class, listener_class, start_rule, island_desc, replacements):
         """
         Parse the input with the provided ANTLR classes.
@@ -384,7 +398,9 @@ def create_hdd_tree(input_stream, grammar, start_rule, antlr, work_dir, *, repla
                     raise CalledProcessError(returncode=proc.returncode, cmd=cmd, output=stdout + stderr)
             tree_root = hdd_tree_from_json(json.loads(stdout))
         else:
-            target_parser = parser_class(CommonTokenStream(lexer_class(input_stream)))
+            lexer = lexer_class(input_stream)
+            lexer.addErrorListener(ExtendedErrorListener())
+            target_parser = parser_class(CommonTokenStream(lexer))
             parser_listener = listener_class(target_parser)
             target_parser.addParseListener(parser_listener)
 

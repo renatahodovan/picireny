@@ -14,6 +14,7 @@ import javax.json.*;
 
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.*;
+import org.antlr.v4.runtime.misc.Pair;
 
 
 /**
@@ -23,9 +24,32 @@ import org.antlr.v4.runtime.tree.*;
  */
 public class Extended$parser_class extends $parser_class {
 
+    private static class ExtendedErrorListener extends BaseErrorListener {
+
+        @Override
+        public void syntaxError(Recognizer<?, ?> recognizer,
+                                Object offendingSymbol,
+                                int line,
+                                int charPositionInLine,
+                                String msg,
+                                RecognitionException e) {
+
+            CommonToken t = new CommonToken(new Pair<TokenSource, CharStream>(((Lexer)recognizer), ((Lexer)recognizer)._input),
+                                            Token.INVALID_TYPE,
+                                            Token.DEFAULT_CHANNEL,
+                                            ((Lexer)recognizer)._tokenStartCharIndex,
+                                            ((Lexer)recognizer)._tokenStartCharIndex);
+            t.setLine(((Lexer)recognizer)._tokenStartLine);
+            t.setCharPositionInLine(((Lexer)recognizer)._tokenStartCharPositionInLine);
+            ((Lexer)recognizer).setType(Token.MIN_USER_TOKEN_TYPE);
+            ((Lexer)recognizer).emit(t);
+        }
+    }
+
     public static void main(String[] args) {
         try {
             $lexer_class lexer = new $lexer_class(new ANTLRInputStream(new DataInputStream(System.in)));
+            lexer.addErrorListener(new ExtendedErrorListener());
             CommonTokenStream tokens = new CommonTokenStream(lexer);
             Extended$parser_class parser = new Extended$parser_class(tokens);
             ExtendedTargetListener listener = new ExtendedTargetListener(parser);
