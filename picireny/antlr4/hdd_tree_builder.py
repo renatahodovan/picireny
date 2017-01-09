@@ -245,7 +245,7 @@ def create_hdd_tree(input_stream, grammar, start_rule, antlr, work_dir, *, repla
                     self.current_node.start = self.current_node.children[0].start
                     self.current_node.end = self.current_node.children[-1].end
                 else:
-                    del self.current_node
+                    parent.remove_child(self.current_node)
                 self.current_node = parent
 
             def enterEveryRule(self, ctx:ParserRuleContext):

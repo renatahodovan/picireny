@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Renata Hodovan, Akos Kiss.
+ * Copyright (c) 2016-2017 Renata Hodovan, Akos Kiss.
  *
  * Licensed under the BSD 3-Clause License
  * <LICENSE.rst or https://opensource.org/licenses/BSD-3-Clause>.
@@ -179,7 +179,7 @@ public class Extended$parser_class extends $parser_class {
                 current_node.start = current_node.children.get(0).start;
                 current_node.end = children_to_lift.get(current_node.children.size() - 1).end;
             } else {
-                current_node = null;
+                parent.children.remove(current_node);
             }
             current_node = parent;
         }
