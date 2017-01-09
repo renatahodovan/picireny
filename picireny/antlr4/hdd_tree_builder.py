@@ -15,7 +15,7 @@ from pkgutil import get_data
 from os import makedirs, pathsep
 from os.path import basename, join
 from string import Template
-from subprocess import Popen, check_call, PIPE
+from subprocess import CalledProcessError, Popen, PIPE
 
 from .grammar_analyzer import analyze_grammars
 from .parser_builder import build_grammars
@@ -135,8 +135,12 @@ def create_hdd_tree(input_stream, grammar, start_rule, antlr, work_dir, *, repla
             f.write(executor.substitute(dict(lexer_class=lexer,
                                              parser_class=parser,
                                              listener_class=listener)))
-        check_call('javac -classpath {classpath} *.java'.format(classpath=java_classpath()),
-                   shell=True, cwd=grammar_workdir)
+        cmd = 'javac -classpath {classpath} *.java'.format(classpath=java_classpath())
+        with Popen(cmd, shell=True, cwd=grammar_workdir, stdout=PIPE, stderr=PIPE) as proc:
+            stdout, stderr = proc.communicate()
+            if proc.returncode != 0:
+                logger.error('Java compile failed!\n%s\n%s\n', stdout, stderr)
+                raise CalledProcessError(returncode=proc.returncode, cmd=cmd, output=stdout + stderr)
 
     def island_desc_to_list(island_desc):
         island_desc = island_desc if island_desc else []
@@ -364,17 +368,21 @@ def create_hdd_tree(input_stream, grammar, start_rule, antlr, work_dir, *, repla
                         island_nodes.append(node)
                 return node
 
-            with Popen('java -classpath {classpath} Extended{parser} {start_rule}'.format(classpath=java_classpath(),
-                                                                                          parser=parser_class,
-                                                                                          start_rule=start_rule),
+            cmd = 'java -classpath {classpath} Extended{parser} {start_rule}'.format(classpath=java_classpath(),
+                                                                                     parser=parser_class,
+                                                                                     start_rule=start_rule)
+            with Popen(cmd,
                        cwd=grammar_workdir,
                        shell=True,
                        stdin=PIPE,
                        stdout=PIPE,
                        stderr=PIPE,
                        universal_newlines=True) as proc:
-                output, _ = proc.communicate(input=input_stream.strdata)
-            tree_root = hdd_tree_from_json(json.loads(output))
+                stdout, stderr = proc.communicate(input=input_stream.strdata)
+                if proc.returncode != 0:
+                    logger.error('Java parser failed!\n%s\n%s\n', stdout, stderr)
+                    raise CalledProcessError(returncode=proc.returncode, cmd=cmd, output=stdout + stderr)
+            tree_root = hdd_tree_from_json(json.loads(stdout))
         else:
             target_parser = parser_class(CommonTokenStream(lexer_class(input_stream)))
             parser_listener = listener_class(target_parser)

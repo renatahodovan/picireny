@@ -6,11 +6,10 @@
 # according to those terms.
 
 import logging
-import sys
 
 from os import listdir
 from os.path import basename, commonprefix, split, splitext
-from subprocess import Popen, PIPE, STDOUT
+from subprocess import CalledProcessError, Popen, PIPE
 
 logger = logging.getLogger(__name__)
 grammar_cache = {}
@@ -42,15 +41,15 @@ def build_grammars(grammars, out, antlr, lang='python'):
             'java': {'antlr_arg': '', 'ext': 'java', 'listener_format': 'BaseListener'},
         }
 
-        with Popen('java -jar {antlr} {lang} -o {out} {grammars}'.format(antlr=antlr,
-                                                                         lang=languages[lang]['antlr_arg'],
-                                                                         out=out,
-                                                                         grammars=' '.join(grammars)),
-                   stdout=PIPE, stderr=STDOUT, shell=True, cwd=out) as proc:
-            output, exit_code = proc.stdout.read().decode(), proc.returncode
-            if exit_code:
-                logger.critical('Building grammars %r failed: %s', grammars, output)
-                sys.exit(1)
+        cmd = 'java -jar {antlr} {lang} -o {out} {grammars}'.format(antlr=antlr,
+                                                                    lang=languages[lang]['antlr_arg'],
+                                                                    out=out,
+                                                                    grammars=' '.join(grammars))
+        with Popen(cmd, stdout=PIPE, stderr=PIPE, shell=True, cwd=out) as proc:
+            stdout, stderr = proc.communicate()
+            if proc.returncode:
+                logger.error('Building grammars %r failed!\n%s\n%s\n', grammars, stdout, stderr)
+                raise CalledProcessError(returncode=proc.returncode, cmd=cmd, output=stdout + stderr)
 
         files = listdir(out)
         filename = basename(grammars[0])
@@ -72,5 +71,5 @@ def build_grammars(grammars, out, antlr, lang='python'):
 
         return grammar_cache[lang][grammars]
     except Exception as e:
-        logger.critical('Exception while loading parser modules: %s', e)
-        sys.exit(1)
+        logger.error('Exception while loading parser modules', exc_info=e)
+        raise e
