@@ -9,9 +9,8 @@
 
 class HDDTree:
     # Node states for unparsing.
-    KEEP = 0
-    REMOVE_TEMP = 1
-    REMOVED = 2
+    REMOVED = 0
+    KEEP = 1
 
     def __init__(self, name, *, start=None, end=None, replace=None):
         """
@@ -28,8 +27,7 @@ class HDDTree:
         self.end = end
         self.parent = None
         self.state = self.KEEP
-        self.level = 0
-        self.tagID = None
+        self.id = id(self)
 
     class Position(object):
         """Class defining a position in the input file. Used to recognise line breaks between tokens."""
@@ -104,70 +102,18 @@ class HDDTree:
 
         return self.synthetic_attribute(unparse_attribute)
 
-    def tag(self, level):
+    def set_state(self, ids, keepers):
         """
-        Label every available nodes with incrementing numbers from 0.
+        Set the status of some selected nodes: if they are in the collection of
+        keepers, mark them as kept, otherwise mark them as removed.
 
-        :param level: The level of HDD tree that will be labeled.
-        :return: The maximum label/index on the given level.
+        :param ids: The collection (list or set) of node IDs to set state for.
+        :param keepers: The collection (list or set) of IDs to be kept.
         """
-        def tag_visitor(node):
-            if node.level == level and node.state == self.KEEP:
-                node.tagID = count[0]
-                count[0] += 1
-            else:
-                # Make sure that tags will not be messed up even if HDD star runs.
-                node.tagID = None
-
-        count = [0]
-        self.traverse(tag_visitor)
-        return count[0]
-
-    def set_remove(self, level, keepers):
-        """
-        Temporarily remove nodes from the tree on the given level.
-
-        :param level: The level that the nodes will be removed from.
-        :param keepers: List of nodes that will be kept.
-        """
-        def remove(node):
-            if node.level == level:
-                if node.tagID not in keepers and node.state == self.KEEP:
-                    node.state = self.REMOVE_TEMP
-        self.traverse(remove)
-
-    def clear_remove(self):
-        """Undo temporary removal (change REMOVE_TEMP flags to KEEP)."""
-        def clear_r(node):
-            if node.state == self.REMOVE_TEMP:
-                node.state = self.KEEP
-        self.traverse(clear_r)
-
-    def commit_remove(self, level, keepers):
-        """
-        Make temporary removes permanent on the given level.
-
-        :param level: The level where the removal is executed.
-        :param keepers: Nodes that will be kept.
-        """
-        def remove(node):
-            if node.level == level:
-                if node.tagID not in keepers:
-                    node.state = self.REMOVED
-                else:
-                    node.state = self.KEEP
-        self.traverse(remove)
-
-    def set_levels(self):
-        """
-        Assign a number to nodes such that nodes on the same level have the same value.
-
-        :return: Return the index of the next level (it will be inherited by the children).
-        """
-        def set_level(node, current_level):
-            node.level = current_level
-            return current_level + 1
-        self.inherited_attribute(set_level, 0)
+        def _set_state(node):
+            if node.id in ids:
+                node.state = self.KEEP if node.id in keepers else self.REMOVED
+        self.traverse(_set_state)
 
     def check(self):
         """Run sanity check on the HDD tree."""

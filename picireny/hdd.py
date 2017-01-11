@@ -18,22 +18,22 @@ logger = logging.getLogger(__name__)
 class Unparser(object):
     """Class defines how to build test case from an HDD tree."""
 
-    def __init__(self, tree, level):
+    def __init__(self, tree, ids):
         """
         Initialize the unparser object.
 
         :param tree: Tree representing the current test case.
+        :param ids: The IDs of nodes that can change status.
         """
         self.tree = tree
-        self.level = level
+        self.ids = ids
 
     def __call__(self, config):
         """
-        :param config: List of tree units/deltas will be kept in the next test case.
+        :param config: List of IDs of nodes that will be kept in the next test case.
         :return: The unparsed test case containing only the units defined in config.
         """
-        self.tree.clear_remove()
-        self.tree.set_remove(self.level, config)
+        self.tree.set_state(self.ids, set(config))
         return self.tree.unparse()
 
 
@@ -55,22 +55,41 @@ def hddmin(hdd_tree, reduce_class, reduce_config, tester_class, tester_config, t
     :return: The 1-minimal test case.
     """
 
+    def collect_level_ids(level):
+        # Don't return a set from collect_level_ids straight away.
+        # Node IDs are python object IDs, which are implementation specific
+        # (memory addresses in CPython). Memory addresses may/do change from
+        # execution to execution, so would change the IDs, and so may change
+        # how the ID set is serialized into an ID list (necessary to construct
+        # the input config for ddmin). But then, ddmin could potentially give
+        # different results -- for the same tree.
+        # If a list is used to collect the node IDs, however, then they will
+        # always be in the same order, no matter what the actual IDs are.
+        def _collect_level_ids(node, current_level):
+            if current_level == level and node.state == node.KEEP:
+                level_ids.append(node.id)
+            return current_level + 1
+        level_ids = []
+        hdd_tree.inherited_attribute(_collect_level_ids, 0)
+        return level_ids
+
     cache = cache_class() if cache_class else None
     iter_cnt = 0
 
     while True:
         logger.info('Iteration #%d', iter_cnt)
         hdd_tree.check()
-        hdd_tree.set_levels()
 
         level = 0
         changed = False
-        count = hdd_tree.tag(level)
+        level_ids = collect_level_ids(level)
 
-        while count:
+        while len(level_ids):
             logger.info('Checking level %d ...', level)
 
-            test_builder = Unparser(hdd_tree, level)
+            level_ids_set = set(level_ids)
+
+            test_builder = Unparser(hdd_tree, level_ids_set)
             if hasattr(cache, 'set_test_builder'):
                 cache.set_test_builder(test_builder)
 
@@ -78,19 +97,19 @@ def hddmin(hdd_tree, reduce_class, reduce_config, tester_class, tester_config, t
                                 test_pattern=join(work_dir, 'iter_%d' % iter_cnt, 'level_%d' % level, '%s', test_name),
                                 **tester_config)
             dd = reduce_class(test, cache=cache, **reduce_config)
-            c = dd.ddmin(list(range(count)))
+            c = dd.ddmin(level_ids)
             if len(c) == 1:
                 dd = EmptyDD(test, cache=cache)
                 c = dd.ddmin(c)
-            changed = changed or count > len(c)
+            c = set(c)
+            changed = changed or len(c) < len(level_ids_set)
             if cache:
                 cache.clear()
 
-            hdd_tree.commit_remove(level, c)
-            hdd_tree.clear_remove()
+            hdd_tree.set_state(level_ids_set, c)
 
             level += 1
-            count = hdd_tree.tag(level)
+            level_ids = collect_level_ids(level)
 
         if not hdd_star or not changed:
             break
