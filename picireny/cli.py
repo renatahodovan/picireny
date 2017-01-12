@@ -147,9 +147,9 @@ def execute():
     arg_parser.add_argument('--antlr', metavar='FILE', default=antlr_default_path,
                             help='path where the antlr jar file is installed (default: %(default)s)')
     arg_parser.add_argument('--islands', metavar='FILE',
-                            help='python source describing how to process island languages')
+                            help='JSON file describing how to process island languages')
     arg_parser.add_argument('--parser', metavar='LANG', default='python', choices=['python', 'java'],
-                            help='language of the generated parsers [%(choices)s; default: %(default)s] '
+                            help='language of the generated parsers (%(choices)s; default: %(default)s) '
                                  '(using Java might gain performance, but needs JDK)')
     arg_parser.add_argument('--no-hdd-star', dest='hdd_star', default=True, action='store_false',
                             help='run the hddmin algorithm only once')
