@@ -170,6 +170,42 @@ class HDDTree:
         self.parent.children[self.parent.children.index(self)] = other
         other.parent = self.parent
 
+    def flatten_recursion(self):
+        """
+        Heuristics to flatten left or right-recursion. E.g., given a rule
+            rule : a | rule b
+        and a HDD tree built with it from an input, rewrite the resulting HDD
+        tree as if it was built using
+            rule : a b*
+        This allows HDD to potentially completely remove the recurring blocks
+        (instead of replacing them with their minimal replacement, which is
+        usually not "").
+        """
+        if isinstance(self, HDDRule) and self.state == self.KEEP:
+            for child in self.children:
+                child.flatten_recursion()
+
+            if len(self.children) > 1:
+                if self.children[0].name == self.name:
+                    left = self.children[0]
+
+                    right = HDDRule('', replace='', start=self.children[1].start, end=self.children[-1].end)
+                    right.add_children(self.children[1:])
+                    del self.children[:]
+
+                    self.add_children(left.children)
+                    self.add_child(right)
+
+                elif self.children[-1].name == self.name:
+                    right = self.children[-1]
+
+                    left = HDDRule('', replace='', start=self.children[0].start, end=self.children[-2].end)
+                    left.add_children(self.children[0:-1])
+                    del self.children[:]
+
+                    self.add_child(left)
+                    self.add_children(right.children)
+
 
 class HDDToken(HDDTree):
     def __init__(self, name, text, *, start, end, replace=None):
