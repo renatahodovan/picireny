@@ -47,7 +47,7 @@ class ANTLRElement(object):
         """
         if self.all_replacements_defined():
             new_repl = ''.join([x.replacement for x in self.children])
-            if self.replacement is None or len(new_repl) < len(self.replacement):
+            if self.replacement is None or len(new_repl) < len(self.replacement) or (len(new_repl) == len(self.replacement) and new_repl < self.replacement):
                 self.replacement = new_repl
                 return True
         return False
@@ -86,7 +86,7 @@ class ANTLRAlternation(ANTLRElement):
         """
         if self.has_defined_replacement():
             new_repl = min(list(filter(lambda i: i is not None, [c.replacement for c in self.children])), key=len, default=False)
-            if self.replacement is None or len(new_repl) < len(self.replacement):
+            if self.replacement is None or len(new_repl) < len(self.replacement) or (len(new_repl) == len(self.replacement) and new_repl < self.replacement):
                 self.replacement = new_repl
                 return True
         return False
@@ -140,7 +140,7 @@ class ANTLRLexerAlternation(ANTLRLexerElement):
         # The replacement is the known shortest replacement of the children.
         if self.has_defined_replacement():
             new_repl = min(list(filter(lambda i: i is not None, [c.replacement for c in self.children])), key=len, default=False)
-            if self.replacement is None or len(new_repl) < len(self.replacement):
+            if self.replacement is None or len(new_repl) < len(self.replacement) or (len(new_repl) == len(self.replacement) and new_repl < self.replacement):
                 self.replacement = new_repl
                 return True
         return False
