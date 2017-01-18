@@ -10,6 +10,8 @@ import logging
 
 from os.path import join
 
+from .empty_dd import EmptyDD
+
 logger = logging.getLogger(__name__)
 
 
@@ -72,12 +74,14 @@ def hddmin(hdd_tree, reduce_class, reduce_config, tester_class, tester_config, t
             if hasattr(cache, 'set_test_builder'):
                 cache.set_test_builder(test_builder)
 
-            dd = reduce_class(tester_class(test_builder=test_builder,
-                                           test_pattern=join(work_dir, 'iter_%d' % iter_cnt, 'level_%d' % level, '%s', test_name),
-                                           **tester_config),
-                              cache=cache,
-                              **reduce_config)
+            test = tester_class(test_builder=test_builder,
+                                test_pattern=join(work_dir, 'iter_%d' % iter_cnt, 'level_%d' % level, '%s', test_name),
+                                **tester_config)
+            dd = reduce_class(test, cache=cache, **reduce_config)
             c = dd.ddmin(list(range(count)))
+            if len(c) == 1:
+                dd = EmptyDD(test, cache=cache)
+                c = dd.ddmin(c)
             changed = changed or count > len(c)
             if cache:
                 cache.clear()
@@ -85,11 +89,8 @@ def hddmin(hdd_tree, reduce_class, reduce_config, tester_class, tester_config, t
             hdd_tree.commit_remove(level, c)
             hdd_tree.clear_remove()
 
-            while True:
-                level += 1
-                count = hdd_tree.tag(level)
-                if count != 1:
-                    break
+            level += 1
+            count = hdd_tree.tag(level)
 
         if not hdd_star or not changed:
             break
