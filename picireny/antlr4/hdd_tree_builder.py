@@ -485,13 +485,37 @@ def create_hdd_tree(input_stream, grammar, start_rule, antlr, work_dir, *, repla
                                      replace=next_token_text))
         return children
 
+    def remove_empty_children(node):
+        if isinstance(node, HDDRule):
+            non_empty_children = []
+
+            for child in node.children:
+                if isinstance(child, HDDToken):
+                    # empty token is usually the EOF only (but interestingly, it may
+                    # appear multiple times in the tree)
+                    if child.text != '':
+                        non_empty_children.append(child)
+                else:
+                    assert isinstance(child, HDDRule)
+                    remove_empty_children(child)
+
+                    # a grammar may contain lambda rules (with nothing on the
+                    # right-hand side, or with an empty alternative), or rules that
+                    # produce EOF only (which is removed in the branch above)
+                    if len(child.children) != 0:
+                        non_empty_children.append(child)
+
+            node.children[:] = non_empty_children
+
     lexer_class, parser_class, listener_class, replacements = prepare_parsing(grammar=grammar,
                                                                               replacements=replacements,
                                                                               island_desc=island_desc)
-    return build_hdd_tree(input_stream=input_stream,
+    tree = build_hdd_tree(input_stream=input_stream,
                           lexer_class=lexer_class,
                           parser_class=parser_class,
                           listener_class=listener_class,
                           start_rule=start_rule,
                           island_desc=island_desc,
                           replacements=replacements)
+    remove_empty_children(tree)
+    return tree
