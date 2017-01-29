@@ -18,6 +18,7 @@ from shutil import rmtree
 
 from antlr4 import *
 from .antlr4 import create_hdd_tree, IslandDescriptor
+from .coarse_hdd import coarse_hddmin
 from .hdd import hddmin
 
 logger = logging.getLogger('picireny')
@@ -25,7 +26,14 @@ __version__ = pkgutil.get_data(__package__, 'VERSION').decode('ascii').strip()
 antlr_default_path = antlerinator.antlr_jar_path
 
 
+args_hdd_choices = {
+    'full': hddmin,
+    'coarse': coarse_hddmin,
+}
+
 def process_args(arg_parser, args):
+    args.hddmin = args_hdd_choices[args.hdd]
+
     if args.antlr:
         if args.antlr == antlr_default_path:
             antlerinator.install(lazy=True)
@@ -64,6 +72,7 @@ def call(*,
          reduce_class, reduce_config,
          tester_class, tester_config,
          input, src, encoding, out,
+         hddmin,
          antlr, grammar, start_rule, replacements=None, islands=None, lang='python',
          hdd_star=True, squeeze_tree=True, skip_unremovable_tokens=True,
          cache_class=None, cleanup=True):
@@ -79,6 +88,7 @@ def call(*,
     :param src: Contents of the test case to reduce.
     :param encoding: Encoding of the input test case.
     :param out: Path to the output directory.
+    :param hddmin: Function implementing a HDD minimization algorithm.
     :param antlr: Path to the ANTLR4 tool (Java jar binary).
     :param grammar: Path to the grammar(s) that can parse the top-level language.
     :param start_rule: Name of the start rule of the top-level grammar.
@@ -142,6 +152,8 @@ def execute():
                                 parents=[picire.cli.create_parser()], add_help=False)
 
     # Grammar specific settings.
+    arg_parser.add_argument('--hdd', metavar='NAME', choices=args_hdd_choices.keys(), default='full',
+                            help='HDD variant to run (%(choices)s; default: %(default)s)')
     arg_parser.add_argument('-s', '--start-rule', metavar='NAME', required=True,
                             help='start rule of the grammar')
     arg_parser.add_argument('-g', '--grammar', metavar='FILE', nargs='+', required=True,
@@ -178,6 +190,7 @@ def execute():
          src=args.src,
          encoding=args.encoding,
          out=args.out,
+         hddmin=args.hddmin,
          antlr=args.antlr,
          grammar=args.grammar,
          start_rule=args.start_rule,

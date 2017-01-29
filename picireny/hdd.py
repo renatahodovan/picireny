@@ -11,36 +11,15 @@ import logging
 from os.path import join
 
 from .empty_dd import EmptyDD
+from .unparser import Unparser
 
 logger = logging.getLogger(__name__)
-
-
-class Unparser(object):
-    """Class defines how to build test case from an HDD tree."""
-
-    def __init__(self, tree, ids):
-        """
-        Initialize the unparser object.
-
-        :param tree: Tree representing the current test case.
-        :param ids: The IDs of nodes that can change status.
-        """
-        self.tree = tree
-        self.ids = ids
-
-    def __call__(self, config):
-        """
-        :param config: List of IDs of nodes that will be kept in the next test case.
-        :return: The unparsed test case containing only the units defined in config.
-        """
-        self.tree.set_state(self.ids, set(config))
-        return self.tree.unparse()
 
 
 def hddmin(hdd_tree, reduce_class, reduce_config, tester_class, tester_config, test_name, work_dir,
            *, hdd_star=True, cache_class=None):
     """
-    Run the main reduce algorithm.
+    Run the hierarchical delta debugging reduce algorithm.
 
     :param hdd_tree: The root of the tree that the reduce will work with (it's the output of create_hdd_tree).
     :param reduce_class: Reference to the reducer class (LightDD, ParallelDD or CombinedParallelDD from the
@@ -52,7 +31,7 @@ def hddmin(hdd_tree, reduce_class, reduce_config, tester_class, tester_config, t
     :param work_dir: Directory to save temporary test files.
     :param hdd_star: Boolean to enable the HDD star algorithm.
     :param cache_class: Reference to the cache class to use.
-    :return: The 1-minimal test case.
+    :return: The 1-tree-minimal test case.
     """
 
     def collect_level_ids(level):
