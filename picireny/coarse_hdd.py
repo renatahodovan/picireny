@@ -10,13 +10,14 @@ import logging
 from os.path import join
 
 from .empty_dd import EmptyDD
+from .hdd import hddmin
 from .unparser import Unparser
 
 logger = logging.getLogger(__name__)
 
 
 def coarse_hddmin(hdd_tree, reduce_class, reduce_config, tester_class, tester_config, test_name, work_dir,
-                  *, hdd_star=True, cache_class=None):
+                  *, hdd_star=True, cache=None):
     """
     Run the coarse hierarchical delta debugging reduce algorithm.
 
@@ -29,7 +30,7 @@ def coarse_hddmin(hdd_tree, reduce_class, reduce_config, tester_class, tester_co
     :param test_name: Name of the test case file.
     :param work_dir: Directory to save temporary test files.
     :param hdd_star: Boolean to enable the HDD star algorithm.
-    :param cache_class: Reference to the cache class to use.
+    :param cache: Cache to use.
     :return: The 1-tree-minimal test case.
     """
 
@@ -42,7 +43,6 @@ def coarse_hddmin(hdd_tree, reduce_class, reduce_config, tester_class, tester_co
         hdd_tree.inherited_attribute(_collect_level_nodes, 0)
         return level_nodes
 
-    cache = cache_class() if cache_class else None
     iter_cnt = 0
 
     while True:
@@ -89,3 +89,16 @@ def coarse_hddmin(hdd_tree, reduce_class, reduce_config, tester_class, tester_co
         iter_cnt += 1
 
     return hdd_tree.unparse()
+
+
+def coarse_full_hddmin(hdd_tree, reduce_class, reduce_config, tester_class, tester_config, test_name, work_dir,
+                       *, hdd_star=True, cache=None):
+    """
+    Run the coarse and the full hierarchical delta debugging reduce algorithms
+    in sequence.
+    """
+
+    coarse_hddmin(hdd_tree, reduce_class, reduce_config, tester_class, tester_config, test_name, join(work_dir, 'coarse'),
+                  hdd_star=hdd_star, cache=cache)
+    return hddmin(hdd_tree, reduce_class, reduce_config, tester_class, tester_config, test_name, join(work_dir, 'full'),
+                  hdd_star=hdd_star, cache=cache)

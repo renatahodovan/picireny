@@ -18,7 +18,7 @@ from shutil import rmtree
 
 from antlr4 import *
 from .antlr4 import create_hdd_tree, IslandDescriptor
-from .coarse_hdd import coarse_hddmin
+from .coarse_hdd import coarse_hddmin, coarse_full_hddmin
 from .hdd import hddmin
 
 logger = logging.getLogger('picireny')
@@ -29,6 +29,7 @@ antlr_default_path = antlerinator.antlr_jar_path
 args_hdd_choices = {
     'full': hddmin,
     'coarse': coarse_hddmin,
+    'coarse-full': coarse_full_hddmin,
 }
 
 def process_args(arg_parser, args):
@@ -138,7 +139,7 @@ def call(*,
                        basename(input),
                        tests_workdir,
                        hdd_star=hdd_star,
-                       cache_class=cache_class))
+                       cache=cache_class() if cache_class else None))
     logger.info('Result is saved to %s.', out_file)
 
     if cleanup:

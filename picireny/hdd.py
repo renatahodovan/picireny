@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 
 def hddmin(hdd_tree, reduce_class, reduce_config, tester_class, tester_config, test_name, work_dir,
-           *, hdd_star=True, cache_class=None):
+           *, hdd_star=True, cache=None):
     """
     Run the hierarchical delta debugging reduce algorithm.
 
@@ -30,7 +30,7 @@ def hddmin(hdd_tree, reduce_class, reduce_config, tester_class, tester_config, t
     :param test_name: Name of the test case file.
     :param work_dir: Directory to save temporary test files.
     :param hdd_star: Boolean to enable the HDD star algorithm.
-    :param cache_class: Reference to the cache class to use.
+    :param cache: Cache to use.
     :return: The 1-tree-minimal test case.
     """
 
@@ -52,7 +52,6 @@ def hddmin(hdd_tree, reduce_class, reduce_config, tester_class, tester_config, t
         hdd_tree.inherited_attribute(_collect_level_ids, 0)
         return level_ids
 
-    cache = cache_class() if cache_class else None
     iter_cnt = 0
 
     while True:
