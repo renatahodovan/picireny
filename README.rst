@@ -58,11 +58,6 @@ Alternatively, by cloning the project and running setuptools::
 
     python setup.py install
 
-Once the project is installed, a helper script becomes available that downloads
-the right version of the ANTLR v4 tool jar::
-
-    picireny-install-antlr4
-
 
 Usage
 =====

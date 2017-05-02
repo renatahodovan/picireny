@@ -5,6 +5,7 @@
 # This file may not be copied, modified, or distributed except
 # according to those terms.
 
+import antlerinator
 import codecs
 import json
 import logging
@@ -12,7 +13,7 @@ import picire
 import pkgutil
 
 from argparse import ArgumentParser
-from os.path import abspath, basename, exists, expanduser, join, relpath
+from os.path import abspath, basename, exists, join, relpath
 from shutil import rmtree
 
 from antlr4 import *
@@ -21,11 +22,14 @@ from .hdd import hddmin
 
 logger = logging.getLogger('picireny')
 __version__ = pkgutil.get_data(__package__, 'VERSION').decode('ascii').strip()
-antlr_default_path = join(expanduser('~'), '.picireny', 'antlr4.jar')
+antlr_default_path = antlerinator.antlr_jar_path
 
 
 def process_args(arg_parser, args):
     if args.antlr:
+        if args.antlr == antlr_default_path:
+            antlerinator.install(lazy=True)
+
         args.antlr = abspath(relpath(args.antlr))
         if not exists(args.antlr):
             arg_parser.error('%s does not exist.' % args.antlr)

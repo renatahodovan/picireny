@@ -1,4 +1,0 @@
-{
-  "runtime_req": "antlr4-python3-runtime==4.6",
-  "tool_url": "http://www.antlr.org/download/antlr-4.6-complete.jar"
-}
