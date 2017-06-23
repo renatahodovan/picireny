@@ -6,3 +6,4 @@ picireny.egg-info
 .idea
 .cache
 .tox
+.coverage*
