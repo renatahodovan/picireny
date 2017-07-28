@@ -2,6 +2,21 @@
 *Picireny* Release Notes
 ========================
 
+17.7
+====
+
+Summary of changes:
+
+* Added implementation for the coarse variant of the HDD algorithm.
+* Implemented heuristical optimization to flatten left and right-recursive tree
+  structures.
+* Improvements to the internal tree representation.
+* Simplified usage and ANTLR dependency installation via *ANTLeRinator*, and
+  upgraded dependency to *Picire* 17.6.
+* Improved the testing infrastructure (support for Python 3.6 and code coverage
+  measurement).
+
+
 17.1
 ====
 
