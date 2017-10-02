@@ -185,7 +185,7 @@ class HDDTree:
             for child in self.children:
                 child.flatten_recursion()
 
-            if len(self.children) > 1:
+            if len(self.children) > 1 and self.name:
                 if self.children[0].name == self.name:
                     left = self.children[0]
 
