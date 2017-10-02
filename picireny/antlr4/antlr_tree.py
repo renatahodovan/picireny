@@ -1,4 +1,4 @@
-# Copyright (c) 2016 Renata Hodovan, Akos Kiss.
+# Copyright (c) 2016-2017 Renata Hodovan, Akos Kiss.
 #
 # Licensed under the BSD 3-Clause License
 # <LICENSE.rst or https://opensource.org/licenses/BSD-3-Clause>.
@@ -254,8 +254,15 @@ class ANTLRNotSet(ANTLRLexerElement):
             intervals = [y for x in self.children for y in x.start_intervals]
             # Sort list of tuples by the first element.
             intervals.sort(key=lambda x: x[0])
-            # The number (char) before the first interval's lower limit is suitable for negation.
-            self.start_intervals = [(intervals[0][0] - 1, intervals[0][0] - 1)]
+            # The number (char) before the first interval's lower limit or after
+            # the last interval's upper limit is suitable for negation.
+            if intervals[0][0] > 0:
+                neighbour_char = intervals[0][0] - 1
+            elif intervals[-1][-1] < 0x10FFFF:
+                neighbour_char = intervals[-1][-1] + 1
+            else:
+                assert False, 'Cannot negate the whole unicode range.'
+            self.start_intervals = [(neighbour_char, neighbour_char)]
             return True
         return False
 
