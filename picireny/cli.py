@@ -13,11 +13,11 @@ import picire
 import pkgutil
 
 from argparse import ArgumentParser
-from os.path import abspath, basename, exists, join, relpath
+from os.path import abspath, basename, dirname, exists, isabs, join, relpath
 from shutil import rmtree
 
 from antlr4 import *
-from .antlr4 import create_hdd_tree, IslandDescriptor
+from .antlr4 import create_hdd_tree
 from .coarse_hdd import coarse_hddmin, coarse_full_hddmin
 from .hdd import hddmin
 
@@ -32,7 +32,21 @@ args_hdd_choices = {
     'coarse-full': coarse_full_hddmin,
 }
 
+
 def process_args(arg_parser, args):
+
+    def load_format_config(data):
+        # Interpret relative grammar paths compared to the directory of the config file.
+        if 'files' in data:
+            for i, fn in enumerate(data['files']):
+                path = join(abspath(dirname(args.format)), fn)
+                if not exists(path):
+                    arg_parser.error('{path}, defined in the format config, doesn\'t exist.'.format(path=path))
+                data['files'][i] = path
+            data['islands'] = data.get('islands', {})
+            data['replacements'] = data.get('replacements', {})
+        return data
+
     args.hddmin = args_hdd_choices[args.hdd]
 
     if args.antlr:
@@ -43,28 +57,43 @@ def process_args(arg_parser, args):
         if not exists(args.antlr):
             arg_parser.error('%s does not exist.' % args.antlr)
 
-    for i, g in enumerate(args.grammar):
-        args.grammar[i] = abspath(relpath(g))
-        if not exists(args.grammar[i]):
-            arg_parser.error('%s does not exist.' % args.grammar[i])
+    args.input_format = dict()
 
-    if args.replacements:
-        if not exists(args.replacements):
-            arg_parser.error('%s does not exist.' % args.replacements)
-        else:
+    if args.format:
+        if not exists(args.format):
+            arg_parser.error('{path} does not exist.'.format(path=args.format))
+
+        with open(args.format, 'r') as f:
+            try:
+                input_description = json.load(f, object_hook=load_format_config)
+                args.input_format = input_description['grammars']
+                if not args.start:
+                    args.start = input_description.get('start', None)
+            except json.JSONDecodeError as err:
+                arg_parser.error('The content of {path} is not a valid JSON object: {err}'.format(path=args.format, err=err))
+
+    if not args.start:
+        arg_parser.error('No start has been defined either in config or as CLI argument.')
+
+    if args.grammar or args.replacements:
+        # Initialize the default grammar that doesn't need to be named.
+        args.input_format[''] = args.input_format.get('', {'files': [], 'replacements': {}, 'islands': {}})
+
+        if args.grammar:
+            for i, g in enumerate(args.grammar):
+                args.input_format['']['files'].append(abspath(relpath(g)))
+                if not exists(args.input_format['']['files'][i]):
+                    arg_parser.error('{path} does not exist.'.format(path=args.input_format['']['files'][i]))
+
+        if args.replacements:
+            if not exists(args.replacements):
+                arg_parser.error('{path} does not exist.'.format(path=args.replacements))
+
             try:
                 with open(args.replacements, 'r') as f:
-                    args.replacements = json.load(f)
+                    args.input_format['']['replacements'] = json.load(f)
             except json.JSONDecodeError as err:
-                arg_parser.error('The content of %s is not a valid JSON object: %s' % err)
-    else:
-        args.replacements = {}
-
-    if args.islands:
-        if not exists(args.islands):
-            arg_parser.error('%s does not exist.' % args.islands)
-        with open(args.islands, 'r') as f:
-            args.islands = json.load(f, object_hook=IslandDescriptor.json_load_object_hook)
+                arg_parser.error('The content of {path} is not a valid JSON object: {err}'.format(path=args.replacements, err=err))
 
     picire.cli.process_args(arg_parser, args)
 
@@ -74,7 +103,7 @@ def call(*,
          tester_class, tester_config,
          input, src, encoding, out,
          hddmin,
-         antlr, grammar, start_rule, replacements=None, islands=None, lang='python',
+         antlr, input_format, start, lang='python',
          hdd_star=True, squeeze_tree=True, skip_unremovable_tokens=True,
          flatten_recursion=False,
          cache_class=None, cleanup=True):
@@ -92,10 +121,8 @@ def call(*,
     :param out: Path to the output directory.
     :param hddmin: Function implementing a HDD minimization algorithm.
     :param antlr: Path to the ANTLR4 tool (Java jar binary).
-    :param grammar: Path to the grammar(s) that can parse the top-level language.
-    :param start_rule: Name of the start rule of the top-level grammar.
-    :param replacements: Dictionary containing the minimal replacement of every lexer and parser rules.
-    :param islands: Path to the Python3 file describing how to process island grammars.
+    :param input_format: Dictionary describing the input format.
+    :param start: Name of the start rule in [grammarname:]rulename format.
     :param lang: The target language of the parser.
     :param hdd_star: Boolean to enable the HDD star algorithm.
     :param squeeze_tree: Boolean to enable the tree squeezing optimization.
@@ -116,8 +143,8 @@ def call(*,
     grammar_workdir = join(out, 'grammar')
     tests_workdir = join(out, 'tests')
 
-    hdd_tree = create_hdd_tree(InputStream(src.decode(encoding)), grammar, start_rule, antlr, grammar_workdir,
-                               replacements=replacements, island_desc=islands, lang=lang)
+    hdd_tree = create_hdd_tree(InputStream(src.decode(encoding)), input_format, start, antlr, grammar_workdir,
+                               lang=lang)
 
     if flatten_recursion:
         hdd_tree.flatten_recursion()
@@ -160,16 +187,19 @@ def execute():
     # Grammar specific settings.
     arg_parser.add_argument('--hdd', metavar='NAME', choices=args_hdd_choices.keys(), default='full',
                             help='HDD variant to run (%(choices)s; default: %(default)s)')
-    arg_parser.add_argument('-s', '--start-rule', metavar='NAME', required=True,
-                            help='start rule of the grammar')
-    arg_parser.add_argument('-g', '--grammar', metavar='FILE', nargs='+', required=True,
-                            help='grammar file(s) describing the input format')
+    arg_parser.add_argument('-s', '--start', metavar='NAME',
+                            help='name of the start rule in [grammarname:]rulename format (default for '
+                                 'the optional grammarname is the empty string)')
+    arg_parser.add_argument('-g', '--grammar', metavar='FILE', nargs='+',
+                            help='grammar file(s) describing the input format (these grammars will be '
+                                 'associated with the empty grammar name, see `--start`)')
     arg_parser.add_argument('-r', '--replacements', metavar='FILE',
-                            help='JSON file defining the default replacements for lexer or parser rules')
+                            help='JSON file defining the default replacements for lexer and parser '
+                                 'rules of the grammar with the empty name (usually defined via `--grammar`)')
     arg_parser.add_argument('--antlr', metavar='FILE', default=antlr_default_path,
                             help='path where the antlr jar file is installed (default: %(default)s)')
-    arg_parser.add_argument('--islands', metavar='FILE',
-                            help='JSON file describing how to process island languages')
+    arg_parser.add_argument('--format', metavar='FILE',
+                            help='JSON file describing a (possibly complex) input format')
     arg_parser.add_argument('--parser', metavar='LANG', default='python', choices=['python', 'java'],
                             help='language of the generated parsers (%(choices)s; default: %(default)s) '
                                  '(using Java might gain performance, but needs JDK)')
@@ -200,11 +230,9 @@ def execute():
          out=args.out,
          hddmin=args.hddmin,
          antlr=args.antlr,
-         grammar=args.grammar,
-         start_rule=args.start_rule,
+         input_format=args.input_format,
+         start=args.start,
          lang=args.parser,
-         replacements=args.replacements,
-         islands=args.islands,
          hdd_star=args.hdd_star,
          squeeze_tree=args.squeeze_tree,
          skip_unremovable_tokens=args.skip_unremovable_tokens,

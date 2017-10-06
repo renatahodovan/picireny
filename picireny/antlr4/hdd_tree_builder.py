@@ -50,17 +50,15 @@ class ConsoleListener(error.ErrorListener.ConsoleErrorListener):
 error.ErrorListener.ConsoleErrorListener.INSTANCE = ConsoleListener()
 
 
-def create_hdd_tree(input_stream, grammar, start_rule, antlr, work_dir, *, replacements=None, island_desc=None, lang='python'):
+def create_hdd_tree(input_stream, input_format, start, antlr, work_dir, *, lang='python'):
     """
     Build a tree that the HDD algorithm can work with.
 
     :param input_stream: ANTLR stream (FileStream or InputStream) representing the input.
-    :param grammar: List of the grammars describing the input format.
-    :param start_rule: The name of the start rule of the parser.
+    :param input_format: Dictionary describing the input format.
+    :param start: Name of the start rule in [grammarname:]rulename format.
     :param antlr: Path to the ANTLR4 tool (Java jar binary).
     :param work_dir: Working directory.
-    :param replacements: Dictionary containing the minimal replacements of the target grammar's rules.
-    :param island_desc: List of IslandDescriptor objects.
     :param lang: The target language of the parser.
     :return: The root of the created HDD tree.
     """
@@ -127,57 +125,51 @@ def create_hdd_tree(input_stream, grammar, start_rule, antlr, work_dir, *, repla
         logger.debug('ANTLR4 grammars processed...')
         return antlr_lexer_class, antlr_parser_class
 
-    def java_classpath():
-        return pathsep.join([antlr, grammar_workdir])
+    def java_classpath(current_workdir):
+        return pathsep.join([antlr, current_workdir])
 
-    def compile_java_sources(lexer, parser, listener):
+    def compile_java_sources(lexer, parser, listener, current_workdir):
         executor = Template(get_data(__package__, join('resources', 'ExtendedTargetParser.java')).decode('utf-8'))
-        with open(join(grammar_workdir, 'Extended{parser}.java'.format(parser=parser)), 'w') as f:
+        with open(join(current_workdir, 'Extended{parser}.java'.format(parser=parser)), 'w') as f:
             f.write(executor.substitute(dict(lexer_class=lexer,
                                              parser_class=parser,
                                              listener_class=listener)))
-        cmd = 'javac -classpath {classpath} *.java'.format(classpath=java_classpath())
-        with Popen(cmd, shell=True, cwd=grammar_workdir, stdout=PIPE, stderr=PIPE) as proc:
+        cmd = 'javac -classpath {classpath} *.java'.format(classpath=java_classpath(current_workdir))
+        with Popen(cmd, shell=True, cwd=current_workdir, stdout=PIPE, stderr=PIPE) as proc:
             stdout, stderr = proc.communicate()
             if proc.returncode != 0:
                 logger.error('Java compile failed!\n%s\n%s\n', stdout, stderr)
                 raise CalledProcessError(returncode=proc.returncode, cmd=cmd, output=stdout + stderr)
 
-    def island_desc_to_list(island_desc):
-        island_desc = island_desc if island_desc else []
-        return island_desc if isinstance(island_desc, list) else [island_desc]
-
-    def prepare_parsing(grammar, *, replacements=None, island_desc=None):
+    def prepare_parsing(grammar_name):
         """
         Performs initiative steps needed to parse the input test case (like create directory structures,
         builds grammars, sets PATH, etc...)
 
-        :param grammar: List of the grammars describing the input format.
-        :param replacements: Dictionary containing the minimal replacements of the target grammar's rules.
-        :param island_desc: List of IslandDescriptor objects.
-        :return: Tuple of lexer, parser, listener class references and the replacement dictionary.
+        :param grammar_name: Name of the grammar to use for parsing.
         """
+        grammar = input_format[grammar_name]
         antlr_lexer_class, antlr_parser_class = build_antlr_grammars()
-        replacements, action_positions = analyze_grammars(antlr_lexer_class, antlr_parser_class, grammar, replacements)
+        replacements, action_positions = analyze_grammars(antlr_lexer_class, antlr_parser_class, grammar['files'], grammar['replacements'])
         logger.debug('Replacements are calculated...')
 
-        makedirs(grammar_workdir, exist_ok=True)
-        if grammar_workdir not in sys.path:
-            sys.path.append(grammar_workdir)
+        current_workdir = join(grammar_workdir, grammar_name) if grammar_name else grammar_workdir
+        makedirs(current_workdir, exist_ok=True)
+        if current_workdir not in sys.path:
+            sys.path.append(current_workdir)
 
         # Inject actions into the target grammars to help localizing part of the test case that are optional.
-        for i, g in enumerate(grammar):
-            grammar[i] = join(grammar_workdir, basename(g))
-            inject_optional_actions(g, action_positions[g], grammar[i])
+        for i, g in enumerate(grammar['files']):
+            grammar['files'][i] = join(current_workdir, basename(g))
+            inject_optional_actions(g, action_positions[g], grammar['files'][i])
 
-        target_lexer_class, target_parser_class, target_listener_class = build_grammars(tuple(grammar), grammar_workdir, antlr, lang)
+        target_lexer_class, target_parser_class, target_listener_class = build_grammars(tuple(grammar['files']), current_workdir, antlr, lang)
         logger.debug('Target grammars are processed...')
 
         if lang == 'java':
-            compile_java_sources(target_lexer_class, target_parser_class, target_listener_class)
-            return target_lexer_class, target_parser_class, target_listener_class, replacements
-
-        island_rules = [desc.rule for desc in island_desc_to_list(island_desc)]
+            compile_java_sources(target_lexer_class, target_parser_class, target_listener_class, current_workdir)
+            input_format[grammar_name].update({'lexer': target_lexer_class, 'parser': target_parser_class, 'listener': target_listener_class, 'replacements': replacements})
+            return
 
         class ExtendedTargetParser(target_parser_class):
             """
@@ -290,12 +282,9 @@ def create_hdd_tree(input_stream, grammar, start_rule, antlr, work_dir, *, repla
                 name, text = (self.parser.symbolicNames[ctx.symbol.type], ctx.symbol.text) if ctx.symbol.type != Token.EOF else ('EOF', '')
                 start, end = self.tokenBoundaries(ctx.symbol)
 
-                node = HDDToken(name,
-                                text,
-                                start=start,
-                                end=end)
+                node = HDDToken(name, text, start=start, end=end)
                 self.current_node.add_child(node)
-                if name in island_rules:
+                if name in grammar['islands']:
                     self.island_nodes.append(node)
 
             def visitErrorNode(self, ctx:ErrorNode):
@@ -320,7 +309,7 @@ def create_hdd_tree(input_stream, grammar, start_rule, antlr, work_dir, *, repla
                 if self.root and logger.isEnabledFor(logging.DEBUG):
                     logger.debug(self.root.tree_str(current=self.current_node))
 
-        return target_lexer_class, ExtendedTargetParser, ExtendedTargetListener, replacements
+        input_format[grammar_name].update({'lexer': target_lexer_class, 'parser': ExtendedTargetParser, 'listener': ExtendedTargetListener, 'replacements': replacements})
 
     class ExtendedErrorListener(error.ErrorListener.ErrorListener):
 
@@ -335,33 +324,29 @@ def create_hdd_tree(input_stream, grammar, start_rule, antlr, work_dir, *, repla
             recognizer._type = Token.MIN_USER_TOKEN_TYPE
             recognizer.emitToken(t)
 
-    def build_hdd_tree(input_stream, lexer_class, parser_class, listener_class, start_rule, island_desc, replacements):
+    def build_hdd_tree(input_stream, grammar_name, start_rule):
         """
         Parse the input with the provided ANTLR classes.
 
         :param input_stream: ANTLR stream (FileStream or InputStream) representing the input.
-        :param lexer_class: Reference to the lexer class.
-        :param parser_class: Reference to the parser class.
-        :param listener_class: Reference to the listener class.
+        :param grammar_name: Name of the grammar to use for parsing.
         :param start_rule: The name of the start rule of the parser.
-        :param island_desc: List of IslandDescriptor objects.
-        :param replacements: Dictionary containing the minimal replacements of the target grammar's rules.
         :return: The root of the created HDD tree.
         """
+
+        grammar = input_format[grammar_name]
+        island_nodes = []
 
         def set_replacement(node):
             if isinstance(node, (HDDQuantifier, HDDErrorToken)):
                 node.replace = ''
             elif isinstance(node, HDDRule):
-                node.replace = replacements[node.name]
+                node.replace = grammar['replacements'][node.name]
             else:
-                node.replace = replacements.get(node.name, node.text)
-
-        island_nodes = []
+                node.replace = grammar['replacements'].get(node.name, node.text)
 
         logger.debug('Parse input with %s rule', start_rule)
         if lang != 'python':
-            island_rules = [desc.rule for desc in island_desc_to_list(island_desc)]
 
             def hdd_tree_from_json(node_dict):
                 # Convert interval dictionaries to Position objects.
@@ -378,15 +363,16 @@ def create_hdd_tree(input_stream, grammar, start_rule, antlr, work_dir, *, repla
                     for child in children:
                         node.add_child(hdd_tree_from_json(child))
                 elif name:
-                    if name in island_rules:
+                    if name in grammar['islands']:
                         island_nodes.append(node)
                 return node
 
-            cmd = 'java -classpath {classpath} Extended{parser} {start_rule}'.format(classpath=java_classpath(),
-                                                                                     parser=parser_class,
+            current_workdir = join(grammar_workdir, grammar_name) if grammar_name else grammar_workdir
+            cmd = 'java -classpath {classpath} Extended{parser} {start_rule}'.format(classpath=java_classpath(current_workdir),
+                                                                                     parser=grammar['parser'],
                                                                                      start_rule=start_rule)
             with Popen(cmd,
-                       cwd=grammar_workdir,
+                       cwd=current_workdir,
                        shell=True,
                        stdin=PIPE,
                        stdout=PIPE,
@@ -394,14 +380,15 @@ def create_hdd_tree(input_stream, grammar, start_rule, antlr, work_dir, *, repla
                        universal_newlines=True) as proc:
                 stdout, stderr = proc.communicate(input=input_stream.strdata)
                 if proc.returncode != 0:
-                    logger.error('Java parser failed!\n%s\n%s\n', stdout, stderr)
+                    logger.error('Java parser failed!\n%s\n%s', stdout, stderr)
                     raise CalledProcessError(returncode=proc.returncode, cmd=cmd, output=stdout + stderr)
-            tree_root = hdd_tree_from_json(json.loads(stdout))
+            result = json.loads(stdout)
+            tree_root = hdd_tree_from_json(result)
         else:
-            lexer = lexer_class(input_stream)
+            lexer = grammar['lexer'](input_stream)
             lexer.addErrorListener(ExtendedErrorListener())
-            target_parser = parser_class(CommonTokenStream(lexer))
-            parser_listener = listener_class(target_parser)
+            target_parser = grammar['parser'](CommonTokenStream(lexer))
+            parser_listener = grammar['listener'](target_parser)
             target_parser.addParseListener(parser_listener)
 
             getattr(target_parser, start_rule)()
@@ -412,27 +399,26 @@ def create_hdd_tree(input_stream, grammar, start_rule, antlr, work_dir, *, repla
 
         # Traverse the HDD tree and set minimal replacements for nodes.
         tree_root.traverse(set_replacement)
-        process_island_nodes(island_nodes, island_desc)
+        process_island_nodes(island_nodes, grammar['islands'])
         logger.debug('Parse done.')
         return tree_root
 
-    def process_island_nodes(island_nodes, island_desc):
-        islands = dict()
-        island_desc = island_desc_to_list(island_desc)
-
+    def process_island_nodes(island_nodes, island_format):
         for node in island_nodes:
-            if node.name not in islands:
-                island = next(filter(lambda island: island.rule == node.name, island_desc))
-                lexer, parser, listener, replacements = prepare_parsing(grammar=island.grammars,
-                                                                        replacements=island.replacements,
-                                                                        island_desc=island.island_desc)
-                islands[node.name] = (island.pattern, island.island_desc, lexer, parser, listener, replacements)
+            if isinstance(island_format[node.name], str):
+                rewritten, mapping = rename_regex_groups(island_format[node.name])
+                for new_name, old_name in mapping.items():
+                    grammar_name, rule_name = split_grammar_rule_name(old_name)
+                    mapping[new_name] = (grammar_name, rule_name)
+                    if 'lexer' not in input_format[grammar_name]:
+                        prepare_parsing(grammar_name)
+                island_format[node.name] = (re.compile(rewritten, re.S), mapping)
 
             new_node = HDDRule(node.name, start=node.start, end=node.end)
-            new_node.add_children(build_island_subtree(node, *islands[node.name]))
+            new_node.add_children(build_island_subtree(node, *island_format[node.name]))
             node.replace_with(new_node)
 
-    def build_island_subtree(node, pattern, desc, lexer, parser, listener, replacements):
+    def build_island_subtree(node, pattern, mapping):
         """
         Process terminal with an island grammar.
 
@@ -446,7 +432,7 @@ def create_hdd_tree(input_stream, grammar, start_rule, antlr, work_dir, *, repla
         # Intervals describes a non-overlapping splitting of the content according to the pattern.
         intervals = []
         for m in re.finditer(pattern, content):
-            intervals.extend([(g, m.start(g), m.end(g)) for g in list(pattern.groupindex.keys())])
+            intervals.extend([(g, m.start(g), m.end(g)) for g in list(pattern.groupindex.keys()) if m.start(g) != m.end(g)])
         intervals.sort(key=lambda x: (x[1], x[2]))
 
         for interval in intervals:
@@ -462,14 +448,10 @@ def create_hdd_tree(input_stream, grammar, start_rule, antlr, work_dir, *, repla
                                                               len(next_token_text) - next_token_text.rfind('\n')),
                                          replace=next_token_text))
 
-            # Process a island and save its subtree.
+            # Process an island and save its subtree.
             children.append(build_hdd_tree(input_stream=InputStream(content[interval[1]:interval[2]]),
-                                           lexer_class=lexer,
-                                           parser_class=parser,
-                                           listener_class=listener,
-                                           start_rule=interval[0],
-                                           island_desc=desc,
-                                           replacements=replacements))
+                                           grammar_name=mapping[interval[0]][0],
+                                           start_rule=mapping[interval[0]][1]))
             last_processed = interval[2]
 
         # Create simple HDDToken of the substring following the last subgroup if any.
@@ -507,15 +489,82 @@ def create_hdd_tree(input_stream, grammar, start_rule, antlr, work_dir, *, repla
 
             node.children[:] = non_empty_children
 
-    lexer_class, parser_class, listener_class, replacements = prepare_parsing(grammar=grammar,
-                                                                              replacements=replacements,
-                                                                              island_desc=island_desc)
+    _NAMED_GRP_PATTERN = re.compile(r'(?<!\\)(\(\?P<[^>]*>)')  # "(?P<NAME>" not prefixed by a "\"
+    _NAMED_GRP_PREFIX = '(?P<'
+    _NAMED_GRP_SUFFIX = '>'
+    _NAMED_REF_PATTERN = re.compile(r'(?<!\\)(\(\?P=[^)]*\))') # "(?P=NAME)" not prefixed by a "\"
+    _NAMED_REF_PREFIX = '(?P='
+    _NAMED_REF_SUFFIX = ')'
+
+    def rename_regex_groups(pattern):
+        """
+        Rewrite capture group names in a regex pattern to ensure that the names are
+        valid Python identifiers (as expected by the ``re`` module). This enables
+        more sophisticated capture group names than allowed by default.
+
+        :param str pattern: the original regex pattern with potentially extended
+            syntax for capture group names.
+        :return: the rewritten regex pattern and a mapping from the newly introduced
+            capture group names (which are guaranteed to by valid Python
+            identifiers) to the names used in the original pattern.
+        :rtype: tuple(str, dict(str, str))
+
+        .. note::
+
+           The function expects ``pattern`` to be syntactically valid. Its behavior
+           is undefined for erroneous input.
+        """
+
+        grp_rewritten = ''
+        mapping = dict()
+        rmapping = dict()
+        cnt = 1
+        for item in _NAMED_GRP_PATTERN.split(pattern):
+            if _NAMED_GRP_PATTERN.fullmatch(item):
+                old_name = item[len(_NAMED_GRP_PREFIX):-len(_NAMED_GRP_SUFFIX)]
+                new_name = 'G' + str(cnt)
+                cnt += 1
+
+                mapping[new_name] = old_name
+                rmapping[old_name] = new_name
+
+                item = _NAMED_GRP_PREFIX + new_name + _NAMED_GRP_SUFFIX
+
+            grp_rewritten += item
+
+        ref_rewritten = ''
+        for item in _NAMED_REF_PATTERN.split(grp_rewritten):
+            if _NAMED_REF_PATTERN.fullmatch(item):
+                old_name = item[len(_NAMED_REF_PREFIX):-len(_NAMED_REF_SUFFIX)]
+                new_name = rmapping.get(old_name, old_name)
+
+                item = _NAMED_REF_PREFIX + new_name + _NAMED_REF_SUFFIX
+
+            ref_rewritten += item
+
+        return ref_rewritten, mapping
+
+    def split_grammar_rule_name(name):
+        """
+        Determine the grammar and the rule parts in a potentially grammar-prefixed
+        rule name. The syntax for the prefixed format is "[grammar:]rule", where
+        "[]" denote optionality and the default for a missing grammar part is the
+        empty string.
+
+        :param str name: a potentially grammar-prefixed rule name.
+        :return: a 2-tuple of the grammar and the rule name parts.
+        :rtype: tuple(str, str)
+        """
+
+        names = name.split(':', maxsplit=1)
+        if len(names) < 2:
+            names.insert(0, '')
+        return names[0], names[1]
+
+    start_grammar, start_rule = split_grammar_rule_name(start)
+    prepare_parsing(start_grammar)
     tree = build_hdd_tree(input_stream=input_stream,
-                          lexer_class=lexer_class,
-                          parser_class=parser_class,
-                          listener_class=listener_class,
-                          start_rule=start_rule,
-                          island_desc=island_desc,
-                          replacements=replacements)
+                          grammar_name=start_grammar,
+                          start_rule=start_rule)
     remove_empty_children(tree)
     return tree

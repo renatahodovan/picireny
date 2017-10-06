@@ -40,20 +40,26 @@ antlr = os.getenv('ANTLR')
 ])
 class TestCli:
 
-    @pytest.mark.parametrize('test, inp, exp, grammar, rule', [
-        ('test-json-obj-arr-foo.sh', 'inp-obj-arr.json', 'exp-obj-arr-foo.json', 'JSON.g4', 'json'),
-        ('test-json-obj-arr-bar.sh', 'inp-obj-arr.json', 'exp-obj-arr-bar.json', 'JSON.g4', 'json'),
-        ('test-json-obj-arr-baz.sh', 'inp-obj-arr.json', 'exp-obj-arr-baz.json', 'JSON.g4', 'json'),
-        ('test-json-obj-arr-87.sh', 'inp-obj-arr.json', 'exp-obj-arr-87.json', 'JSON.g4', 'json'),
+    @pytest.mark.parametrize('test, inp, exp, grammar, rule, input_format', [
+        ('test-json-obj-arr-foo.sh', 'inp-obj-arr.json', 'exp-obj-arr-foo.json', 'JSON.g4', 'json', None),
+        ('test-json-obj-arr-bar.sh', 'inp-obj-arr.json', 'exp-obj-arr-bar.json', 'JSON.g4', 'json', None),
+        ('test-json-obj-arr-baz.sh', 'inp-obj-arr.json', 'exp-obj-arr-baz.json', 'JSON.g4', 'json', None),
+        ('test-json-obj-arr-87.sh', 'inp-obj-arr.json', 'exp-obj-arr-87.json', 'JSON.g4', 'json', None),
+        ('test-inijson-str-arr-87.sh', 'inp-str-arr.ini', 'exp-str-arr-87.ini', None, None, 'inijson.json'),
     ])
-    def test_cli(self, test, inp, exp, grammar, rule, tmpdir, args_cache, args_parser, args_hdd_star, args_squeeze, args_skip_unremovable_tokens):
+    def test_cli(self, test, inp, exp, grammar, rule, input_format, tmpdir, args_cache, args_parser, args_hdd_star, args_squeeze, args_skip_unremovable_tokens):
         out_dir = '%s' % tmpdir
         cmd = (sys.executable, '-m', 'picireny')\
               + ('--test=' + test, '--input=' + inp, '--out=' + out_dir) \
-              + ('--log-level=DEBUG', ) \
-              + ('--grammar=' + grammar, '--start-rule=' + rule)
+              + ('--log-level=DEBUG', )
+        if grammar:
+            cmd += ('--grammar=' + grammar, )
+        if rule:
+            cmd += ('--start=' + rule, )
+        if input_format:
+            cmd += ('--format=' + input_format, )
         if antlr:
-              cmd += ('--antlr=' + antlr, )
+            cmd += ('--antlr=' + antlr, )
         cmd += args_cache
         cmd += args_parser
         cmd += args_hdd_star

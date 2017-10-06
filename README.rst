@@ -66,23 +66,34 @@ Usage
 options_.
 On top of the inherited ones, *picireny* accepts several further arguments:
 
-* ``--grammars`` (required): List of grammars describing the input format. (You
+* ``--grammar`` (optional): List of grammars describing the input format. (You
   can write them by hand or simply download them from the
   `ANTLR v4 grammars repository`_.
-* ``--start-rule`` (required): Name of the rule where parsing has to start.
+* ``--start`` (optional): Name of the start rule (optionally prefixed with a
+  grammar name) as ``[grammarname:]rulename``.
+* ``--replacements`` (optional): Json file containing rule names and minimal
+  replacement strings (otherwise these are calculated automatically).
+* ``--format`` (optional): Json file describing the input format (see example_).
+  This descriptor can incorporate all the above (``--grammar``, ``--start`` and
+  ``--replacements``) properties, along with the possibility of island grammar
+  definitions. If both ``--format`` and the aforementioned arguments are present,
+  then the later will override the appropriate values of the format file.
 * ``--antlr`` (optional): Path the ANTLR tool jar.
 * ``--parser`` (optional): Language of the generated parser. Currently 'python'
   (default) and 'java' targets (faster, but needs JDK) are supported.
-* ``--islands`` (optional): File describing how to process island grammars if
-  needed.
+
+Note: although, all the arguments are optional, the grammar files and the start
+rule of the top-level parser must be defined with an arbitrary combination of the
+``--format``, ``--grammars``, and ``--start`` arguments.
 
 .. _`ANTLR v4 grammars repository`: https://github.com/antlr/grammars-v4
-.. _options: https://github.com/renatahodovan/picire/blob/master/README.rst#usage
+.. _options: https://github.com/renatahodovan/picire/tree/master/README.rst#usage
+.. _example: https://github.com/renatahodovan/picireny/tree/master/tests/resources/inijson.json
 
 Example usage to reduce an HTML file::
 
     picireny --input=<path/to/the/input.html> --test=<path/to/the/tester> \
-             --grammars "HTMLLexer.g4 HTMLParser.g4" --start-rule document \
+             --grammar "HTMLLexer.g4 HTMLParser.g4" --start htmlDocument \
              --parallel --subset-iterator=skip --complement-iterator=backward
 
 
@@ -91,8 +102,8 @@ Compatibility
 
 *picireny* was tested on:
 
-* Linux (Ubuntu 14.04 / 15.10)
-* Mac OS X (OS X El Capitan - 10.11).
+* Linux (Ubuntu 14.04 / 15.10 / 16.04)
+* Mac OS X (El Capitan 10.11 / Sierra 10.12).
 
 
 Copyright and Licensing

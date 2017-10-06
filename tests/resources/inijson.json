@@ -1,0 +1,24 @@
+{
+  "start": "ini:ini",
+  "grammars": {
+    "ini": {
+      "files": [
+        "INILexer.g4", "INIParser.g4"
+      ],
+      "islands": {
+        "VALUE": "(?P<json:json>.*)"
+      },
+      "replacements": {
+        "EOL": "\n",
+        "HEADER": "a",
+        "KEY": "a",
+        "VALUE": "a"
+      }
+    },
+    "json": {
+      "files": [
+        "JSON.g4"
+      ]
+    }
+  }
+}

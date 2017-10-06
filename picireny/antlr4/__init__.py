@@ -1,4 +1,4 @@
-# Copyright (c) 2016 Renata Hodovan, Akos Kiss.
+# Copyright (c) 2016-2017 Renata Hodovan, Akos Kiss.
 #
 # Licensed under the BSD 3-Clause License
 # <LICENSE.rst or https://opensource.org/licenses/BSD-3-Clause>.
@@ -6,9 +6,7 @@
 # according to those terms.
 
 from .hdd_tree_builder import create_hdd_tree
-from .islands import IslandDescriptor
 
 __all__ = [
     'create_hdd_tree',
-    'IslandDescriptor'
 ]
