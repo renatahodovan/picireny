@@ -7,6 +7,19 @@
 # according to those terms.
 
 
+class Position(object):
+    """Class defining a position in the input file. Used to recognise line breaks between tokens."""
+    def __init__(self, line, idx):
+        """
+        Initialize position object.
+
+        :param line: Line index in the input.
+        :param idx: Absolute character index in the input.
+        """
+        self.line = line
+        self.idx = idx
+
+
 class HDDTree:
     # Node states for unparsing.
     REMOVED = 0
@@ -28,18 +41,6 @@ class HDDTree:
         self.parent = None
         self.state = self.KEEP
         self.id = id(self)
-
-    class Position(object):
-        """Class defining a position in the input file. Used to recognise line breaks between tokens."""
-        def __init__(self, line, idx):
-            """
-            Initialize position object.
-
-            :param line: Line index in the input.
-            :param idx: Absolute character index in the input.
-            """
-            self.line = line
-            self.idx = idx
 
     def traverse(self, visitor):
         """

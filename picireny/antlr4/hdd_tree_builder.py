@@ -20,7 +20,7 @@ from subprocess import CalledProcessError, Popen, PIPE
 
 from .grammar_analyzer import analyze_grammars
 from .parser_builder import build_grammars
-from ..hdd_tree import HDDRule, HDDToken, HDDTree
+from ..hdd_tree import HDDRule, HDDToken, HDDTree, Position
 
 
 logger = logging.getLogger(__name__)
@@ -273,10 +273,10 @@ def create_hdd_tree(input_stream, input_format, start, antlr, work_dir, *, lang=
 
             def tokenBoundaries(self, token):
                 line_breaks = token.text.count('\n')
-                return HDDTree.Position(token.line, token.column), \
-                       HDDTree.Position(token.line + line_breaks,
-                                        token.column + len(token.text) if not line_breaks else
-                                        len(token.text) - token.text.rfind('\n'))
+                return Position(token.line, token.column), \
+                       Position(token.line + line_breaks,
+                                token.column + len(token.text) if not line_breaks else
+                                len(token.text) - token.text.rfind('\n'))
 
             def visitTerminal(self, ctx:TerminalNode):
                 name, text = (self.parser.symbolicNames[ctx.symbol.type], ctx.symbol.text) if ctx.symbol.type != Token.EOF else ('EOF', '')
@@ -351,8 +351,8 @@ def create_hdd_tree(input_stream, input_format, start, antlr, work_dir, *, lang=
             def hdd_tree_from_json(node_dict):
                 # Convert interval dictionaries to Position objects.
                 node_dict.update({
-                    'start': HDDTree.Position(**node_dict['start']),
-                    'end': HDDTree.Position(**node_dict['end'])})
+                    'start': Position(**node_dict['start']),
+                    'end': Position(**node_dict['end'])})
 
                 name = node_dict.get('name', None)
                 children = node_dict.pop('children', None)
@@ -442,10 +442,10 @@ def create_hdd_tree(input_stream, input_format, start, antlr, work_dir, *, lang=
                 prefix = content[0:last_processed]
                 children.append(HDDToken(name='',
                                          text=next_token_text,
-                                         start=HDDTree.Position(node.start.line + content[0:last_processed].count('\n'),
-                                                                len(prefix) - prefix.rfind('\n')),
-                                         end=HDDTree.Position(node.start.line + next_token_text.count('\n'),
-                                                              len(next_token_text) - next_token_text.rfind('\n')),
+                                         start=Position(node.start.line + content[0:last_processed].count('\n'),
+                                                        len(prefix) - prefix.rfind('\n')),
+                                         end=Position(node.start.line + next_token_text.count('\n'),
+                                                      len(next_token_text) - next_token_text.rfind('\n')),
                                          replace=next_token_text))
 
             # Process an island and save its subtree.
@@ -460,10 +460,10 @@ def create_hdd_tree(input_stream, input_format, start, antlr, work_dir, *, lang=
             prefix = content[0:last_processed]
             children.append(HDDToken(name='',
                                      text=next_token_text,
-                                     start=HDDTree.Position(node.start.line + content[0:last_processed].count('\n'),
-                                                            len(prefix) - prefix.rfind('\n')),
-                                     end=HDDTree.Position(node.start.line + next_token_text.count('\n'),
-                                                          len(next_token_text) - next_token_text.rfind('\n')),
+                                     start=Position(node.start.line + content[0:last_processed].count('\n'),
+                                                    len(prefix) - prefix.rfind('\n')),
+                                     end=Position(node.start.line + next_token_text.count('\n'),
+                                                  len(next_token_text) - next_token_text.rfind('\n')),
                                      replace=next_token_text))
         return children
 

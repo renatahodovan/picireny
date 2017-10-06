@@ -10,4 +10,4 @@ matrix:
 sudo: false
 
 install: pip install -U tox
-script: tox
+script: tox -v
