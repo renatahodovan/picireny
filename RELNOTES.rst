@@ -2,6 +2,17 @@
 *Picireny* Release Notes
 ========================
 
+17.10
+=====
+
+Summary of changes:
+
+* Improved the way how input format can be defined by enabling the use of a more
+  consistent and well-defined config file.
+* Upgraded dependency to *Picire* 17.10 to utilize its Windows support.
+* Minor bug fixes.
+
+
 17.7
 ====
 
