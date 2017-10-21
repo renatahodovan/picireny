@@ -1,0 +1,12 @@
+{
+    "$schema": "http://json-schema.org/draft-06/schema#",
+
+    "description": "Replacement strings mapped to grammar token names.",
+    "type": "object",
+    "patternProperties": {
+        ".*": {
+            "description": "Replacement string for token instances.",
+            "type": "string"
+        }
+    }
+}

@@ -68,17 +68,19 @@ On top of the inherited ones, *picireny* accepts several further arguments:
 
 * ``--grammar`` (optional): List of grammars describing the input format. (You
   can write them by hand or simply download them from the
-  `ANTLR v4 grammars repository`_.
+  `ANTLR v4 grammars repository`_.)
 * ``--start`` (optional): Name of the start rule (optionally prefixed with a
   grammar name) as ``[grammarname:]rulename``.
 * ``--replacements`` (optional): Json file containing rule names and minimal
-  replacement strings (otherwise these are calculated automatically).
-* ``--format`` (optional): Json file describing the input format (see example_).
-  This descriptor can incorporate all the above (``--grammar``, ``--start`` and
-  ``--replacements``) properties, along with the possibility of island grammar
-  definitions. If both ``--format`` and the aforementioned arguments are present,
-  then the later will override the appropriate values of the format file.
-* ``--antlr`` (optional): Path the ANTLR tool jar.
+  replacement strings (otherwise these are calculated automatically) (see
+  schema__).
+* ``--format`` (optional): Json file describing the input format (see schema__
+  and example_). This descriptor can incorporate all the above (``--grammar``,
+  ``--start`` and ``--replacements``) properties, along with the possibility of
+  island grammar definitions. If both ``--format`` and the aforementioned
+  arguments are present, then the latter will override the appropriate values of
+  the format file.
+* ``--antlr`` (optional): Path to the ANTLR tool jar.
 * ``--parser`` (optional): Language of the generated parser. Currently 'python'
   (default) and 'java' targets (faster, but needs JDK) are supported.
 
@@ -86,9 +88,11 @@ Note: although, all the arguments are optional, the grammar files and the start
 rule of the top-level parser must be defined with an arbitrary combination of the
 ``--format``, ``--grammars``, and ``--start`` arguments.
 
-.. _`ANTLR v4 grammars repository`: https://github.com/antlr/grammars-v4
 .. _options: https://github.com/renatahodovan/picire/tree/master/README.rst#usage
-.. _example: https://github.com/renatahodovan/picireny/tree/master/tests/resources/inijson.json
+.. _`ANTLR v4 grammars repository`: https://github.com/antlr/grammars-v4
+.. __: schemas/replacements.json
+.. __: schemas/format.json
+.. _example: tests/resources/inijson.json
 
 Example usage to reduce an HTML file::
 

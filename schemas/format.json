@@ -1,0 +1,47 @@
+{
+    "$schema": "http://json-schema.org/draft-06/schema#",
+
+    "description": "Picireny input format definition.",
+    "type": "object",
+    "properties": {
+        "start": {
+            "description": "Name of start rule optionally prefixed with a grammar name (specified as [grammarname:]rulename).",
+            "type": "string"
+        },
+        "grammars": {
+            "description": "Grammar descriptions mapped to (freely chosen) grammar names.",
+            "type": "object",
+            "patternProperties": {
+                ".*": {
+                    "description": "Grammar description.",
+                    "type": "object",
+                    "properties": {
+                        "files": {
+                            "description": "List of ANTLR grammar files.",
+                            "type": "array",
+                            "items": {
+                                "description": "Grammar file (resolved relative to the location of the input format definition).",
+                                "type": "string"
+                            },
+                            "minItems": 1
+                        },
+                        "islands": {
+                            "description": "Regex patterns mapped to names of tokens of the described grammar.",
+                            "type": "object",
+                            "patternProperties": {
+                                ".*": {
+                                    "description": "Regex pattern matched on token instances (named capture groups define those parts of the token, which should be parsed with a rule of an island grammar, specified as [grammarname:]rulename).",
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "replacements": {
+                            "$ref": "replacements.json"
+                        }
+                    },
+                    "required": [ "files" ]
+                }
+            }
+        }
+    }
+}
