@@ -11,6 +11,7 @@ import json
 import logging
 import picire
 import pkgutil
+import sys
 
 from argparse import ArgumentParser
 from os.path import abspath, basename, dirname, exists, isabs, join, relpath
@@ -211,6 +212,8 @@ def execute():
                             help='don\'t hide unremovable tokens from the ddmin algorithm')
     arg_parser.add_argument('--flatten-recursion', default=False, action='store_true',
                             help='flatten recurring blocks of left/right-recursive rules')
+    arg_parser.add_argument('--sys-recursion-limit', metavar='NUM', type=int,
+                            help='override maximum depth of the Python interpreter stack (may be needed for --parser=java)')
     arg_parser.add_argument('--version', action='version', version='%(prog)s {version}'.format(version=__version__))
 
     args = arg_parser.parse_args()
@@ -219,6 +222,9 @@ def execute():
     logging.basicConfig(format='%(message)s')
     logger.setLevel(args.log_level)
     logging.getLogger('picire').setLevel(logger.level)
+
+    if args.sys_recursion_limit:
+        sys.setrecursionlimit(args.sys_recursion_limit)
 
     call(reduce_class=args.reduce_class,
          reduce_config=args.reduce_config,
