@@ -14,6 +14,7 @@ import pkgutil
 import sys
 
 from argparse import ArgumentParser
+from os import makedirs
 from os.path import abspath, basename, dirname, exists, isabs, join, relpath
 from shutil import rmtree
 
@@ -143,8 +144,7 @@ def call(*,
                 input, ''.join(['\t%s: %s\n' % (k, v) for k, v in sorted(args.items())]))
 
     grammar_workdir = join(out, 'grammar')
-    tests_workdir = join(out, 'tests')
-
+    makedirs(grammar_workdir, exist_ok=True)
     hdd_tree = create_hdd_tree(InputStream(src.decode(encoding)), input_format, start, antlr, grammar_workdir,
                                lang=lang)
 
@@ -159,6 +159,8 @@ def call(*,
 
     # Start reduce and save result to a file named the same like the original.
     out_file = join(out, basename(input))
+    tests_workdir = join(out, 'tests')
+    makedirs(tests_workdir, exist_ok=True)
     with codecs.open(out_file, 'w', encoding=encoding, errors='ignore') as f:
         f.write(hddmin(hdd_tree,
                        reduce_class,
