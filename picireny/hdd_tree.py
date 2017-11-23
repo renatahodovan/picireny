@@ -148,20 +148,6 @@ class HDDTree:
 
         return self.synthetic_attribute(_tree_str)
 
-    def squeeze_tree(self):
-        """
-        Suppress single line chains in the HDD tree whose minimal replacements are the
-        same and hence they would result in redundant checks during the minimization.
-        """
-        return self
-
-    def skip_unremovable_tokens(self):
-        """
-        Mark those tokens as removed whose text is the same as their minimal replacement,
-        thus hiding them from hddmin, because they just cause extra test runs but cannot reduce the input.
-        """
-        pass
-
     def replace_with(self, other):
         """
         Replace the current node with `other` in the HDD tree.
@@ -170,42 +156,6 @@ class HDDTree:
         """
         self.parent.children[self.parent.children.index(self)] = other
         other.parent = self.parent
-
-    def flatten_recursion(self):
-        """
-        Heuristics to flatten left or right-recursion. E.g., given a rule
-            rule : a | rule b
-        and a HDD tree built with it from an input, rewrite the resulting HDD
-        tree as if it was built using
-            rule : a b*
-        This allows HDD to potentially completely remove the recurring blocks
-        (instead of replacing them with their minimal replacement, which is
-        usually not "").
-        """
-        if isinstance(self, HDDRule) and self.state == self.KEEP:
-            for child in self.children:
-                child.flatten_recursion()
-
-            if len(self.children) > 1 and self.name:
-                if self.children[0].name == self.name:
-                    left = self.children[0]
-
-                    right = HDDRule('', replace='', start=self.children[1].start, end=self.children[-1].end)
-                    right.add_children(self.children[1:])
-                    del self.children[:]
-
-                    self.add_children(left.children)
-                    self.add_child(right)
-
-                elif self.children[-1].name == self.name:
-                    right = self.children[-1]
-
-                    left = HDDRule('', replace='', start=self.children[0].start, end=self.children[-2].end)
-                    left.add_children(self.children[0:-1])
-                    del self.children[:]
-
-                    self.add_child(left)
-                    self.add_children(right.children)
 
 
 class HDDToken(HDDTree):
@@ -221,10 +171,6 @@ class HDDToken(HDDTree):
 
     def inherited_attribute(self, visitor, attribute=None):
         visitor(self, attribute)
-
-    def skip_unremovable_tokens(self):
-        if self.text == self.replace:
-            self.state = self.REMOVED
 
 
 class HDDRule(HDDTree):
@@ -263,16 +209,3 @@ class HDDRule(HDDTree):
 
         for child in self.children:
             child.inherited_attribute(visitor, inherit_value)
-
-    def squeeze_tree(self):
-        for i, child in enumerate(self.children):
-            self.children[i].replace_with(child.squeeze_tree())
-
-        if len(self.children) == 1 and self.children[0].replace == self.replace:
-            return self.children[0]
-
-        return self
-
-    def skip_unremovable_tokens(self):
-        for child in self.children:
-            child.skip_unremovable_tokens()

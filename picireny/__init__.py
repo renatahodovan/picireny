@@ -20,4 +20,5 @@ __all__ = [
     'HDDRule',
     'HDDToken',
     'HDDTree',
+    'transform',
 ]

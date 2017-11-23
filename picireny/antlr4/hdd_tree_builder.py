@@ -21,6 +21,7 @@ from subprocess import CalledProcessError, Popen, PIPE
 from .grammar_analyzer import analyze_grammars
 from .parser_builder import build_grammars
 from ..hdd_tree import HDDRule, HDDToken, HDDTree, Position
+from ..transform import remove_empty_nodes
 
 
 logger = logging.getLogger(__name__)
@@ -459,28 +460,6 @@ def create_hdd_tree(input_stream, input_format, start, antlr, work_dir, *, lang=
                                      replace=next_token_text))
         return children
 
-    def remove_empty_children(node):
-        if isinstance(node, HDDRule):
-            non_empty_children = []
-
-            for child in node.children:
-                if isinstance(child, HDDToken):
-                    # empty token is usually the EOF only (but interestingly, it may
-                    # appear multiple times in the tree)
-                    if child.text != '':
-                        non_empty_children.append(child)
-                else:
-                    assert isinstance(child, HDDRule)
-                    remove_empty_children(child)
-
-                    # a grammar may contain lambda rules (with nothing on the
-                    # right-hand side, or with an empty alternative), or rules that
-                    # produce EOF only (which is removed in the branch above)
-                    if len(child.children) != 0:
-                        non_empty_children.append(child)
-
-            node.children[:] = non_empty_children
-
     def calculate_rule_boundaries(node):
         if isinstance(node, HDDRule):
             for child in node.children:
@@ -488,6 +467,8 @@ def create_hdd_tree(input_stream, input_format, start, antlr, work_dir, *, lang=
 
             node.start = node.children[0].start
             node.end = node.children[-1].end
+
+        return node
 
     _NAMED_GRP_PATTERN = re.compile(r'(?<!\\)(\(\?P<[^>]*>)')  # "(?P<NAME>" not prefixed by a "\"
     _NAMED_GRP_PREFIX = '(?P<'
@@ -566,6 +547,6 @@ def create_hdd_tree(input_stream, input_format, start, antlr, work_dir, *, lang=
     tree = build_hdd_tree(input_stream=input_stream,
                           grammar_name=start_grammar,
                           start_rule=start_rule)
-    remove_empty_children(tree)
-    calculate_rule_boundaries(tree)
+    tree = remove_empty_nodes(tree)
+    tree = calculate_rule_boundaries(tree)
     return tree

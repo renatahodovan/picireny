@@ -18,6 +18,7 @@ from os.path import abspath, basename, dirname, exists, isabs, join, relpath
 from shutil import rmtree
 
 from antlr4 import *
+from . import transform
 from .antlr4 import create_hdd_tree
 from .coarse_hdd import coarse_hddmin, coarse_full_hddmin
 from .hdd import hddmin
@@ -148,13 +149,13 @@ def call(*,
                                lang=lang)
 
     if flatten_recursion:
-        hdd_tree.flatten_recursion()
+        hdd_tree = transform.flatten_recursion(hdd_tree)
 
     if squeeze_tree:
-        hdd_tree = hdd_tree.squeeze_tree()
+        hdd_tree = transform.squeeze_tree(hdd_tree)
 
     if skip_unremovable_tokens:
-        hdd_tree.skip_unremovable_tokens()
+        hdd_tree = transform.skip_unremovable_tokens(hdd_tree)
 
     # Start reduce and save result to a file named the same like the original.
     out_file = join(out, basename(input))
