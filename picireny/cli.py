@@ -1,4 +1,4 @@
-# Copyright (c) 2016-2017 Renata Hodovan, Akos Kiss.
+# Copyright (c) 2016-2018 Renata Hodovan, Akos Kiss.
 #
 # Licensed under the BSD 3-Clause License
 # <LICENSE.rst or https://opensource.org/licenses/BSD-3-Clause>.
@@ -19,7 +19,7 @@ from os.path import abspath, basename, dirname, exists, isabs, join, relpath
 from shutil import rmtree
 
 from antlr4 import *
-from . import transform
+from . import info, transform
 from .antlr4 import create_hdd_tree
 from .coarse_hdd import coarse_hddmin, coarse_full_hddmin
 from .hdd import hddmin
@@ -101,6 +101,11 @@ def process_args(arg_parser, args):
     picire.cli.process_args(arg_parser, args)
 
 
+def log_tree(title, hdd_tree):
+    logger.debug(title + '\n\theight: %s\n\tshape: %s\n\tnodes: %s\n',
+                 info.height(hdd_tree), info.shape(hdd_tree), ', '.join(['%d %s' % (cnt, ty) for ty, cnt in sorted(info.count(hdd_tree).items())]))
+
+
 def call(*,
          reduce_class, reduce_config,
          tester_class, tester_config,
@@ -147,15 +152,19 @@ def call(*,
     makedirs(grammar_workdir, exist_ok=True)
     hdd_tree = create_hdd_tree(InputStream(src.decode(encoding)), input_format, start, antlr, grammar_workdir,
                                lang=lang)
+    log_tree('Initial tree', hdd_tree)
 
     if flatten_recursion:
         hdd_tree = transform.flatten_recursion(hdd_tree)
+        log_tree('Tree after recursion flattening', hdd_tree)
 
     if squeeze_tree:
         hdd_tree = transform.squeeze_tree(hdd_tree)
+        log_tree('Tree after squeezing', hdd_tree)
 
     if skip_unremovable_tokens:
         hdd_tree = transform.skip_unremovable_tokens(hdd_tree)
+        log_tree('Tree after skipping unremovable tokens', hdd_tree)
 
     # Start reduce and save result to a file named the same like the original.
     out_file = join(out, basename(input))

@@ -1,5 +1,5 @@
 # Copyright (c) 2007 Ghassan Misherghi.
-# Copyright (c) 2016-2017 Renata Hodovan, Akos Kiss.
+# Copyright (c) 2016-2018 Renata Hodovan, Akos Kiss.
 #
 # Licensed under the BSD 3-Clause License
 # <LICENSE.rst or https://opensource.org/licenses/BSD-3-Clause>.
@@ -11,6 +11,7 @@ import logging
 from os.path import join
 
 from .empty_dd import EmptyDD
+from .info import height
 from .unparser import Unparser
 
 logger = logging.getLogger(__name__)
@@ -63,7 +64,7 @@ def hddmin(hdd_tree, reduce_class, reduce_config, tester_class, tester_config, t
         level_ids = collect_level_ids(level)
 
         while len(level_ids):
-            logger.info('Checking level %d ...', level)
+            logger.info('Checking level %d / %d ...', level, height(hdd_tree))
 
             level_ids_set = set(level_ids)
 

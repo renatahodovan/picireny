@@ -1,4 +1,4 @@
-# Copyright (c) 2017 Renata Hodovan, Akos Kiss.
+# Copyright (c) 2017-2018 Renata Hodovan, Akos Kiss.
 #
 # Licensed under the BSD 3-Clause License
 # <LICENSE.rst or https://opensource.org/licenses/BSD-3-Clause>.
@@ -10,6 +10,7 @@ import logging
 from os.path import join
 
 from .empty_dd import EmptyDD
+from .info import height
 from .hdd import hddmin
 from .unparser import Unparser
 
@@ -56,7 +57,7 @@ def coarse_hddmin(hdd_tree, reduce_class, reduce_config, tester_class, tester_co
         while len(level_nodes):
             level_nodes = list(filter(lambda node: node.replace == '', level_nodes))
             if len(level_nodes):
-                logger.info('Checking level %d ...', level)
+                logger.info('Checking level %d / %d ...', level, height(hdd_tree))
 
                 level_ids = [node.id for node in level_nodes]
                 level_ids_set = set(level_ids)
