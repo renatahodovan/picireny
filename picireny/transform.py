@@ -1,4 +1,4 @@
-# Copyright (c) 2017 Renata Hodovan, Akos Kiss.
+# Copyright (c) 2017-2018 Renata Hodovan, Akos Kiss.
 #
 # Licensed under the BSD 3-Clause License
 # <LICENSE.rst or https://opensource.org/licenses/BSD-3-Clause>.
@@ -127,6 +127,26 @@ def skip_unremovable_tokens(node):
     else:
         assert isinstance(node, HDDToken)
         if node.text == node.replace:
+            node.state = node.REMOVED
+
+    return node
+
+
+def skip_whitespace(node):
+    """
+    Mark tokens with whitespace-only text as removed. Useful when hidden-channel
+    tokens are built into the tree to let hddmin deal with
+    hidden-but-non-whitespace tokens only.
+
+    :param node: The root of the tree to be transformed.
+    :return: The root of the transformed tree.
+    """
+    if isinstance(node, HDDRule):
+        for child in node.children:
+            skip_whitespace_tokens(child)
+    else:
+        assert isinstance(node, HDDToken)
+        if node.text.isspace():
             node.state = node.REMOVED
 
     return node

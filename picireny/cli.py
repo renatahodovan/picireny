@@ -113,6 +113,7 @@ def call(*,
          hddmin,
          antlr, input_format, start, build_hidden_tokens=False, lang='python',
          hdd_star=True, squeeze_tree=True, skip_unremovable_tokens=True,
+         skip_whitespace=False,
          flatten_recursion=False,
          cache_class=None, cleanup=True):
     """
@@ -136,6 +137,7 @@ def call(*,
     :param hdd_star: Boolean to enable the HDD star algorithm.
     :param squeeze_tree: Boolean to enable the tree squeezing optimization.
     :param skip_unremovable_tokens: Boolean to enable hiding unremovable tokens from ddmin.
+    :param skip_whitespace: Boolean to enable hiding whitespace-only tokens from ddmin.
     :param flatten_recursion: Boolean to enable flattening left/right-recursive trees.
     :param cache_class: Reference to the cache class to use.
     :param cleanup: Binary flag denoting whether removing auxiliary files at the end is enabled (default: True).
@@ -166,6 +168,10 @@ def call(*,
     if skip_unremovable_tokens:
         hdd_tree = transform.skip_unremovable_tokens(hdd_tree)
         log_tree('Tree after skipping unremovable tokens', hdd_tree)
+
+    if skip_whitespace:
+        hdd_tree = transform.skip_whitespace(hdd_tree)
+        log_tree('Tree after skipping whitespace tokens', hdd_tree)
 
     # Start reduce and save result to a file named the same like the original.
     out_file = join(out, basename(input))
@@ -226,6 +232,8 @@ def execute():
                             help='don\'t squeeze rule chains in tree representation')
     arg_parser.add_argument('--no-skip-unremovable-tokens', dest='skip_unremovable_tokens', default=True, action='store_false',
                             help='don\'t hide unremovable tokens from the ddmin algorithm')
+    arg_parser.add_argument('--skip-whitespace', dest='skip_whitespace', default=False, action='store_true',
+                            help='hide whitespace tokens from the ddmin algorithm')
     arg_parser.add_argument('--flatten-recursion', default=False, action='store_true',
                             help='flatten recurring blocks of left/right-recursive rules')
     arg_parser.add_argument('--sys-recursion-limit', metavar='NUM', type=int,
@@ -259,6 +267,7 @@ def execute():
          hdd_star=args.hdd_star,
          squeeze_tree=args.squeeze_tree,
          skip_unremovable_tokens=args.skip_unremovable_tokens,
+         skip_whitespace=args.skip_whitespace,
          flatten_recursion=args.flatten_recursion,
          cache_class=args.cache,
          cleanup=args.cleanup)
