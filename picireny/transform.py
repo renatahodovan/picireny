@@ -80,6 +80,18 @@ def flatten_recursion(node):
                 node.add_child(left)
                 node.add_children(right.children)
 
+        # This only seems to happen if there was some error during parsing.
+        # In this case a weird 1-step chain gets inserted into the left/right-
+        # recursive tree, which prevents flattening. But we cannot postpone the
+        # merging of this 1-step chain to squeeze_tree because flatten_recursion
+        # is usually not called again afterwards. So, do a degenerate "rotation"
+        # (i.e., simple lifting) here.
+        if len(node.children) == 1 and node.name:
+            if node.children[0].name == node.name:
+                child = node.children[0]
+                del node.children[:]
+                node.add_children(child.children)
+
     return node
 
 
