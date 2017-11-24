@@ -108,11 +108,13 @@ public class Extended$parser_class extends $parser_class {
 
             public JsonObjectBuilder createJsonObjectBuilder() {
                 JsonObjectBuilder builder = Json.createObjectBuilder()
-                    .add("type", getClass().getSimpleName())
-                    .add("start", start.createJsonObjectBuilder())
-                    .add("end", end.createJsonObjectBuilder());
+                    .add("type", getClass().getSimpleName());
                 if (name != null)
                     builder.add("name", name);
+                if (start != null)
+                    builder.add("start", start.createJsonObjectBuilder());
+                if (end != null)
+                    builder.add("end", end.createJsonObjectBuilder());
 
                 return builder;
             }
@@ -200,8 +202,6 @@ public class Extended$parser_class extends $parser_class {
             HDDRule parent = current_node.parent;
             if (children_to_lift.size() > 0) {
                 current_node.children = children_to_lift;
-                current_node.start = current_node.children.get(0).start;
-                current_node.end = children_to_lift.get(current_node.children.size() - 1).end;
             } else {
                 parent.children.remove(current_node);
             }
@@ -226,10 +226,6 @@ public class Extended$parser_class extends $parser_class {
                 exit_optional();
 
             assert current_node.name.equals(parser.getRuleNames()[ctx.getRuleIndex()]) : current_node.name + " (" + current_node.toString() + ") != " + parser.getRuleNames()[ctx.getRuleIndex()];
-
-            Position[] boundaries = tokenBoundaries(ctx.start);
-            current_node.start = boundaries[0];
-            current_node.end = ctx.stop == null ? boundaries[1] : tokenBoundaries(ctx.stop)[1];
 
             if (current_node.parent != null)
                 current_node = current_node.parent;
@@ -277,8 +273,6 @@ public class Extended$parser_class extends $parser_class {
             assert current_node.parent != null : "Quantifier node has no parent.";
             assert current_node.children.size() > 0 : "Quantifier node has no children.";
 
-            current_node.start = current_node.children.get(0).start;
-            current_node.end = current_node.children.get(current_node.children.size() - 1).end;
             current_node = current_node.parent;
         }
     }

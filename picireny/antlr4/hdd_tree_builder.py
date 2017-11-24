@@ -239,8 +239,6 @@ def create_hdd_tree(input_stream, input_format, start, antlr, work_dir, *, lang=
                 if children_to_lift:
                     self.current_node.children = []
                     self.current_node.add_children(children_to_lift)
-                    self.current_node.start = self.current_node.children[0].start
-                    self.current_node.end = self.current_node.children[-1].end
                 else:
                     parent.remove_child(self.current_node)
                 self.current_node = parent
@@ -262,11 +260,6 @@ def create_hdd_tree(input_stream, input_format, start, antlr, work_dir, *, lang=
 
                 assert self.current_node.name == self.parser.ruleNames[ctx.getRuleIndex()],\
                     '%s (%s) != %s' % (self.current_node.name, repr(self.current_node), self.parser.ruleNames[ctx.getRuleIndex()])
-
-                start, _ = self.tokenBoundaries(ctx.start)
-                _, end = self.tokenBoundaries(ctx.stop if ctx.stop else ctx.start)
-                self.current_node.start = start
-                self.current_node.end = end
 
                 if self.current_node.parent:
                     self.current_node = self.current_node.parent
@@ -301,8 +294,6 @@ def create_hdd_tree(input_stream, input_format, start, antlr, work_dir, *, lang=
                 assert self.current_node.parent, 'Quantifier node has no parent.'
                 assert self.current_node.children, 'Quantifier node has no children.'
 
-                self.current_node.start = self.current_node.children[0].start
-                self.current_node.end = self.current_node.children[-1].end
                 self.current_node = self.current_node.parent
 
             def print_tree(self):
@@ -350,9 +341,10 @@ def create_hdd_tree(input_stream, input_format, start, antlr, work_dir, *, lang=
 
             def hdd_tree_from_json(node_dict):
                 # Convert interval dictionaries to Position objects.
-                node_dict.update({
-                    'start': Position(**node_dict['start']),
-                    'end': Position(**node_dict['end'])})
+                if 'start' in node_dict:
+                    node_dict['start'] = Position(**node_dict['start'])
+                if 'end' in node_dict:
+                    node_dict['end'] = Position(**node_dict['end'])
 
                 name = node_dict.get('name', None)
                 children = node_dict.pop('children', None)
@@ -414,7 +406,7 @@ def create_hdd_tree(input_stream, input_format, start, antlr, work_dir, *, lang=
                         prepare_parsing(grammar_name)
                 island_format[node.name] = (re.compile(rewritten, re.S), mapping)
 
-            new_node = HDDRule(node.name, start=node.start, end=node.end)
+            new_node = HDDRule(node.name)
             new_node.add_children(build_island_subtree(node, *island_format[node.name]))
             node.replace_with(new_node)
 
@@ -488,6 +480,14 @@ def create_hdd_tree(input_stream, input_format, start, antlr, work_dir, *, lang=
                         non_empty_children.append(child)
 
             node.children[:] = non_empty_children
+
+    def calculate_rule_boundaries(node):
+        if isinstance(node, HDDRule):
+            for child in node.children:
+                calculate_rule_boundaries(child)
+
+            node.start = node.children[0].start
+            node.end = node.children[-1].end
 
     _NAMED_GRP_PATTERN = re.compile(r'(?<!\\)(\(\?P<[^>]*>)')  # "(?P<NAME>" not prefixed by a "\"
     _NAMED_GRP_PREFIX = '(?P<'
@@ -567,4 +567,5 @@ def create_hdd_tree(input_stream, input_format, start, antlr, work_dir, *, lang=
                           grammar_name=start_grammar,
                           start_rule=start_rule)
     remove_empty_children(tree)
+    calculate_rule_boundaries(tree)
     return tree
