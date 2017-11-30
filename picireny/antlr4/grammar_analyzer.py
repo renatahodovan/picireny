@@ -1,4 +1,4 @@
-# Copyright (c) 2016 Renata Hodovan, Akos Kiss.
+# Copyright (c) 2016-2018 Renata Hodovan, Akos Kiss.
 #
 # Licensed under the BSD 3-Clause License
 # <LICENSE.rst or https://opensource.org/licenses/BSD-3-Clause>.
@@ -70,7 +70,7 @@ def analyze_grammars(antlr_lexer, antlr_parser, grammars, replacements):
 
         # Node is created from Alternative to group its element+ children (it's a sequence).
         if isinstance(ctx, parser.AlternativeContext):
-            return ANTLRElement(repl=('' if not ctx.children else None))
+            return ANTLRAlternative(repl=('' if not ctx.children else None))
 
         # LabeledElement and Block are created since they can have quantifier.
         if isinstance(ctx, (parser.LabeledElementContext, parser.BlockContext)):

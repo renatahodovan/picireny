@@ -1,4 +1,4 @@
-# Copyright (c) 2016-2017 Renata Hodovan, Akos Kiss.
+# Copyright (c) 2016-2018 Renata Hodovan, Akos Kiss.
 #
 # Licensed under the BSD 3-Clause License
 # <LICENSE.rst or https://opensource.org/licenses/BSD-3-Clause>.
@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 # Paser Elements
 
 class ANTLRElement(object):
-    def __init__(self, *, optional=False, repl=None):
+    def __init__(self, *, optional=False, repl=None, sep=''):
         """
         Constructor of the base tree node type.
 
@@ -23,6 +23,7 @@ class ANTLRElement(object):
         """
         self.children = []
         self.replacement = repl if not optional else ''
+        self.sep = sep
 
     def all_replacements_defined(self):
         """
@@ -46,7 +47,7 @@ class ANTLRElement(object):
         :return: Boolean denoting if a new replacement was found or not.
         """
         if self.all_replacements_defined():
-            new_repl = ''.join([x.replacement for x in self.children])
+            new_repl = self.sep.join([x.replacement for x in self.children if x.replacement])
             if self.replacement is None or len(new_repl) < len(self.replacement) or (len(new_repl) == len(self.replacement) and new_repl < self.replacement):
                 self.replacement = new_repl
                 return True
@@ -75,6 +76,11 @@ class ANTLRRef(ANTLRElement):
     def __init__(self, ref, *, optional=False):
         ANTLRElement.__init__(self, optional=optional)
         self.ref = ref
+
+
+class ANTLRAlternative(ANTLRElement):
+    def __init__(self, *, repl=None):
+        ANTLRElement.__init__(self, repl=repl, sep=' ')
 
 
 class ANTLRAlternation(ANTLRElement):
