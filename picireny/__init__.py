@@ -5,13 +5,14 @@
 # This file may not be copied, modified, or distributed except
 # according to those terms.
 
-from .cli import __version__, call
+from .cli import __version__, build_with_antlr4, build_with_srcml, reduce
 from .hdd import coarse_filter, coarse_full_hddmin, coarse_hddmin, hddmin
 from .hdd_tree import HDDRule, HDDToken, HDDTree
 
 __all__ = [
     '__version__',
-    'call',
+    'build_with_antlr4',
+    'build_with_srcml',
     'cli',
     'coarse_filter',
     'coarse_full_hddmin',
@@ -21,5 +22,6 @@ __all__ = [
     'HDDToken',
     'HDDTree',
     'info',
+    'reduce',
     'transform',
 ]
