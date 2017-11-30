@@ -113,21 +113,21 @@ def squeeze_tree(node):
     return node
 
 
-def skip_unremovable_tokens(node):
+def skip_unremovable(node, *, unparse_with_whitespace=True):
     """
-    Mark those tokens as removed whose text is the same as their minimal replacement,
-    thus hiding them from hddmin, because they just cause extra test runs but cannot reduce the input.
+    Mark those nodes as removed whose unparsing (e.g., for tokens, their text)
+    is the same tokens as their minimal replacement, thus hiding them from
+    hddmin, because they just cause extra test runs but cannot reduce the input.
 
     :param node: The root of the tree to be transformed.
     :return: The root of the transformed tree.
     """
     if isinstance(node, HDDRule):
         for child in node.children:
-            skip_unremovable_tokens(child)
-    else:
-        assert isinstance(node, HDDToken)
-        if node.text == node.replace:
-            node.state = node.REMOVED
+            skip_unremovable(child)
+
+    if node.unparse(with_whitespace=unparse_with_whitespace) == node.replace:
+        node.state = node.REMOVED
 
     return node
 

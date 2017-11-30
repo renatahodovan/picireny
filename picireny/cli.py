@@ -112,7 +112,7 @@ def call(*,
          input, src, encoding, out,
          hddmin,
          antlr, input_format, start, build_hidden_tokens=False, lang='python',
-         hdd_star=True, squeeze_tree=True, skip_unremovable_tokens=True,
+         hdd_star=True, squeeze_tree=True, skip_unremovable=True,
          skip_whitespace=False,
          flatten_recursion=False,
          cache_class=None, cleanup=True):
@@ -136,7 +136,7 @@ def call(*,
     :param lang: The target language of the parser.
     :param hdd_star: Boolean to enable the HDD star algorithm.
     :param squeeze_tree: Boolean to enable the tree squeezing optimization.
-    :param skip_unremovable_tokens: Boolean to enable hiding unremovable tokens from ddmin.
+    :param skip_unremovable: Boolean to enable hiding unremovable nodes from ddmin.
     :param skip_whitespace: Boolean to enable hiding whitespace-only tokens from ddmin.
     :param flatten_recursion: Boolean to enable flattening left/right-recursive trees.
     :param cache_class: Reference to the cache class to use.
@@ -165,9 +165,9 @@ def call(*,
         hdd_tree = transform.squeeze_tree(hdd_tree)
         log_tree('Tree after squeezing', hdd_tree)
 
-    if skip_unremovable_tokens:
-        hdd_tree = transform.skip_unremovable_tokens(hdd_tree)
-        log_tree('Tree after skipping unremovable tokens', hdd_tree)
+    if skip_unremovable:
+        hdd_tree = transform.skip_unremovable(hdd_tree, unparse_with_whitespace=not build_hidden_tokens)
+        log_tree('Tree after skipping unremovable nodes', hdd_tree)
 
     if skip_whitespace:
         hdd_tree = transform.skip_whitespace(hdd_tree)
@@ -230,8 +230,8 @@ def execute():
                             help='run the hddmin algorithm only once')
     arg_parser.add_argument('--no-squeeze-tree', dest='squeeze_tree', default=True, action='store_false',
                             help='don\'t squeeze rule chains in tree representation')
-    arg_parser.add_argument('--no-skip-unremovable-tokens', dest='skip_unremovable_tokens', default=True, action='store_false',
-                            help='don\'t hide unremovable tokens from the ddmin algorithm')
+    arg_parser.add_argument('--no-skip-unremovable', dest='skip_unremovable', default=True, action='store_false',
+                            help='don\'t hide unremovable nodes from the ddmin algorithm')
     arg_parser.add_argument('--skip-whitespace', dest='skip_whitespace', default=False, action='store_true',
                             help='hide whitespace tokens from the ddmin algorithm')
     arg_parser.add_argument('--flatten-recursion', default=False, action='store_true',
@@ -266,7 +266,7 @@ def execute():
          lang=args.parser,
          hdd_star=args.hdd_star,
          squeeze_tree=args.squeeze_tree,
-         skip_unremovable_tokens=args.skip_unremovable_tokens,
+         skip_unremovable=args.skip_unremovable,
          skip_whitespace=args.skip_whitespace,
          flatten_recursion=args.flatten_recursion,
          cache_class=args.cache,

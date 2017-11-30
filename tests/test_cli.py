@@ -1,4 +1,4 @@
-# Copyright (c) 2016-2017 Renata Hodovan, Akos Kiss.
+# Copyright (c) 2016-2018 Renata Hodovan, Akos Kiss.
 #
 # Licensed under the BSD 3-Clause License
 # <LICENSE.rst or https://opensource.org/licenses/BSD-3-Clause>.
@@ -68,13 +68,13 @@ class TestCli:
         (),
         ('--no-squeeze-tree', ),
     ])
-    @pytest.mark.parametrize('args_skip_unremovable_tokens', [
+    @pytest.mark.parametrize('args_skip_unremovable', [
         (),
-        ('--no-skip-unremovable-tokens', ),
+        ('--no-skip-unremovable', ),
     ])
-    def test_light(self, test, inp, exp, grammar, rule, input_format, tmpdir, args_parallel, args_cache, args_parser, args_hdd_star, args_squeeze, args_skip_unremovable_tokens):
+    def test_light(self, test, inp, exp, grammar, rule, input_format, tmpdir, args_parallel, args_cache, args_parser, args_hdd_star, args_squeeze, args_skip_unremovable):
         self._run_picireny(test, inp, exp, grammar, rule, input_format, tmpdir,
-                           args_parallel + args_cache + args_parser + args_hdd_star + args_squeeze + args_skip_unremovable_tokens)
+                           args_parallel + args_cache + args_parser + args_hdd_star + args_squeeze + args_skip_unremovable)
 
     @pytest.mark.parametrize('args_parallel', [
         ('--parallel', ),
@@ -91,9 +91,9 @@ class TestCli:
     @pytest.mark.parametrize('args_squeeze', [
         (),
     ])
-    @pytest.mark.parametrize('args_skip_unremovable_tokens', [
+    @pytest.mark.parametrize('args_skip_unremovable', [
         (),
     ])
-    def test_parallel(self, test, inp, exp, grammar, rule, input_format, tmpdir, args_parallel, args_cache, args_parser, args_hdd_star, args_squeeze, args_skip_unremovable_tokens):
+    def test_parallel(self, test, inp, exp, grammar, rule, input_format, tmpdir, args_parallel, args_cache, args_parser, args_hdd_star, args_squeeze, args_skip_unremovable):
         self._run_picireny(test, inp, exp, grammar, rule, input_format, tmpdir,
-                           args_parallel + args_cache + args_parser + args_hdd_star + args_squeeze + args_skip_unremovable_tokens)
+                           args_parallel + args_cache + args_parser + args_hdd_star + args_squeeze + args_skip_unremovable)
