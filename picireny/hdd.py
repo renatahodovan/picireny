@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 
 def hddmin(hdd_tree, reduce_class, reduce_config, tester_class, tester_config, test_name, work_dir,
-           *, hdd_star=True, cache=None, unparse_with_whitespace=True):
+           *, hdd_star=True, cache=None, unparse_with_whitespace=True, granularity=2):
     """
     Run the hierarchical delta debugging reduce algorithm.
 
@@ -33,6 +33,7 @@ def hddmin(hdd_tree, reduce_class, reduce_config, tester_class, tester_config, t
     :param hdd_star: Boolean to enable the HDD star algorithm.
     :param cache: Cache to use.
     :param unparse_with_whitespace: Build test case by adding whitespace between nonadjacent tree nodes during unparsing.
+    :param granularity: Initial granularity.
     :return: The 1-tree-minimal test case.
     """
 
@@ -77,10 +78,10 @@ def hddmin(hdd_tree, reduce_class, reduce_config, tester_class, tester_config, t
                                 test_pattern=join(work_dir, 'iter_%d' % iter_cnt, 'level_%d' % level, '%s', test_name),
                                 **tester_config)
             dd = reduce_class(test, cache=cache, **reduce_config)
-            c = dd.ddmin(level_ids)
+            c = dd.ddmin(level_ids, n=granularity)
             if len(c) == 1:
                 dd = EmptyDD(test, cache=cache)
-                c = dd.ddmin(c)
+                c = dd.ddmin(c, n=granularity)
             c = set(c)
             changed = changed or len(c) < len(level_ids_set)
             if cache:

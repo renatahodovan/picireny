@@ -1,4 +1,4 @@
-# Copyright (c) 2017 Renata Hodovan, Akos Kiss.
+# Copyright (c) 2017-2018 Renata Hodovan, Akos Kiss.
 #
 # Licensed under the BSD 3-Clause License
 # <LICENSE.rst or https://opensource.org/licenses/BSD-3-Clause>.
@@ -27,7 +27,7 @@ class EmptyDD(AbstractDD):
         """
         AbstractDD.__init__(self, test, None, cache=cache)
 
-    def ddmin(self, config):
+    def ddmin(self, config, *, n=2):
         """
         Return a 1-minimal failing subset of the initial configuration, and also
         test the empty configuration while doing so.
@@ -37,6 +37,8 @@ class EmptyDD(AbstractDD):
         the empty configuration.
 
         :param config: The initial configuration that will be reduced.
+        :param n: The number of sets that the config is initially split to
+                  (unused, available for API compatibility with other DD variants).
         :return: 1-minimal failing configuration.
         """
 
@@ -44,13 +46,13 @@ class EmptyDD(AbstractDD):
 
         logger.debug('dd(%r) ...', config)
 
-        outcome = self._dd(config)
+        outcome = self._dd(config, n=n)
 
         logger.debug('dd(%r) = %r', config, outcome)
 
         return outcome
 
-    def _dd(self, config):
+    def _dd(self, config, *, n):
         # assert self.test(config, 'assert') == self.FAIL
 
         emptyset = []

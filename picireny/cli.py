@@ -165,7 +165,7 @@ def call(*,
          antlr, input_format, start, build_hidden_tokens=False, lang='python',
          hdd_star=True, squeeze_tree=True, skip_unremovable=True,
          skip_whitespace=False,
-         flatten_recursion=False,
+         flatten_recursion=False, granularity=2,
          cache_class=None, cleanup=True):
     """
     Execute picireny as if invoked from command line, however, control its
@@ -190,8 +190,9 @@ def call(*,
     :param skip_unremovable: Boolean to enable hiding unremovable nodes from ddmin.
     :param skip_whitespace: Boolean to enable hiding whitespace-only tokens from ddmin.
     :param flatten_recursion: Boolean to enable flattening left/right-recursive trees.
+    :param granularity: Initial granularity.
     :param cache_class: Reference to the cache class to use.
-    :param cleanup: Binary flag denoting whether removing auxiliary files at the end is enabled (default: True).
+    :param cleanup: Binary flag denoting whether removing auxiliary files at the end is enabled.
     :return: The path to the minimal test case.
     """
 
@@ -237,7 +238,8 @@ def call(*,
                        tests_workdir,
                        hdd_star=hdd_star,
                        cache=cache_class() if cache_class else None,
-                       unparse_with_whitespace=not build_hidden_tokens))
+                       unparse_with_whitespace=not build_hidden_tokens,
+                       granularity=granularity))
     logger.info('Result is saved to %s.', out_file)
 
     if cleanup:
@@ -319,5 +321,6 @@ def execute():
          skip_unremovable=args.skip_unremovable,
          skip_whitespace=args.skip_whitespace,
          flatten_recursion=args.flatten_recursion,
+         granularity=args.granularity,
          cache_class=args.cache,
          cleanup=args.cleanup)
