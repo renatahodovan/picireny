@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 
 def hddmin(hdd_tree, reduce_class, reduce_config, tester_class, tester_config, test_name, work_dir,
-           *, hdd_star=True, cache=None, unparse_with_whitespace=True, granularity=2):
+           *, hdd_star=True, cache=None, config_filter=None, unparse_with_whitespace=True, granularity=2):
     """
     Run the hierarchical delta debugging reduce algorithm.
 
@@ -32,42 +32,43 @@ def hddmin(hdd_tree, reduce_class, reduce_config, tester_class, tester_config, t
     :param work_dir: Directory to save temporary test files.
     :param hdd_star: Boolean to enable the HDD star algorithm.
     :param cache: Cache to use.
+    :param config_filter: Filter function from node to boolean, to allow running hddmin selectively.
     :param unparse_with_whitespace: Build test case by adding whitespace between nonadjacent tree nodes during unparsing.
     :param granularity: Initial granularity.
-    :return: The 1-tree-minimal test case.
+    :return: The reduced test case (1-tree-minimal if hdd_star is True and config_filter is None).
     """
 
-    def collect_level_ids(level):
-        # Don't return a set from collect_level_ids straight away.
-        # Node IDs are python object IDs, which are implementation specific
-        # (memory addresses in CPython). Memory addresses may/do change from
-        # execution to execution, so would change the IDs, and so may change
-        # how the ID set is serialized into an ID list (necessary to construct
-        # the input config for ddmin). But then, ddmin could potentially give
-        # different results -- for the same tree.
-        # If a list is used to collect the node IDs, however, then they will
-        # always be in the same order, no matter what the actual IDs are.
-        def _collect_level_ids(node, current_level):
+    def collect_level_nodes(level):
+        def _collect_level_nodes(node, current_level):
             if current_level == level and node.state == node.KEEP:
-                level_ids.append(node.id)
+                level_nodes.append(node)
             return current_level + 1
-        level_ids = []
-        hdd_tree.inherited_attribute(_collect_level_ids, 0)
-        return level_ids
+        level_nodes = [] # Using `list` (not `set`) for the sake of stability.
+        hdd_tree.inherited_attribute(_collect_level_nodes, 0)
+        return level_nodes
 
-    iter_cnt = 0
-
+    iter_cnt = -1
     while True:
+        iter_cnt += 1
         logger.info('Iteration #%d', iter_cnt)
         hdd_tree.check()
 
-        level = 0
+        level = -1
         changed = False
-        level_ids = collect_level_ids(level)
+        while True:
+            level += 1
+            level_nodes = collect_level_nodes(level)
+            if not level_nodes:
+                break
 
-        while len(level_ids):
+            if config_filter:
+                level_nodes = list(filter(config_filter, level_nodes))
+                if not level_nodes:
+                    continue
+
             logger.info('Checking level %d / %d ...', level, height(hdd_tree))
 
+            level_ids = [node.id for node in level_nodes]
             level_ids_set = set(level_ids)
 
             test_builder = Unparser(hdd_tree, level_ids_set, with_whitespace=unparse_with_whitespace)
@@ -89,12 +90,37 @@ def hddmin(hdd_tree, reduce_class, reduce_config, tester_class, tester_config, t
 
             hdd_tree.set_state(level_ids_set, c)
 
-            level += 1
-            level_ids = collect_level_ids(level)
-
         if not hdd_star or not changed:
             break
 
-        iter_cnt += 1
-
     return hdd_tree.unparse(with_whitespace=unparse_with_whitespace)
+
+
+def coarse_filter(node):
+    """
+    Config filter to keep nodes with empty replacements only, which is the core
+    of the coarse hierarchical delta debugging reduce algorithm.
+    """
+    return node.replace == ''
+
+
+def coarse_hddmin(*args, **kwargs):
+    """
+    Run the coarse hierarchical delta debugging reduce algorithm.
+
+    Note: Same as calling hddmin with coarse_filter as config_filter.
+    """
+    return hddmin(*args, **dict(kwargs, config_filter=coarse_filter))
+
+
+def coarse_full_hddmin(*args, **kwargs):
+    """
+    Run the coarse and the full hierarchical delta debugging reduce algorithms
+    in sequence.
+
+    Note: Same as calling coarse_hddmin and hddmin in sequence with the same
+    arguments.
+    """
+    # Note: `args[-1]` is `work_dir`.
+    coarse_hddmin(*(args[:-1] + (join(args[-1], 'coarse'),)), **kwargs)
+    return hddmin(*(args[:-1] + (join(args[-1], 'full'),)), **kwargs)

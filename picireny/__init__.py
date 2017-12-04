@@ -6,14 +6,14 @@
 # according to those terms.
 
 from .cli import __version__, call
-from .coarse_hdd import coarse_hddmin, coarse_full_hddmin
-from .hdd import hddmin
+from .hdd import coarse_filter, coarse_full_hddmin, coarse_hddmin, hddmin
 from .hdd_tree import HDDRule, HDDToken, HDDTree
 
 __all__ = [
     '__version__',
     'call',
     'cli',
+    'coarse_filter',
     'coarse_full_hddmin',
     'coarse_hddmin',
     'hddmin',

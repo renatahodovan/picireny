@@ -21,8 +21,7 @@ from shutil import rmtree
 from antlr4 import *
 from . import info, transform
 from .antlr4 import create_hdd_tree
-from .coarse_hdd import coarse_hddmin, coarse_full_hddmin
-from .hdd import hddmin
+from .hdd import coarse_full_hddmin, coarse_hddmin, hddmin
 
 logger = logging.getLogger('picireny')
 __version__ = pkgutil.get_data(__package__, 'VERSION').decode('ascii').strip()
