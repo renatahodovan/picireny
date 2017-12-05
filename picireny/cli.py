@@ -101,9 +101,36 @@ def process_args(arg_parser, args):
     picire.cli.process_args(arg_parser, args)
 
 
+def log_args(title, args):
+    def _log_args(args):
+        if not args:
+            return repr(args)
+        if isinstance(args, dict):
+            log = []
+            for k, v in sorted(args.items()):
+                k_log = _log_args(k)
+                v_log = _log_args(v)
+                if isinstance(v_log, list):
+                    log += ['%s:' % k_log]
+                    for i, line in enumerate(v_log):
+                        log += ['\t' + line]
+                else:
+                    log += ['%s: %s' % (k_log, v_log)]
+            return log if len(log) > 1 else log[0]
+        if isinstance(args, list):
+            return ', '.join(_log_args(v) for v in args)
+        if hasattr(args, '__name__'):
+            return '.'.join(([args.__module__] if hasattr(args, '__module__') else []) + [args.__name__])
+        return args
+    logger.info('%s\n\t%s\n', title, '\n\t'.join(_log_args(args)))
+
+
 def log_tree(title, hdd_tree):
-    logger.debug(title + '\n\theight: %s\n\tshape: %s\n\tnodes: %s\n',
-                 info.height(hdd_tree), info.shape(hdd_tree), ', '.join(['%d %s' % (cnt, ty) for ty, cnt in sorted(info.count(hdd_tree).items())]))
+    logger.debug('%s\n\theight: %s\n\tshape: %s\n\tnodes: %s\n',
+                 title,
+                 info.height(hdd_tree),
+                 ', '.join(['%s' % cnt for cnt in info.shape(hdd_tree)]),
+                 ', '.join(['%d %s' % (cnt, ty) for ty, cnt in sorted(info.count(hdd_tree).items())]))
 
 
 def call(*,
@@ -148,8 +175,7 @@ def call(*,
     # (minus src, as that parameter can be arbitrarily large)
     args = locals().copy()
     del args['src']
-    logger.info('Reduce session starts for %s\n%s',
-                input, ''.join(['\t%s: %s\n' % (k, v) for k, v in sorted(args.items())]))
+    log_args('Reduce session starts for %s' % input, args)
 
     grammar_workdir = join(out, 'grammar')
     makedirs(grammar_workdir, exist_ok=True)
