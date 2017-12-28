@@ -15,7 +15,7 @@ import sys
 
 from argparse import ArgumentParser
 from os import makedirs
-from os.path import abspath, basename, dirname, exists, isabs, join, relpath
+from os.path import abspath, basename, dirname, exists, join, relpath
 from shutil import rmtree
 
 from antlr4 import *
@@ -36,68 +36,92 @@ args_hdd_choices = {
 }
 
 
-def process_args(arg_parser, args):
+def process_antlr_path(antlr):
+    if antlr == antlr_default_path:
+        antlerinator.install(lazy=True)
 
+    if not exists(antlr):
+        logger.error('%s does not exist.' % antlr)
+        return None
+
+    return abspath(relpath(antlr))
+
+
+def process_antlr_format(*, format=None, grammar=None, start=None, replacements=None):
     def load_format_config(data):
         # Interpret relative grammar paths compared to the directory of the config file.
         if 'files' in data:
             for i, fn in enumerate(data['files']):
-                path = join(abspath(dirname(args.format)), fn)
+                path = join(abspath(dirname(format)), fn)
                 if not exists(path):
-                    arg_parser.error('{path}, defined in the format config, doesn\'t exist.'.format(path=path))
+                    logger.error('{path}, defined in the format config, doesn\'t exist.'.format(path=path))
+                    return None, None
                 data['files'][i] = path
             data['islands'] = data.get('islands', {})
             data['replacements'] = data.get('replacements', {})
         return data
 
-    args.hddmin = args_hdd_choices[args.hdd]
+    input_format = dict()
 
-    if args.antlr:
-        if args.antlr == antlr_default_path:
-            antlerinator.install(lazy=True)
+    if format:
+        if not exists(format):
+            logger.error('{path} does not exist.'.format(path=format))
+            return None, None
 
-        args.antlr = abspath(relpath(args.antlr))
-        if not exists(args.antlr):
-            arg_parser.error('%s does not exist.' % args.antlr)
-
-    args.input_format = dict()
-
-    if args.format:
-        if not exists(args.format):
-            arg_parser.error('{path} does not exist.'.format(path=args.format))
-
-        with open(args.format, 'r') as f:
+        with open(format, 'r') as f:
             try:
                 input_description = json.load(f, object_hook=load_format_config)
-                args.input_format = input_description['grammars']
-                if not args.start:
-                    args.start = input_description.get('start', None)
+                input_format = input_description['grammars']
+                if not start:
+                    start = input_description.get('start', None)
             except json.JSONDecodeError as err:
-                arg_parser.error('The content of {path} is not a valid JSON object: {err}'.format(path=args.format, err=err))
+                logger.error('The content of {path} is not a valid JSON object: {err}'.format(path=format, err=err))
+                return None, None
 
-    if not args.start:
-        arg_parser.error('No start has been defined either in config or as CLI argument.')
+    if not start:
+        logger.error('No start has been defined.')
+        return None, None
 
-    if args.grammar or args.replacements:
+    if grammar or replacements:
         # Initialize the default grammar that doesn't need to be named.
-        args.input_format[''] = args.input_format.get('', {'files': [], 'replacements': {}, 'islands': {}})
+        input_format[''] = input_format.get('', {'files': [], 'replacements': {}, 'islands': {}})
 
-        if args.grammar:
-            for i, g in enumerate(args.grammar):
-                args.input_format['']['files'].append(abspath(relpath(g)))
-                if not exists(args.input_format['']['files'][i]):
-                    arg_parser.error('{path} does not exist.'.format(path=args.input_format['']['files'][i]))
+        if grammar:
+            for i, g in enumerate(grammar):
+                input_format['']['files'].append(abspath(relpath(g)))
+                if not exists(input_format['']['files'][i]):
+                    logger.error('{path} does not exist.'.format(path=input_format['']['files'][i]))
+                    return None, None
 
-        if args.replacements:
-            if not exists(args.replacements):
-                arg_parser.error('{path} does not exist.'.format(path=args.replacements))
+        if replacements:
+            if not exists(replacements):
+                logger.error('{path} does not exist.'.format(path=replacements))
+                return None, None
 
             try:
-                with open(args.replacements, 'r') as f:
-                    args.input_format['']['replacements'] = json.load(f)
+                with open(replacements, 'r') as f:
+                    input_format['']['replacements'] = json.load(f)
             except json.JSONDecodeError as err:
-                arg_parser.error('The content of {path} is not a valid JSON object: {err}'.format(path=args.replacements, err=err))
+                logger.error('The content of {path} is not a valid JSON object: {err}'.format(path=replacements, err=err))
+                return None, None
 
+    return input_format, start
+
+
+def process_antlr_args(arg_parser, args):
+    args.antlr = process_antlr_path(args.antlr)
+    if args.antlr is None:
+        arg_parser.error('Invalid ANTLR definition.')
+
+    args.input_format, args.start = process_antlr_format(format=args.format, grammar=args.grammar, start=args.start,
+                                                         replacements=args.replacements)
+    if args.input_format is None or args.start is None:
+        arg_parser.error('Invalid input format definition.')
+
+
+def process_args(arg_parser, args):
+    args.hddmin = args_hdd_choices[args.hdd]
+    process_antlr_args(arg_parser, args)
     picire.cli.process_args(arg_parser, args)
 
 
