@@ -9,6 +9,8 @@ Picireny
    :target: https://travis-ci.org/renatahodovan/picireny
 .. image:: https://ci.appveyor.com/api/projects/status/jsg8qiflkakbhni1/branch/master?svg=true
    :target: https://ci.appveyor.com/project/renatahodovan/picireny/branch/master
+.. image:: https://coveralls.io/repos/github/renatahodovan/picireny/badge.svg?branch=master
+   :target: https://coveralls.io/github/renatahodovan/picireny?branch=master
 
 Picireny is a Python 3 implementation of the Hierarchical Delta Debugging
 (HDD in short) algorithm adapted to use ANTLR_ v4 for parsing both the input
