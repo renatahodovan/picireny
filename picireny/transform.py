@@ -143,7 +143,7 @@ def skip_whitespace(node):
     """
     if isinstance(node, HDDRule):
         for child in node.children:
-            skip_whitespace_tokens(child)
+            skip_whitespace(child)
     else:
         assert isinstance(node, HDDToken)
         if node.text.isspace():
