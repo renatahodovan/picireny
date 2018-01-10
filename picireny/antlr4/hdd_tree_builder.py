@@ -450,7 +450,7 @@ def create_hdd_tree(input_stream, input_format, start, antlr, work_dir, *, hidde
                         prepare_parsing(grammar_name)
                 island_format[node.name] = (re.compile(rewritten, re.S), mapping)
 
-            new_node = HDDRule(node.name)
+            new_node = HDDRule(node.name, replace=node.replace)
             new_node.add_children(build_island_subtree(node, *island_format[node.name]))
             node.replace_with(new_node)
 
