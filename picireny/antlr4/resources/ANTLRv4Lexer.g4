@@ -344,3 +344,4 @@ mode LexerCharSet;
 // Grammar specific Keywords, Punctuation, etc.
 
 fragment Id	: NameStartChar NameChar*	;
+
