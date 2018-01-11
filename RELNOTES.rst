@@ -2,6 +2,33 @@
 *Picireny* Release Notes
 ========================
 
+18.2
+====
+
+Summary of changes:
+
+* Added support for multiple tree builders, and added srcML as an experimental
+  builder in addition to the existing ANTLRv4-based solution.
+* Generalized HDD implementation to be parametric to express classic HDD and
+  Coarse HDD as well.
+* Upgraded dependency to *Picire* 18.1 to utilize custom initial granularity.
+* Upgraded dependency to ANTLR v4.7.1 (via *ANTLeRinator*).
+* Added support for building tokens from hidden ANTLR channels (whitespace,
+  comments, etc.) into the tree but also hiding them from the reducer (for
+  inputs where whitespace or other hidden tokens may matter during tree
+  unparsing).
+* Added new module for gathering statistics on trees and improved the logging of
+  the results of tree transformation algorithms.
+* Improved various algorithms (minimal replacement calculation from ANTLRv4
+  grammars, tree flattening for non-syntax-conforming inputs, unremovable node
+  detection for rules in addition to tokens).
+* Improved Python-Java interworking (for Java-based ANTLRv4 parsers).
+* Improved API usability (for use-cases when *Picireny* is not called via its
+  CLI).
+* Improved the testing infrastructure (by using the Coveralls online service).
+* Minor bug fixes and internal refactorings.
+
+
 17.10
 =====
 
