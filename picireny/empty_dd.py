@@ -18,14 +18,15 @@ class EmptyDD(AbstractDD):
     else).
     """
 
-    def __init__(self, test, *, cache=None):
+    def __init__(self, test, *, cache=None, id_prefix=()):
         """
         Initialize an EmptyDD object.
 
         :param test: A callable tester object.
         :param cache: Cache object to use.
+        :param id_prefix: Tuple to prepend to config IDs during tests.
         """
-        AbstractDD.__init__(self, test, None, cache=cache)
+        AbstractDD.__init__(self, test, None, cache=cache, id_prefix=id_prefix)
 
     def ddmin(self, config, *, n=2):
         """
@@ -41,26 +42,15 @@ class EmptyDD(AbstractDD):
                   (unused, available for API compatibility with other DD variants).
         :return: 1-minimal failing configuration.
         """
-
         assert len(config) == 1
-
-        logger.debug('dd(%r) ...', config)
-
-        outcome = self._dd(config, n=n)
-
-        logger.debug('dd(%r) = %r', config, outcome)
-
-        return outcome
-
-    def _dd(self, config, *, n):
-        # assert self.test(config, 'assert') == self.FAIL
+        # assert self._test_config(config, ('assert',)) == self.FAIL
 
         emptyset = []
-        config_id = 'empty'
+        config_id = ('empty',)
 
         logger.info('Run: trying 0.')
 
-        outcome = self.lookup_cache(emptyset, config_id) or self.test(emptyset, config_id)
+        outcome = self._lookup_cache(emptyset, config_id) or self._test_config(emptyset, config_id)
         if outcome == self.FAIL:
             logger.info('Reduced to 0 units.')
             logger.debug('New config: %r.', emptyset)

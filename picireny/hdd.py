@@ -78,10 +78,11 @@ def hddmin(hdd_tree, reduce_class, reduce_config, tester_class, tester_config, t
             test = tester_class(test_builder=test_builder,
                                 test_pattern=join(work_dir, 'iter_%d' % iter_cnt, 'level_%d' % level, '%s', test_name),
                                 **tester_config)
-            dd = reduce_class(test, cache=cache, **reduce_config)
+            id_prefix = ('i%d' % iter_cnt, 'l%d' % level)
+            dd = reduce_class(test, cache=cache, id_prefix=id_prefix, **reduce_config)
             c = dd.ddmin(level_ids, n=granularity)
             if len(c) == 1:
-                dd = EmptyDD(test, cache=cache)
+                dd = EmptyDD(test, cache=cache, id_prefix=id_prefix)
                 c = dd.ddmin(c, n=granularity)
             c = set(c)
             changed = changed or len(c) < len(level_ids_set)
