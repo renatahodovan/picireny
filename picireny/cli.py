@@ -21,6 +21,7 @@ from shutil import rmtree
 from antlr4 import *
 from . import info, transform
 from .hdd import coarse_full_hddmin, coarse_hddmin, hddmin
+from .hddr import hddrmin
 
 logger = logging.getLogger('picireny')
 __version__ = pkgutil.get_data(__package__, 'VERSION').decode('ascii').strip()
@@ -31,6 +32,7 @@ args_hdd_choices = {
     'full': hddmin,
     'coarse': coarse_hddmin,
     'coarse-full': coarse_full_hddmin,
+    'hddr': hddrmin,
 }
 
 
