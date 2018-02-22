@@ -5,7 +5,7 @@
 # This file may not be copied, modified, or distributed except
 # according to those terms.
 
-from .cli import __version__, build_with_antlr4, build_with_srcml, reduce
+from .cli import __version__, build_with_antlr4, build_with_srcml, process_antlr4_format, process_antlr4_path, reduce
 from .hdd import coarse_filter, coarse_full_hddmin, coarse_hddmin, hddmin
 from .hdd_tree import HDDRule, HDDToken, HDDTree
 
@@ -22,6 +22,8 @@ __all__ = [
     'HDDToken',
     'HDDTree',
     'info',
+    'process_antlr4_format',
+    'process_antlr4_path',
     'reduce',
     'transform',
 ]
