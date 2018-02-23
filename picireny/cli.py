@@ -333,8 +333,8 @@ def execute():
                             help='don\'t hide unremovable nodes from the ddmin algorithm')
     arg_parser.add_argument('--skip-whitespace', dest='skip_whitespace', default=False, action='store_true',
                             help='hide whitespace tokens from the ddmin algorithm')
-    arg_parser.add_argument('--sys-recursion-limit', metavar='NUM', type=int,
-                            help='override maximum depth of the Python interpreter stack (may be needed for `--parser=java`)')
+    arg_parser.add_argument('--sys-recursion-limit', metavar='NUM', type=int, default=sys.getrecursionlimit(),
+                            help='override maximum depth of the Python interpreter stack (may be needed for `--parser=java`; default: %(default)d)')
     arg_parser.add_argument('--version', action='version', version='%(prog)s {version}'.format(version=__version__))
 
     # ANTLRv4-specific settings.
@@ -370,8 +370,7 @@ def execute():
     logger.setLevel(args.log_level)
     logging.getLogger('picire').setLevel(logger.level)
 
-    if args.sys_recursion_limit:
-        sys.setrecursionlimit(args.sys_recursion_limit)
+    sys.setrecursionlimit(args.sys_recursion_limit)
 
     if args.builder == 'antlr4':
         hdd_tree = build_with_antlr4(input=args.input, src=args.src, encoding=args.encoding, out=args.out,
