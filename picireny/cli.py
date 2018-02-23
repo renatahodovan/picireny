@@ -34,7 +34,8 @@ args_hdd_choices = {
 }
 
 
-def process_antlr4_path(antlr):
+def process_antlr4_path(antlr=None):
+    antlr = antlr or antlr_default_path
     if antlr == antlr_default_path:
         antlerinator.install(lazy=True)
 
