@@ -2,6 +2,18 @@
 *Picireny* Release Notes
 ========================
 
+18.10
+=====
+
+Summary of changes:
+
+* Added implementation for the recursive variant of the HDD algorithm (a.k.a.
+  HDDr).
+* Upgraded dependency to *Picire* 18.10 to utilize its new config ID and prefix
+  concepts.
+* Minor improvements.
+
+
 18.2
 ====
 
