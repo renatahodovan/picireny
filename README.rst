@@ -110,25 +110,30 @@ Compatibility
 
 *picireny* was tested on:
 
-* Linux (Ubuntu 14.04 / 15.10 / 16.04 / 17.10)
-* Mac OS X (El Capitan 10.11 / Sierra 10.12 / High Sierra 10.13)
+* Linux (Ubuntu 14.04 / 16.04 / 18.04)
+* Mac OS X (El Capitan 10.11 / Sierra 10.12 / High Sierra 10.13 / Mojave 10.14)
 * Windows (Server 2012 R2)
 
 
 Acknowledgement and Citations
 =============================
 
-*picireny* is motivated by the idea of Hierarchial Delta Debugging
-(G. Misherghi, Z. Su: "HDD: Hierarchical delta debugging", ICSE 2006).
+*picireny* is motivated by the idea of Hierarchial Delta Debugging:
 
-The details of the modernized reimplementation are described in (R. Hodovan,
-A. Kiss: "Modernizing Hierarchical Delta Debugging.", A-TEST 2016). Further
-improvements are published in:
+* G. Misherghi, Z. Su: "HDD: Hierarchical delta debugging",
+  ICSE 2006.
 
+The details of the modernized reimplementation and further improvements are
+published in:
+
+* R. Hodovan, A. Kiss: "Modernizing Hierarchical Delta Debugging.",
+  A-TEST 2016.
 * R. Hodovan, A. Kiss, T. Gyimothy: "Tree Preprocessing and Test Outcome
   Caching for Efficient Hierarchical Delta Debugging", AST 2017.
 * R. Hodovan, A. Kiss, T. Gyimothy: "Coarse Hierarchical Delta Debugging",
   ICSME 2017.
+* A. Kiss, R. Hodovan, T. Gyimothy: "HDDr: A Recursive Variant of the
+  Hierarchical Delta Debugging Algorithm", A-TEST 2018.
 
 
 Copyright and Licensing
