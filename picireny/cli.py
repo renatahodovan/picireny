@@ -1,9 +1,11 @@
-# Copyright (c) 2016-2018 Renata Hodovan, Akos Kiss.
+# Copyright (c) 2016-2019 Renata Hodovan, Akos Kiss.
 #
 # Licensed under the BSD 3-Clause License
 # <LICENSE.rst or https://opensource.org/licenses/BSD-3-Clause>.
 # This file may not be copied, modified, or distributed except
 # according to those terms.
+
+from __future__ import absolute_import
 
 import antlerinator
 import codecs
@@ -15,7 +17,7 @@ import sys
 
 from argparse import ArgumentParser
 from os import makedirs
-from os.path import abspath, basename, dirname, exists, join, relpath
+from os.path import abspath, basename, dirname, exists, isdir, join, relpath
 from shutil import rmtree
 
 from antlr4 import *
@@ -48,7 +50,7 @@ def process_antlr4_path(antlr=None):
     return abspath(relpath(antlr))
 
 
-def process_antlr4_format(*, format=None, grammar=None, start=None, replacements=None):
+def process_antlr4_format(format=None, grammar=None, start=None, replacements=None):
     def load_format_config(data):
         # Interpret relative grammar paths compared to the directory of the config file.
         if 'files' in data:
@@ -168,8 +170,7 @@ def log_tree(title, hdd_tree):
                  ', '.join(['%d %s' % (cnt, ty) for ty, cnt in sorted(info.count(hdd_tree).items())]))
 
 
-def build_with_antlr4(*,
-                      input, src, encoding, out,
+def build_with_antlr4(input, src, encoding, out,
                       input_format, start,
                       antlr, lang='python',
                       build_hidden_tokens=False,
@@ -197,7 +198,8 @@ def build_with_antlr4(*,
     log_args('Building tree with ANTLRv4 for %s' % input, args)
 
     grammar_workdir = join(out, 'grammar')
-    makedirs(grammar_workdir, exist_ok=True)
+    if not isdir(grammar_workdir):
+        makedirs(grammar_workdir)
 
     from .antlr4 import create_hdd_tree
     hdd_tree = create_hdd_tree(InputStream(src.decode(encoding)), input_format, start, antlr, grammar_workdir,
@@ -209,8 +211,7 @@ def build_with_antlr4(*,
     return hdd_tree
 
 
-def build_with_srcml(*,
-                     input, src, language):
+def build_with_srcml(input, src, language):
     """
     Execute srcML-based tree building part of picireny as if invoked from
     command line, however, control its behaviour not via command line arguments
@@ -230,8 +231,7 @@ def build_with_srcml(*,
     return create_hdd_tree(src, language)
 
 
-def reduce(*,
-           hdd_tree,
+def reduce(hdd_tree,
            reduce_class, reduce_config,
            tester_class, tester_config,
            input, encoding, out, hddmin, hdd_star=True,
@@ -291,7 +291,8 @@ def reduce(*,
     # Start reduce and save result to a file named the same like the original.
     out_file = join(out, basename(input))
     tests_workdir = join(out, 'tests')
-    makedirs(tests_workdir, exist_ok=True)
+    if not isdir(tests_workdir):
+        makedirs(tests_workdir)
     with codecs.open(out_file, 'w', encoding=encoding, errors='ignore') as f:
         f.write(hddmin(hdd_tree,
                        reduce_class,

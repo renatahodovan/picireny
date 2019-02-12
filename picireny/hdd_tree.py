@@ -1,5 +1,5 @@
 # Copyright (c) 2007 Ghassan Misherghi.
-# Copyright (c) 2016-2018 Renata Hodovan, Akos Kiss.
+# Copyright (c) 2016-2019 Renata Hodovan, Akos Kiss.
 #
 # Licensed under the BSD 3-Clause License
 # <LICENSE.rst or https://opensource.org/licenses/BSD-3-Clause>.
@@ -25,7 +25,7 @@ class HDDTree:
     REMOVED = 0
     KEEP = 1
 
-    def __init__(self, name, *, start=None, end=None, replace=None):
+    def __init__(self, name, start=None, end=None, replace=None):
         """
         Initialize a HDD tree/node.
 
@@ -68,7 +68,7 @@ class HDDTree:
         """
         assert False, 'Should never be reached: it should be overridden in sub-classes.'
 
-    def unparse(self, *, with_whitespace=True):
+    def unparse(self, with_whitespace=True):
         """
         Build test case from a HDD tree.
 
@@ -126,7 +126,7 @@ class HDDTree:
             assert isinstance(node, HDDToken) or None not in node.children, 'Bad parent node: %s' % node.name
         self.traverse(bad_parent)
 
-    def tree_str(self, *, current=None):
+    def tree_str(self, current=None):
         """
         Pretty print HDD tree to help debugging.
 
@@ -161,7 +161,7 @@ class HDDTree:
 
 
 class HDDToken(HDDTree):
-    def __init__(self, name, text, *, start, end, replace=None):
+    def __init__(self, name, text, start, end, replace=None):
         HDDTree.__init__(self, name, start=start, end=end, replace=replace)
         self.text = text
 
@@ -176,7 +176,7 @@ class HDDToken(HDDTree):
 
 
 class HDDRule(HDDTree):
-    def __init__(self, name, *, start=None, end=None, replace=None):
+    def __init__(self, name, start=None, end=None, replace=None):
         HDDTree.__init__(self, name, start=start, end=end, replace=replace)
         self.children = []
 

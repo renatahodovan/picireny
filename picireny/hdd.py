@@ -1,5 +1,5 @@
 # Copyright (c) 2007 Ghassan Misherghi.
-# Copyright (c) 2016-2018 Renata Hodovan, Akos Kiss.
+# Copyright (c) 2016-2019 Renata Hodovan, Akos Kiss.
 #
 # Licensed under the BSD 3-Clause License
 # <LICENSE.rst or https://opensource.org/licenses/BSD-3-Clause>.
@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 
 def hddmin(hdd_tree, reduce_class, reduce_config, tester_class, tester_config, test_name, work_dir,
-           *, hdd_star=True, cache=None, config_filter=None, unparse_with_whitespace=True, granularity=2):
+           hdd_star=True, cache=None, config_filter=None, unparse_with_whitespace=True, granularity=2):
     """
     Run the hierarchical delta debugging reduce algorithm.
 

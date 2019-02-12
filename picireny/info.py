@@ -1,4 +1,4 @@
-# Copyright (c) 2018 Renata Hodovan, Akos Kiss.
+# Copyright (c) 2018-2019 Renata Hodovan, Akos Kiss.
 #
 # Licensed under the BSD 3-Clause License
 # <LICENSE.rst or https://opensource.org/licenses/BSD-3-Clause>.
@@ -49,7 +49,7 @@ def height(node, removed=False):
     if node.state != node.KEEP and not removed:
         return 0
 
-    return 1 + (max([height(child) for child in node.children], default=0)
+    return 1 + (max([height(child) for child in node.children] if node.children else [0])
                 if isinstance(node, HDDRule) and node.state == node.KEEP else 0)
 
 

@@ -1,4 +1,4 @@
-# Copyright (c) 2017-2018 Renata Hodovan, Akos Kiss.
+# Copyright (c) 2017-2019 Renata Hodovan, Akos Kiss.
 #
 # Licensed under the BSD 3-Clause License
 # <LICENSE.rst or https://opensource.org/licenses/BSD-3-Clause>.
@@ -18,7 +18,7 @@ class EmptyDD(AbstractDD):
     else).
     """
 
-    def __init__(self, test, *, cache=None, id_prefix=()):
+    def __init__(self, test, cache=None, id_prefix=()):
         """
         Initialize an EmptyDD object.
 
@@ -28,7 +28,7 @@ class EmptyDD(AbstractDD):
         """
         AbstractDD.__init__(self, test, None, cache=cache, id_prefix=id_prefix)
 
-    def ddmin(self, config, *, n=2):
+    def ddmin(self, config, n=2):
         """
         Return a 1-minimal failing subset of the initial configuration, and also
         test the empty configuration while doing so.

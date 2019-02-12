@@ -1,4 +1,4 @@
-# Copyright (c) 2018 Renata Hodovan, Akos Kiss.
+# Copyright (c) 2018-2019 Renata Hodovan, Akos Kiss.
 #
 # Licensed under the BSD 3-Clause License
 # <LICENSE.rst or https://opensource.org/licenses/BSD-3-Clause>.
@@ -58,11 +58,11 @@ def create_hdd_tree(src, language):
     """
 
     cmd = 'srcml --language={language}'.format(language=language)
-    with Popen(cmd, stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True) as proc:
-        stdout, stderr = proc.communicate(src)
-        if proc.returncode:
-            logger.error('Parsing with srcml failed!\n%s\n%s\n', stdout, stderr)
-            raise CalledProcessError(returncode=proc.returncode, cmd=cmd, output=stdout + stderr)
+    proc = Popen(cmd, stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
+    stdout, stderr = proc.communicate(src)
+    if proc.returncode:
+        logger.error('Parsing with srcml failed!\n%s\n%s\n', stdout, stderr)
+        raise CalledProcessError(returncode=proc.returncode, cmd=cmd, output=stdout + stderr)
 
     root = ET.fromstring(stdout)
 

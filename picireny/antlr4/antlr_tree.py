@@ -1,4 +1,4 @@
-# Copyright (c) 2016-2018 Renata Hodovan, Akos Kiss.
+# Copyright (c) 2016-2019 Renata Hodovan, Akos Kiss.
 #
 # Licensed under the BSD 3-Clause License
 # <LICENSE.rst or https://opensource.org/licenses/BSD-3-Clause>.
@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 # Paser Elements
 
 class ANTLRElement(object):
-    def __init__(self, *, optional=False, repl=None, sep=''):
+    def __init__(self, optional=False, repl=None, sep=''):
         """
         Constructor of the base tree node type.
 
@@ -73,13 +73,13 @@ class ANTLRRule(ANTLRElement):
 
 
 class ANTLRRef(ANTLRElement):
-    def __init__(self, ref, *, optional=False):
+    def __init__(self, ref, optional=False):
         ANTLRElement.__init__(self, optional=optional)
         self.ref = ref
 
 
 class ANTLRAlternative(ANTLRElement):
-    def __init__(self, *, repl=None):
+    def __init__(self, repl=None):
         ANTLRElement.__init__(self, repl=repl, sep=' ')
 
 
@@ -91,7 +91,7 @@ class ANTLRAlternation(ANTLRElement):
         :return: Boolean denoting if a new replacement was found or not.
         """
         if self.has_defined_replacement():
-            new_repl = min(list(filter(lambda i: i is not None, [c.replacement for c in self.children])), key=len, default=False)
+            new_repl = min(list(filter(lambda i: i is not None, [c.replacement for c in self.children])), key=len)
             if self.replacement is None or len(new_repl) < len(self.replacement) or (len(new_repl) == len(self.replacement) and new_repl < self.replacement):
                 self.replacement = new_repl
                 return True
@@ -101,7 +101,7 @@ class ANTLRAlternation(ANTLRElement):
 # Lexer Elements
 
 class ANTLRLexerElement(ANTLRElement):
-    def __init__(self, *, optional=False, repl=None):
+    def __init__(self, optional=False, repl=None):
         ANTLRElement.__init__(self, optional=optional, repl=repl)
         self.start_intervals = None
 
@@ -145,7 +145,7 @@ class ANTLRLexerAlternation(ANTLRLexerElement):
     def calc_replacement(self):
         # The replacement is the known shortest replacement of the children.
         if self.has_defined_replacement():
-            new_repl = min(list(filter(lambda i: i is not None, [c.replacement for c in self.children])), key=len, default=False)
+            new_repl = min(list(filter(lambda i: i is not None, [c.replacement for c in self.children])), key=len)
             if self.replacement is None or len(new_repl) < len(self.replacement) or (len(new_repl) == len(self.replacement) and new_repl < self.replacement):
                 self.replacement = new_repl
                 return True
@@ -169,7 +169,7 @@ class ANTLRCharacterRange(ANTLRLexerElement):
 
 
 class ANTLRDotElement(ANTLRLexerElement):
-    def __init__(self, *, optional=False):
+    def __init__(self, optional=False):
         ANTLRLexerElement.__init__(self, optional=optional)
         # Hard-wiring ASCII character range here does not have any limitation (neither effect).
         # Basically it should not be used anyway, since the replacement is
@@ -188,7 +188,7 @@ class ANTLRString(ANTLRLexerElement):
 
 
 class ANTLRSetElement(ANTLRLexerElement):
-    def __init__(self, *, content=None, optional=False):
+    def __init__(self, content=None, optional=False):
         ANTLRLexerElement.__init__(self, optional=optional)
         if content and self.replacement is None:
             if content.startswith(('"', '\'')):
@@ -244,7 +244,7 @@ class ANTLRSetElement(ANTLRLexerElement):
 
         :param src: The string that may have escaped escape sequences.
         """
-        return bytes(src, 'utf-8').decode('unicode_escape')
+        return src.encode('utf-8').decode('unicode_escape')
 
     def calc_starters(self):
         if self.start_intervals is None and self.children and self.children[0].start_intervals:

@@ -6,7 +6,9 @@ script: tox -v
 jobs:
   include:
     - stage: test
-      python: 3.4
+      python: 2.7
+      env: TOXENV=py
+    - python: 3.4
       env: TOXENV=py
     - python: 3.5
       env: TOXENV=py

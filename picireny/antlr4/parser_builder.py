@@ -1,4 +1,4 @@
-# Copyright (c) 2016-2017 Renata Hodovan, Akos Kiss.
+# Copyright (c) 2016-2019 Renata Hodovan, Akos Kiss.
 #
 # Licensed under the BSD 3-Clause License
 # <LICENSE.rst or https://opensource.org/licenses/BSD-3-Clause>.
@@ -6,6 +6,7 @@
 # according to those terms.
 
 import logging
+import sys
 
 from os import listdir
 from os.path import basename, commonprefix, split, splitext
@@ -17,7 +18,7 @@ grammar_cache = {}
 
 def build_grammars(grammars, out, antlr, lang='python'):
     """
-    Build lexer and grammar from ANTLRv4 grammar files in Python3 target.
+    Build lexer and grammar from ANTLRv4 grammar files in Python target.
 
     :param grammars: Tuple of grammar files.
     :param out: Output directory.
@@ -37,7 +38,7 @@ def build_grammars(grammars, out, antlr, lang='python'):
 
     try:
         languages = {
-            'python': {'antlr_arg': '-Dlanguage=Python3', 'ext': 'py', 'listener_format': 'Listener'},
+            'python': {'antlr_arg': '-Dlanguage=Python{major}'.format(major=sys.version_info.major), 'ext': 'py', 'listener_format': 'Listener'},
             'java': {'antlr_arg': '', 'ext': 'java', 'listener_format': 'BaseListener'},
         }
 
@@ -45,11 +46,11 @@ def build_grammars(grammars, out, antlr, lang='python'):
                                                                     lang=languages[lang]['antlr_arg'],
                                                                     out=out,
                                                                     grammars=' '.join(grammars))
-        with Popen(cmd, stdout=PIPE, stderr=PIPE, shell=True, cwd=out) as proc:
-            stdout, stderr = proc.communicate()
-            if proc.returncode:
-                logger.error('Building grammars %r failed!\n%s\n%s\n', grammars, stdout, stderr)
-                raise CalledProcessError(returncode=proc.returncode, cmd=cmd, output=stdout + stderr)
+        proc = Popen(cmd, stdout=PIPE, stderr=PIPE, shell=True, cwd=out)
+        stdout, stderr = proc.communicate()
+        if proc.returncode:
+            logger.error('Building grammars %r failed!\n%s\n%s\n', grammars, stdout, stderr)
+            raise CalledProcessError(returncode=proc.returncode, cmd=cmd, output=stdout + stderr)
 
         files = listdir(out)
         filename = basename(grammars[0])

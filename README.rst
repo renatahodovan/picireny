@@ -12,7 +12,7 @@ Picireny
 .. image:: https://coveralls.io/repos/github/renatahodovan/picireny/badge.svg?branch=master
    :target: https://coveralls.io/github/renatahodovan/picireny?branch=master
 
-Picireny is a Python 3 implementation of the Hierarchical Delta Debugging
+Picireny is a Python implementation of the Hierarchical Delta Debugging
 (HDD in short) algorithm adapted to use ANTLR_ v4 for parsing both the input
 and the grammar(s) describing the format of the input. It relies on picire_
 to provide the implementation of the core Delta Debugging algorithm along
@@ -38,7 +38,7 @@ still "interesting" output.
 Requirements
 ============
 
-* Python_ >= 3.4
+* Python_ ~= 2.7 or >= 3.4
 * pip_ and setuptools Python packages (the latter is automatically installed by
   pip).
 * ANTLR_ v4

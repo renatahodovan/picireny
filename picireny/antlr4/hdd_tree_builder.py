@@ -1,4 +1,4 @@
-# Copyright (c) 2016-2018 Renata Hodovan, Akos Kiss.
+# Copyright (c) 2016-2019 Renata Hodovan, Akos Kiss.
 #
 # Licensed under the BSD 3-Clause License
 # <LICENSE.rst or https://opensource.org/licenses/BSD-3-Clause>.
@@ -14,7 +14,7 @@ from antlr4 import *
 from antlr4.Token import CommonToken
 from pkgutil import get_data
 from os import makedirs, pathsep
-from os.path import basename, join
+from os.path import basename, isdir, join
 from string import Template
 from subprocess import CalledProcessError, Popen, PIPE
 
@@ -31,7 +31,7 @@ class HDDQuantifier(HDDRule):
     """
     Special rule type in the HDD tree to support optional quantifiers.
     """
-    def __init__(self, *, start=None, end=None):
+    def __init__(self, start=None, end=None):
         HDDRule.__init__(self, '', start=start, end=end)
 
 
@@ -47,7 +47,7 @@ class HDDErrorToken(HDDToken):
     Special token type that represents unmatched tokens. The minimal replacement of such nodes
     is an empty string.
     """
-    def __init__(self, text, *, start, end):
+    def __init__(self, text, start, end):
         HDDToken.__init__(self, '', text, start=start, end=end)
 
 
@@ -58,7 +58,7 @@ class ConsoleListener(error.ErrorListener.ConsoleErrorListener):
 error.ErrorListener.ConsoleErrorListener.INSTANCE = ConsoleListener()
 
 
-def create_hdd_tree(input_stream, input_format, start, antlr, work_dir, *, hidden_tokens=False, lang='python'):
+def create_hdd_tree(input_stream, input_format, start, antlr, work_dir, hidden_tokens=False, lang='python'):
     """
     Build a tree that the HDD algorithm can work with.
 
@@ -84,7 +84,7 @@ def create_hdd_tree(input_stream, input_format, start, antlr, work_dir, *, hidde
         :param target_file: Path to the updated grammar.
         """
         with open(grammar, 'rb') as f:
-            lines = f.read().splitlines(keepends=True)
+            lines = f.read().splitlines(True)
 
         languages = {
             'python': {
@@ -117,7 +117,8 @@ def create_hdd_tree(input_stream, input_format, start, antlr, work_dir, *, hidde
         :return: References to the ANTLR4 lexer and parser classes.
         """
         antlr4_workdir = join(work_dir, 'antlr4')
-        makedirs(antlr4_workdir, exist_ok=True)
+        if not isdir(antlr4_workdir):
+            makedirs(antlr4_workdir)
         if antlr4_workdir not in sys.path:
             sys.path.append(antlr4_workdir)
 
@@ -144,11 +145,11 @@ def create_hdd_tree(input_stream, input_format, start, antlr, work_dir, *, hidde
                                              parser_class=parser,
                                              listener_class=listener)))
         cmd = 'javac -classpath {classpath} *.java'.format(classpath=java_classpath(current_workdir))
-        with Popen(cmd, shell=True, cwd=current_workdir, stdout=PIPE, stderr=PIPE) as proc:
-            stdout, stderr = proc.communicate()
-            if proc.returncode != 0:
-                logger.error('Java compile failed!\n%s\n%s\n', stdout, stderr)
-                raise CalledProcessError(returncode=proc.returncode, cmd=cmd, output=stdout + stderr)
+        proc = Popen(cmd, shell=True, cwd=current_workdir, stdout=PIPE, stderr=PIPE)
+        stdout, stderr = proc.communicate()
+        if proc.returncode != 0:
+            logger.error('Java compile failed!\n%s\n%s\n', stdout, stderr)
+            raise CalledProcessError(returncode=proc.returncode, cmd=cmd, output=stdout + stderr)
 
     def prepare_parsing(grammar_name):
         """
@@ -163,7 +164,8 @@ def create_hdd_tree(input_stream, input_format, start, antlr, work_dir, *, hidde
         logger.debug('Replacements are calculated...')
 
         current_workdir = join(grammar_workdir, grammar_name) if grammar_name else grammar_workdir
-        makedirs(current_workdir, exist_ok=True)
+        if not isdir(current_workdir):
+            makedirs(current_workdir)
         if current_workdir not in sys.path:
             sys.path.append(current_workdir)
 
@@ -207,15 +209,15 @@ def create_hdd_tree(input_stream, input_format, start, antlr, work_dir, *, hidde
             def exit_optional(self):
                 self.trigger_listener('exit_optional')
 
-            def enterRecursionRule(self, localctx: ParserRuleContext, state: int, ruleIndex: int, precedence: int):
+            def enterRecursionRule(self, localctx, state, ruleIndex, precedence):
                 target_parser_class.enterRecursionRule(self, localctx, state, ruleIndex, precedence)
                 self.trigger_listener('recursion_enter')
 
-            def pushNewRecursionContext(self, localctx: ParserRuleContext, state: int, ruleIndex: int):
+            def pushNewRecursionContext(self, localctx, state, ruleIndex):
                 target_parser_class.pushNewRecursionContext(self, localctx, state, ruleIndex)
                 self.trigger_listener('recursion_push')
 
-            def unrollRecursionContexts(self, parentCtx: ParserRuleContext):
+            def unrollRecursionContexts(self, parentCtx):
                 target_parser_class.unrollRecursionContexts(self, parentCtx)
                 self.trigger_listener('recursion_unroll')
 
@@ -268,7 +270,7 @@ def create_hdd_tree(input_stream, input_format, start, antlr, work_dir, *, hidde
                     parent.remove_child(self.current_node)
                 self.current_node = parent
 
-            def enterEveryRule(self, ctx:ParserRuleContext):
+            def enterEveryRule(self, ctx):
                 name = self.parser.ruleNames[ctx.getRuleIndex()]
                 node = HDDRule(name)
                 if not self.root:
@@ -278,7 +280,7 @@ def create_hdd_tree(input_stream, input_format, start, antlr, work_dir, *, hidde
                     self.current_node.add_child(node)
                 self.current_node = node
 
-            def exitEveryRule(self, ctx:ParserRuleContext):
+            def exitEveryRule(self, ctx):
                 # If the input contains syntax error, then the last optional block was may not closed.
                 while isinstance(self.current_node, HDDQuantifier):
                     self.exit_optional()
@@ -313,7 +315,7 @@ def create_hdd_tree(input_stream, input_format, start, antlr, work_dir, *, hidde
                     self.current_node.add_child(HDDHiddenToken(self.parser.symbolicNames[token.type], token.text,
                                                                start=start, end=end))
 
-            def visitTerminal(self, node:TerminalNode):
+            def visitTerminal(self, node):
                 token = node.symbol
                 name, text = (self.parser.symbolicNames[token.type], token.text) if token.type != Token.EOF else ('EOF', '')
                 start, end = self.tokenBoundaries(token)
@@ -323,7 +325,7 @@ def create_hdd_tree(input_stream, input_format, start, antlr, work_dir, *, hidde
                 if name in grammar['islands']:
                     self.island_nodes.append(child)
 
-            def visitErrorNode(self, node:ErrorNode):
+            def visitErrorNode(self, node):
                 if hasattr(node, 'symbol'):
                     token = node.symbol
                     start, end = self.tokenBoundaries(token)
@@ -407,17 +409,11 @@ def create_hdd_tree(input_stream, input_format, start, antlr, work_dir, *, hidde
             cmd = 'java -classpath {classpath} Extended{parser} {start_rule}'.format(classpath=java_classpath(current_workdir),
                                                                                      parser=grammar['parser'],
                                                                                      start_rule=start_rule)
-            with Popen(cmd,
-                       cwd=current_workdir,
-                       shell=True,
-                       stdin=PIPE,
-                       stdout=PIPE,
-                       stderr=PIPE,
-                       universal_newlines=True) as proc:
-                stdout, stderr = proc.communicate(input=input_stream.strdata)
-                if proc.returncode != 0:
-                    logger.error('Java parser failed!\n%s\n%s', stdout, stderr)
-                    raise CalledProcessError(returncode=proc.returncode, cmd=cmd, output=stdout + stderr)
+            proc = Popen(cmd, cwd=current_workdir, shell=True, stdin=PIPE, stdout=PIPE, stderr=PIPE, universal_newlines=True)
+            stdout, stderr = proc.communicate(input=input_stream.strdata)
+            if proc.returncode != 0:
+                logger.error('Java parser failed!\n%s\n%s', stdout, stderr)
+                raise CalledProcessError(returncode=proc.returncode, cmd=cmd, output=stdout + stderr)
             result = json.loads(stdout)
             tree_root = hdd_tree_from_json(result)
         else:
@@ -441,7 +437,7 @@ def create_hdd_tree(input_stream, input_format, start, antlr, work_dir, *, hidde
 
     def process_island_nodes(island_nodes, island_format):
         for node in island_nodes:
-            if isinstance(island_format[node.name], str):
+            if not isinstance(island_format[node.name], tuple):
                 rewritten, mapping = rename_regex_groups(island_format[node.name])
                 for new_name, old_name in mapping.items():
                     grammar_name, rule_name = split_grammar_rule_name(old_name)
@@ -557,7 +553,7 @@ def create_hdd_tree(input_stream, input_format, start, antlr, work_dir, *, hidde
         rmapping = dict()
         cnt = 1
         for item in _NAMED_GRP_PATTERN.split(pattern):
-            if _NAMED_GRP_PATTERN.fullmatch(item):
+            if _NAMED_GRP_PATTERN.match(item):
                 old_name = item[len(_NAMED_GRP_PREFIX):-len(_NAMED_GRP_SUFFIX)]
                 new_name = 'G' + str(cnt)
                 cnt += 1
@@ -571,7 +567,7 @@ def create_hdd_tree(input_stream, input_format, start, antlr, work_dir, *, hidde
 
         ref_rewritten = ''
         for item in _NAMED_REF_PATTERN.split(grp_rewritten):
-            if _NAMED_REF_PATTERN.fullmatch(item):
+            if _NAMED_REF_PATTERN.match(item):
                 old_name = item[len(_NAMED_REF_PREFIX):-len(_NAMED_REF_SUFFIX)]
                 new_name = rmapping.get(old_name, old_name)
 
@@ -593,7 +589,7 @@ def create_hdd_tree(input_stream, input_format, start, antlr, work_dir, *, hidde
         :rtype: tuple(str, str)
         """
 
-        names = name.split(':', maxsplit=1)
+        names = name.split(':', 1)
         if len(names) < 2:
             names.insert(0, '')
         return names[0], names[1]
