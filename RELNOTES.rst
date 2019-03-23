@@ -2,6 +2,17 @@
 *Picireny* Release Notes
 ========================
 
+19.3
+====
+
+Summary of changes:
+
+* Made code Python 2 compatible (with the help of upgraded dependencies
+  *Picire* 19.3 and *ANTLeRinator* 4.7.1-1).
+* Improved the testing infrastructure (testing Python 2.7 and 3.7 on Travis CI;
+  maintenance changes to various CI configurations).
+
+
 18.10
 =====
 
