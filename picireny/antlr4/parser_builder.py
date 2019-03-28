@@ -56,8 +56,10 @@ def build_grammars(grammars, out, antlr, lang='python'):
         filename = basename(grammars[0])
 
         def file_endswith(end_pattern):
-            return splitext(split(list(
-                filter(lambda x: len(commonprefix([filename, x])) > 0 and x.endswith(end_pattern), files))[0])[1])[0]
+            f = next(f for f in files if len(commonprefix([filename, f])) > 0 and f.endswith(end_pattern))
+            _, f = split(f)
+            f, _ = splitext(f)
+            return f
 
         # Extract the name of lexer and parser from their path.
         lexer = file_endswith('Lexer.{ext}'.format(ext=languages[lang]['ext']))

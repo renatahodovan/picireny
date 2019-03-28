@@ -91,7 +91,7 @@ class ANTLRAlternation(ANTLRElement):
         :return: Boolean denoting if a new replacement was found or not.
         """
         if self.has_defined_replacement():
-            new_repl = min(list(filter(lambda i: i is not None, [c.replacement for c in self.children])), key=len)
+            new_repl = min((c.replacement for c in self.children if c.replacement is not None), key=len)
             if self.replacement is None or len(new_repl) < len(self.replacement) or (len(new_repl) == len(self.replacement) and new_repl < self.replacement):
                 self.replacement = new_repl
                 return True
@@ -145,7 +145,7 @@ class ANTLRLexerAlternation(ANTLRLexerElement):
     def calc_replacement(self):
         # The replacement is the known shortest replacement of the children.
         if self.has_defined_replacement():
-            new_repl = min(list(filter(lambda i: i is not None, [c.replacement for c in self.children])), key=len)
+            new_repl = min((c.replacement for c in self.children if c.replacement is not None), key=len)
             if self.replacement is None or len(new_repl) < len(self.replacement) or (len(new_repl) == len(self.replacement) and new_repl < self.replacement):
                 self.replacement = new_repl
                 return True
