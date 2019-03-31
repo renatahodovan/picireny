@@ -289,22 +289,23 @@ def reduce(hdd_tree,
         log_tree('Tree after skipping whitespace tokens', hdd_tree)
 
     # Start reduce and save result to a file named the same like the original.
-    out_file = join(out, basename(input))
     tests_workdir = join(out, 'tests')
     if not isdir(tests_workdir):
         makedirs(tests_workdir)
+    out_src = hddmin(hdd_tree,
+                     reduce_class,
+                     reduce_config,
+                     tester_class,
+                     tester_config,
+                     basename(input),
+                     tests_workdir,
+                     hdd_star=hdd_star,
+                     cache=cache_class() if cache_class else None,
+                     unparse_with_whitespace=unparse_with_whitespace,
+                     granularity=granularity)
+    out_file = join(out, basename(input))
     with codecs.open(out_file, 'w', encoding=encoding, errors='ignore') as f:
-        f.write(hddmin(hdd_tree,
-                       reduce_class,
-                       reduce_config,
-                       tester_class,
-                       tester_config,
-                       basename(input),
-                       tests_workdir,
-                       hdd_star=hdd_star,
-                       cache=cache_class() if cache_class else None,
-                       unparse_with_whitespace=unparse_with_whitespace,
-                       granularity=granularity))
+        f.write(out_src)
     logger.info('Result is saved to %s.', out_file)
 
     if cleanup:
