@@ -1,4 +1,4 @@
-# Copyright (c) 2016-2018 Renata Hodovan, Akos Kiss.
+# Copyright (c) 2016-2019 Renata Hodovan, Akos Kiss.
 #
 # Licensed under the BSD 3-Clause License
 # <LICENSE.rst or https://opensource.org/licenses/BSD-3-Clause>.
@@ -18,8 +18,10 @@ def analyze_grammars(antlr_lexer, antlr_parser, grammars, replacements):
     :param antlr_parser: Reference to the ANTLR4 parser class.
     :param grammars: List of the grammars describing the input format.
     :param replacements: Dictionary that contains the predefined minimal
-                         replacement of any lexer or parser rules. These won't be overridden later.
-    :return: Pair of the replacement dictionary and the positions of quantified elements in the grammars.
+        replacement of any lexer or parser rules. These won't be overridden
+        later.
+    :return: Pair of the replacement dictionary and the positions of quantified
+        elements in the grammars.
     """
 
     def set_replacements(tree):
@@ -49,8 +51,10 @@ def analyze_grammars(antlr_lexer, antlr_parser, grammars, replacements):
         Create tree node of the lexer and parser subtrees.
 
         :param ctx: The ANTLRRuleContext object under processing.
-        :param optional: Boolean indicating whether the current context/node is optional or not.
-        :return: Node representation of the current context if needed, otherwise None.
+        :param optional: Boolean indicating whether the current context/node is
+            optional or not.
+        :return: Node representation of the current context if needed, otherwise
+            None.
         """
 
         # Parser rules.
@@ -173,7 +177,8 @@ def analyze_grammars(antlr_lexer, antlr_parser, grammars, replacements):
 
         :param children: All the siblings of the current node.
         :param idx: The index of the current node among the siblings.
-        :return: Quantifier string of the idx-th context if one is defined, None otherwise.
+        :return: Quantifier string of the idx-th context if one is defined, None
+            otherwise.
         """
         if len(children) <= idx + 1:
             return None
@@ -186,8 +191,8 @@ def analyze_grammars(antlr_lexer, antlr_parser, grammars, replacements):
 
     def is_optional(quantifier):
         """
-        Check whether a quantifier string makes its quantified expression optional,
-        i.e., if it allows the expression to occur 0 times.
+        Check whether a quantifier string makes its quantified expression
+        optional, i.e., if it allows the expression to occur 0 times.
 
         :param quantifier: Quantifier string.
         :return: Boolean indicating whether the quantifier is optional or not.
@@ -199,12 +204,16 @@ def analyze_grammars(antlr_lexer, antlr_parser, grammars, replacements):
         Creates a tree representation of the target parser grammar to facilitate
         the generation of minimal replacement strings.
 
-        :param node: The ANTLR parser tree whose representation will be inserted now.
-        :param positions: Dictionary describing positions in grammars where optional
-                          actions should be injected.
-        :param parent_idx: The index of the parent node in the elements list or None if without parent.
-        :param optional: Boolean deciding if the current node is optional or not.
-        :param parser_rule: Boolean value indicating if a parser rule being processed.
+        :param node: The ANTLR parser tree whose representation will be inserted
+            now.
+        :param positions: Dictionary describing positions in grammars where
+            optional actions should be injected.
+        :param parent_idx: The index of the parent node in the elements list or
+            None if without parent.
+        :param optional: Boolean deciding if the current node is optional or
+            not.
+        :param parser_rule: Boolean value indicating if a parser rule being
+            processed.
         """
         element = create_node(node, optional)
         if element:

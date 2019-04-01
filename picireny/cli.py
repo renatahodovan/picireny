@@ -188,8 +188,10 @@ def build_with_antlr4(input, src, encoding, out,
     :param start: Name of the start rule in [grammarname:]rulename format.
     :param antlr: Path to the ANTLR4 tool (Java jar binary).
     :param lang: The target language of the parser.
-    :param build_hidden_tokens: Build hidden tokens of the input format into the HDD tree.
-    :param cleanup: Binary flag denoting whether removing auxiliary files at the end is enabled.
+    :param build_hidden_tokens: Build hidden tokens of the input format into the
+        HDD tree.
+    :param cleanup: Binary flag denoting whether removing auxiliary files at the
+        end is enabled.
     :return: The built HDD tree.
     """
     # Get the parameters in a dictionary so that they can be pretty-printed
@@ -246,22 +248,31 @@ def reduce(hdd_tree,
 
     :param hdd_tree: HDD tree to reduce.
     :param reduce_class: Reference to the reducer class.
-    :param reduce_config: Dictionary containing information to initialize the reduce_class.
-    :param tester_class: Reference to a runnable class that can decide about the interestingness of a test case.
-    :param tester_config: Dictionary containing information to initialize the tester_class.
-    :param input: Path to the test case to reduce (only used to determine the name of the output file).
+    :param reduce_config: Dictionary containing information to initialize the
+        reduce_class.
+    :param tester_class: Reference to a runnable class that can decide about the
+        interestingness of a test case.
+    :param tester_config: Dictionary containing information to initialize the
+        tester_class.
+    :param input: Path to the test case to reduce (only used to determine the
+        name of the output file).
     :param encoding: Encoding of the input test case.
     :param out: Path to the output directory.
     :param hddmin: Function implementing a HDD minimization algorithm.
     :param hdd_star: Boolean to enable the HDD star algorithm.
-    :param flatten_recursion: Boolean to enable flattening left/right-recursive trees.
+    :param flatten_recursion: Boolean to enable flattening left/right-recursive
+        trees.
     :param squeeze_tree: Boolean to enable the tree squeezing optimization.
-    :param skip_unremovable: Boolean to enable hiding unremovable nodes from ddmin.
-    :param skip_whitespace: Boolean to enable hiding whitespace-only tokens from ddmin.
-    :param unparse_with_whitespace: Unparse by adding whitespace between nonadjacent nodes.
+    :param skip_unremovable: Boolean to enable hiding unremovable nodes from
+        ddmin.
+    :param skip_whitespace: Boolean to enable hiding whitespace-only tokens from
+        ddmin.
+    :param unparse_with_whitespace: Unparse by adding whitespace between
+        nonadjacent nodes.
     :param granularity: Initial granularity.
     :param cache_class: Reference to the cache class to use.
-    :param cleanup: Binary flag denoting whether removing auxiliary files at the end is enabled.
+    :param cleanup: Binary flag denoting whether removing auxiliary files at the
+        end is enabled.
     :return: The path to the minimal test case.
     """
     # Get the parameters in a dictionary so that they can be pretty-printed

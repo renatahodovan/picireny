@@ -39,7 +39,7 @@ class EmptyDD(AbstractDD):
 
         :param config: The initial configuration that will be reduced.
         :param n: The number of sets that the config is initially split to
-                  (unused, available for API compatibility with other DD variants).
+            (unused, available for API compatibility with other DD variants).
         :return: 1-minimal failing configuration.
         """
         assert len(config) == 1

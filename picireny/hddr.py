@@ -39,22 +39,30 @@ def hddrmin(hdd_tree, reduce_class, reduce_config, tester_class, tester_config, 
         - 'pop last' with 'forward append' gives syntactically reversed
           depth-first traversal.
 
-    :param hdd_tree: The root of the tree that the reduce will work with (it's the output of create_hdd_tree).
-    :param reduce_class: Reference to the reducer class (LightDD, ParallelDD or CombinedParallelDD from the
-                         picire module).
-    :param reduce_config: Dictionary containing the parameters of the reduce_class init function.
-    :param tester_class: Reference to a callable class that can decide about the interestingness of a test case.
-    :param tester_config: Dictionary containing the parameters of the tester class init function (except test_builder).
+    :param hdd_tree: The root of the tree that the reduce will work with (it's
+        the output of create_hdd_tree).
+    :param reduce_class: Reference to the reducer class (LightDD, ParallelDD or
+        CombinedParallelDD from the picire module).
+    :param reduce_config: Dictionary containing the parameters of the
+        reduce_class init function.
+    :param tester_class: Reference to a callable class that can decide about the
+        interestingness of a test case.
+    :param tester_config: Dictionary containing the parameters of the tester
+        class init function (except test_builder).
     :param test_name: Name of the test case file.
     :param work_dir: Directory to save temporary test files.
     :param hdd_star: Boolean to enable the HDD star algorithm.
     :param cache: Cache to use.
-    :param config_filter: Filter function from node to boolean, to allow running hddmin selectively.
-    :param unparse_with_whitespace: Build test case by adding whitespace between nonadjacent tree nodes during unparsing.
+    :param config_filter: Filter function from node to boolean, to allow running
+        hddmin selectively.
+    :param unparse_with_whitespace: Build test case by adding whitespace between
+        nonadjacent tree nodes during unparsing.
     :param granularity: Initial granularity.
     :param pop_first: Boolean to control tree traversal (see above for details).
-    :param append_reverse: Boolean to control tree traversal (see above for details).
-    :return: The reduced test case (1-tree-minimal if hdd_star is True and config_filter is None).
+    :param append_reverse: Boolean to control tree traversal (see above for
+        details).
+    :return: The reduced test case (1-tree-minimal if hdd_star is True and
+        config_filter is None).
     """
 
     iter_cnt = -1

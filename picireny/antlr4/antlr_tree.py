@@ -18,7 +18,8 @@ class ANTLRElement(object):
         """
         Constructor of the base tree node type.
 
-        :param optional: Boolean indicating whether the current node is optional or not.
+        :param optional: Boolean indicating whether the current node is optional
+            or not.
         :param repl: Known replacement if any.
         """
         self.children = []
@@ -27,22 +28,23 @@ class ANTLRElement(object):
 
     def all_replacements_defined(self):
         """
-        Replacements are defined if the node has at least one child and all of the children
-        have a replacement set.
+        Replacements are defined if the node has at least one child and all of
+        the children have a replacement set.
         """
         return self.children and all(x.replacement is not None for x in self.children)
 
     def has_defined_replacement(self):
         """
-        Checks if any of the children has a defined replacement.
-        Needed by alternations since the replacement of a recursive rule wouldn't be possible to
-        determine if waiting for all the children set.
+        Checks if any of the children has a defined replacement. Needed by
+        alternations since the replacement of a recursive rule wouldn't be
+        possible to determine if waiting for all the children set.
         """
         return self.children and any(x.replacement is not None for x in self.children)
 
     def calc_replacement(self):
         """
-        The minimal replacement of a parser rule is the concatenation of its children's minimal replacement.
+        The minimal replacement of a parser rule is the concatenation of its
+        children's minimal replacement.
 
         :return: Boolean denoting if a new replacement was found or not.
         """
@@ -56,9 +58,9 @@ class ANTLRElement(object):
 
 class ANTLRRule(ANTLRElement):
     """
-    Representation of a parser rule. The replacement string determined here
-    will be used in the reduce phase. This replacement can be set by the user
-    or generated automatically. If it's set by the user then it won't be changed
+    Representation of a parser rule. The replacement string determined here will
+    be used in the reduce phase. This replacement can be set by the user or
+    generated automatically. If it's set by the user then it won't be changed
     ever (even if it isn't minimal).
     """
     def __init__(self, name, repl):
@@ -117,9 +119,9 @@ class ANTLRLexerElement(ANTLRElement):
 
 class ANTLRLexerRule(ANTLRLexerElement):
     """
-    Representation of a lexer rule. The replacement string determined here
-    will be used in the reduce phase. This replacement can be set by the user
-    or generated automatically. If it's set by the user then it won't be changed
+    Representation of a lexer rule. The replacement string determined here will
+    be used in the reduce phase. This replacement can be set by the user or
+    generated automatically. If it's set by the user then it won't be changed
     ever (even if it's not minimal).
     """
     def __init__(self, name, repl):
@@ -203,7 +205,8 @@ class ANTLRSetElement(ANTLRLexerElement):
         """
         Extract represented character intervals from chararcter sets.
 
-        :param src: The string representation of the character set (w/o brackets).
+        :param src: The string representation of the character set (w/o
+            brackets).
         """
         intervals = [(ord(m.group(1)), ord(m.group(2))) for m in re.finditer('(\w)\-(\w)', src)]
         positions = [(m.start(1), m.end(2)) for m in re.finditer('(\w)\-(\w)', src)]
@@ -212,11 +215,14 @@ class ANTLRSetElement(ANTLRLexerElement):
     @staticmethod
     def extract_single_chars(src, positions):
         """
-        Character sets can contain multiple sets and single characters. (e.g. [-ab-defg-ijkl])
-        This function selects the single characters based on the position of sets.
+        Character sets can contain multiple sets and single characters (e.g.,
+        [-ab-defg-ijkl]). This function selects the single characters based on
+        the position of sets.
 
-        :param src: The string representation of the character set (w/o brackets).
-        :param positions: Position intervals in src where character intervals are placed.
+        :param src: The string representation of the character set (w/o
+            brackets).
+        :param positions: Position intervals in src where character intervals
+            are placed.
         """
         if not positions:
             return [(ord(x), ord(x)) for x in list(ANTLRSetElement.resolve_escapes(src))]
@@ -238,9 +244,10 @@ class ANTLRSetElement(ANTLRLexerElement):
     @staticmethod
     def resolve_escapes(src):
         """
-        Remove escaping from escape sequences in src. E.g. lexer rules may contain such
-        expressions like: [\t] where \t is evaluated as '\' + 't' instead of a tabulator.
-        This function executes the reversed transformation.
+        Remove escaping from escape sequences in src. E.g., lexer rules may
+        contain such expressions like: [\t] where \t is evaluated as '\' + 't'
+        instead of a tabulator. This function executes the reversed
+        transformation.
 
         :param src: The string that may have escaped escape sequences.
         """

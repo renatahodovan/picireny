@@ -44,8 +44,8 @@ class HDDHiddenToken(HDDToken):
 
 class HDDErrorToken(HDDToken):
     """
-    Special token type that represents unmatched tokens. The minimal replacement of such nodes
-    is an empty string.
+    Special token type that represents unmatched tokens. The minimal replacement
+    of such nodes is an empty string.
     """
     def __init__(self, text, start, end):
         HDDToken.__init__(self, '', text, start=start, end=end)
@@ -62,12 +62,14 @@ def create_hdd_tree(input_stream, input_format, start, antlr, work_dir, hidden_t
     """
     Build a tree that the HDD algorithm can work with.
 
-    :param input_stream: ANTLR stream (FileStream or InputStream) representing the input.
+    :param input_stream: ANTLR stream (FileStream or InputStream) representing
+        the input.
     :param input_format: Dictionary describing the input format.
     :param start: Name of the start rule in [grammarname:]rulename format.
     :param antlr: Path to the ANTLR4 tool (Java jar binary).
     :param work_dir: Working directory.
-    :param hidden_tokens: Build hidden tokens of the input format into the HDD tree.
+    :param hidden_tokens: Build hidden tokens of the input format into the HDD
+        tree.
     :param lang: The target language of the parser.
     :return: The root of the created HDD tree.
     """
@@ -153,8 +155,8 @@ def create_hdd_tree(input_stream, input_format, start, antlr, work_dir, hidden_t
 
     def prepare_parsing(grammar_name):
         """
-        Performs initiative steps needed to parse the input test case (like create directory structures,
-        builds grammars, sets PATH, etc...)
+        Performs initiative steps needed to parse the input test case (like
+        create directory structures, builds grammars, sets PATH, etc...)
 
         :param grammar_name: Name of the grammar to use for parsing.
         """
@@ -184,9 +186,10 @@ def create_hdd_tree(input_stream, input_format, start, antlr, work_dir, hidden_t
 
         class ExtendedTargetLexer(target_lexer_class):
             """
-            ExtendedTargetLexer is a subclass of the original lexer implementation.
-            It can recognize skipped tokens and instead of eliminating them from the parser
-            they can be redirected to the dedicated PICIRENY_CHANNEL for later use.
+            ExtendedTargetLexer is a subclass of the original lexer
+            implementation. It can recognize skipped tokens and instead of
+            eliminating them from the parser they can be redirected to the
+            dedicated PICIRENY_CHANNEL for later use.
             """
 
             PICIRENY_CHANNEL = -3
@@ -199,9 +202,10 @@ def create_hdd_tree(input_stream, input_format, start, antlr, work_dir, hidden_t
 
         class ExtendedTargetParser(target_parser_class):
             """
-            ExtendedTargetParser is a subclass of the original parser implementation.
-            It can trigger state changes that are needed to identify parts of the input
-            that are not needed to keep it syntactically correct.
+            ExtendedTargetParser is a subclass of the original parser
+            implementation. It can trigger state changes that are needed to
+            identify parts of the input that are not needed to keep it
+            syntactically correct.
             """
             def enter_optional(self):
                 self.trigger_listener('enter_optional')
@@ -233,9 +237,10 @@ def create_hdd_tree(input_stream, input_format, start, antlr, work_dir, hidden_t
 
         class ExtendedTargetListener(target_listener_class):
             """
-            ExtendedTargetListener is a subclass of the original listener implementation.
-            It can trigger state changes that are needed to identify parts of the input
-            that are not needed to keep it syntactically correct.
+            ExtendedTargetListener is a subclass of the original listener
+            implementation. It can trigger state changes that are needed to
+            identify parts of the input that are not needed to keep it
+            syntactically correct.
             """
             def __init__(self, parser):
                 self.parser = parser
@@ -365,7 +370,8 @@ def create_hdd_tree(input_stream, input_format, start, antlr, work_dir, hidden_t
         """
         Parse the input with the provided ANTLR classes.
 
-        :param input_stream: ANTLR stream (FileStream or InputStream) representing the input.
+        :param input_stream: ANTLR stream (FileStream or InputStream)
+            representing the input.
         :param grammar_name: Name of the grammar to use for parsing.
         :param start_rule: The name of the start rule of the parser.
         :return: The root of the created HDD tree.
@@ -531,21 +537,21 @@ def create_hdd_tree(input_stream, input_format, start, antlr, work_dir, hidden_t
 
     def rename_regex_groups(pattern):
         """
-        Rewrite capture group names in a regex pattern to ensure that the names are
-        valid Python identifiers (as expected by the ``re`` module). This enables
-        more sophisticated capture group names than allowed by default.
+        Rewrite capture group names in a regex pattern to ensure that the names
+        are valid Python identifiers (as expected by the ``re`` module). This
+        enables more sophisticated capture group names than allowed by default.
 
         :param str pattern: the original regex pattern with potentially extended
             syntax for capture group names.
-        :return: the rewritten regex pattern and a mapping from the newly introduced
-            capture group names (which are guaranteed to by valid Python
-            identifiers) to the names used in the original pattern.
+        :return: the rewritten regex pattern and a mapping from the newly
+            introduced capture group names (which are guaranteed to by valid
+            Python identifiers) to the names used in the original pattern.
         :rtype: tuple(str, dict(str, str))
 
         .. note::
 
-           The function expects ``pattern`` to be syntactically valid. Its behavior
-           is undefined for erroneous input.
+           The function expects ``pattern`` to be syntactically valid. Its
+           behavior is undefined for erroneous input.
         """
 
         grp_rewritten = ''
@@ -579,10 +585,10 @@ def create_hdd_tree(input_stream, input_format, start, antlr, work_dir, hidden_t
 
     def split_grammar_rule_name(name):
         """
-        Determine the grammar and the rule parts in a potentially grammar-prefixed
-        rule name. The syntax for the prefixed format is "[grammar:]rule", where
-        "[]" denote optionality and the default for a missing grammar part is the
-        empty string.
+        Determine the grammar and the rule parts in a potentially
+        grammar-prefixed rule name. The syntax for the prefixed format is
+        "[grammar:]rule", where "[]" denote optionality and the default for a
+        missing grammar part is the empty string.
 
         :param str name: a potentially grammar-prefixed rule name.
         :return: a 2-tuple of the grammar and the rule name parts.

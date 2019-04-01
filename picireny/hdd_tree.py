@@ -8,7 +8,10 @@
 
 
 class Position(object):
-    """Class defining a position in the input file. Used to recognise line breaks between tokens."""
+    """
+    Class defining a position in the input file. Used to recognise line breaks
+    between tokens.
+    """
     def __init__(self, line, idx):
         """
         Initialize position object.
@@ -52,7 +55,8 @@ class HDDTree:
 
     def synthetic_attribute(self, visitor):
         """
-        Call visitor on nodes without propagating any values (used by unparsing).
+        Call visitor on nodes without propagating any values (used by
+        unparsing).
 
         :param visitor: Function applying on the visited nodes.
         :return: The value returned by visitor after applying on the node.
@@ -61,7 +65,8 @@ class HDDTree:
 
     def inherited_attribute(self, visitor, attribute=None):
         """
-        Call visitor on the nodes and propagate the return value to the children (only setLevel uses it).
+        Call visitor on the nodes and propagate the return value to the children
+        (only setLevel uses it).
 
         :param visitor: Function applying to the visited nodes.
         :param attribute: The propagated value.
@@ -72,7 +77,8 @@ class HDDTree:
         """
         Build test case from a HDD tree.
 
-        :param with_whitespace: Add whitespace (space, new line) to separate nonadjacent nodes.
+        :param with_whitespace: Add whitespace (space, new line) to separate
+            nonadjacent nodes.
         :return: The unparsed test case.
         """
         def unparse_attribute(node, attribs):
@@ -119,7 +125,9 @@ class HDDTree:
         self.traverse(_set_state)
 
     def check(self):
-        """Run sanity check on the HDD tree."""
+        """
+        Run sanity check on the HDD tree.
+        """
         def bad_parent(node):
             if node is None:
                 return
@@ -130,7 +138,8 @@ class HDDTree:
         """
         Pretty print HDD tree to help debugging.
 
-        :param current: Reference to a node that will be marked with a '*' in the output.
+        :param current: Reference to a node that will be marked with a '*' in
+            the output.
         :return: String representation of the tree.
         """
 

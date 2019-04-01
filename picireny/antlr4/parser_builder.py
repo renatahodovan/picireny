@@ -24,7 +24,8 @@ def build_grammars(grammars, out, antlr, lang='python'):
     :param out: Output directory.
     :param antlr: Path to the ANTLR4 tool (Java jar binary).
     :param lang: The target language of the parser.
-    :return: List of references/names of the lexer, parser and listener classes of the target.
+    :return: List of references/names of the lexer, parser and listener classes
+        of the target.
     """
 
     # Generate parser and lexer in the target language and return either with
