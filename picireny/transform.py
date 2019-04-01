@@ -106,7 +106,9 @@ def squeeze_tree(node):
     """
     if isinstance(node, HDDRule):
         for i, child in enumerate(node.children):
-            node.children[i].replace_with(squeeze_tree(child))
+            squeezed_child = squeeze_tree(child)
+            if child != squeezed_child:
+                node.children[i].replace_with(squeezed_child)
 
         if len(node.children) == 1 and node.children[0].replace == node.replace:
             return node.children[0]
