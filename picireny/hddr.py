@@ -10,7 +10,6 @@ import logging
 from os.path import join
 
 from .empty_dd import EmptyDD
-from .info import height
 from .unparser import Unparser
 
 logger = logging.getLogger(__name__)

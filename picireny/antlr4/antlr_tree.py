@@ -203,13 +203,13 @@ class ANTLRSetElement(ANTLRLexerElement):
     @staticmethod
     def process_charset(src):
         """
-        Extract represented character intervals from chararcter sets.
+        Extract represented character intervals from character sets.
 
         :param src: The string representation of the character set (w/o
             brackets).
         """
-        intervals = [(ord(m.group(1)), ord(m.group(2))) for m in re.finditer('(\w)\-(\w)', src)]
-        positions = [(m.start(1), m.end(2)) for m in re.finditer('(\w)\-(\w)', src)]
+        intervals = [(ord(m.group(1)), ord(m.group(2))) for m in re.finditer(r'(\w)\-(\w)', src)]
+        positions = [(m.start(1), m.end(2)) for m in re.finditer(r'(\w)\-(\w)', src)]
         return intervals + ANTLRSetElement.extract_single_chars(src, positions)
 
     @staticmethod

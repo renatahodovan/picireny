@@ -17,6 +17,8 @@ jobs:
     - python: 3.7
       env: TOXENV=py
       dist: xenial
+    - python: 3.4
+      env: TOXENV=lint
 
     - stage: coverage
       python: 3.4

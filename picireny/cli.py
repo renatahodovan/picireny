@@ -21,11 +21,9 @@ from shutil import rmtree
 import antlerinator
 import picire
 
-from antlr4 import *
+from antlr4 import InputStream
 
-from . import info, transform
-from .hdd import coarse_full_hddmin, coarse_hddmin, hddmin
-from .hddr import hddrmin
+from . import hdd, hddr, info, transform
 
 logger = logging.getLogger('picireny')
 __version__ = pkgutil.get_data(__package__, 'VERSION').decode('ascii').strip()
@@ -33,10 +31,10 @@ antlr_default_path = antlerinator.antlr_jar_path
 
 
 args_hdd_choices = {
-    'full': hddmin,
-    'coarse': coarse_hddmin,
-    'coarse-full': coarse_full_hddmin,
-    'hddr': hddrmin,
+    'full': hdd.hddmin,
+    'coarse': hdd.coarse_hddmin,
+    'coarse-full': hdd.coarse_full_hddmin,
+    'hddr': hddr.hddrmin,
 }
 
 
@@ -46,7 +44,7 @@ def process_antlr4_path(antlr=None):
         antlerinator.install(lazy=True)
 
     if not exists(antlr):
-        logger.error('%s does not exist.' % antlr)
+        logger.error('%s does not exist.', antlr)
         return None
 
     return abspath(relpath(antlr))
@@ -59,7 +57,7 @@ def process_antlr4_format(format=None, grammar=None, start=None, replacements=No
             for i, fn in enumerate(data['files']):
                 path = join(abspath(dirname(format)), fn)
                 if not exists(path):
-                    logger.error('{path}, defined in the format config, doesn\'t exist.'.format(path=path))
+                    logger.error('%s, defined in the format config, does not exist.', path)
                     return None, None
                 data['files'][i] = path
             data['islands'] = data.get('islands', {})
@@ -70,7 +68,7 @@ def process_antlr4_format(format=None, grammar=None, start=None, replacements=No
 
     if format:
         if not exists(format):
-            logger.error('{path} does not exist.'.format(path=format))
+            logger.error('%s does not exist.', format)
             return None, None
 
         with open(format, 'r') as f:
@@ -79,8 +77,8 @@ def process_antlr4_format(format=None, grammar=None, start=None, replacements=No
                 input_format = input_description['grammars']
                 if not start:
                     start = input_description.get('start', None)
-            except json.JSONDecodeError as err:
-                logger.error('The content of {path} is not a valid JSON object: {err}'.format(path=format, err=err))
+            except ValueError as err:
+                logger.error('The content of %s is not a valid JSON object.', format, exc_info=err)
                 return None, None
 
     if not start:
@@ -95,19 +93,19 @@ def process_antlr4_format(format=None, grammar=None, start=None, replacements=No
             for i, g in enumerate(grammar):
                 input_format['']['files'].append(abspath(relpath(g)))
                 if not exists(input_format['']['files'][i]):
-                    logger.error('{path} does not exist.'.format(path=input_format['']['files'][i]))
+                    logger.error('%s does not exist.', input_format['']['files'][i])
                     return None, None
 
         if replacements:
             if not exists(replacements):
-                logger.error('{path} does not exist.'.format(path=replacements))
+                logger.error('%s does not exist.', replacements)
                 return None, None
 
             try:
                 with open(replacements, 'r') as f:
                     input_format['']['replacements'] = json.load(f)
-            except json.JSONDecodeError as err:
-                logger.error('The content of {path} is not a valid JSON object: {err}'.format(path=replacements, err=err))
+            except ValueError as err:
+                logger.error('The content of %s is not a valid JSON object.', replacements, exc_info=err)
                 return None, None
 
     return input_format, start
@@ -119,7 +117,7 @@ def process_antlr4_args(arg_parser, args):
         arg_parser.error('Invalid ANTLR definition.')
 
     args.input_format, args.start = process_antlr4_format(format=args.format, grammar=args.grammar, start=args.start,
-                                                         replacements=args.replacements)
+                                                          replacements=args.replacements)
     if args.input_format is None or args.start is None:
         arg_parser.error('Invalid input format definition.')
 
@@ -151,7 +149,7 @@ def log_args(title, args):
                 v_log = _log_args(v)
                 if isinstance(v_log, list):
                     log += ['%s:' % k_log]
-                    for i, line in enumerate(v_log):
+                    for line in v_log:
                         log += ['\t' + line]
                 else:
                     log += ['%s: %s' % (k_log, v_log)]

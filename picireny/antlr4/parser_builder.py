@@ -30,7 +30,6 @@ def build_grammars(grammars, out, antlr, lang='python'):
 
     # Generate parser and lexer in the target language and return either with
     # python class ref or the name of java classes.
-    global grammar_cache
     if lang not in grammar_cache:
         grammar_cache[lang] = {}
     if grammars in grammar_cache[lang]:

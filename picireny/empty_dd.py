@@ -7,7 +7,7 @@
 
 import logging
 
-from picire import AbstractDD, ConfigCache
+from picire import AbstractDD
 
 logger = logging.getLogger(__name__)
 

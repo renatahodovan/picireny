@@ -33,7 +33,7 @@ def remove_empty_nodes(node):
                 # a grammar may contain lambda rules (with nothing on the
                 # right-hand side, or with an empty alternative), or rules that
                 # produce EOF only (which is removed in the branch above)
-                if len(child.children) != 0:
+                if child.children:
                     non_empty_children.append(child)
 
         node.children[:] = non_empty_children

@@ -5,7 +5,8 @@
 # This file may not be copied, modified, or distributed except
 # according to those terms.
 
-from antlr4 import *
+from antlr4 import CommonTokenStream, FileStream
+from antlr4.tree import Tree
 
 from .antlr_tree import *
 
@@ -64,7 +65,7 @@ def analyze_grammars(antlr_lexer, antlr_parser, grammars, replacements):
             # Since we cannot make a distinction between terminals at this point, they have to be referred
             # by indices. Since only the first terminal is optional indexing them from the back is safe
             # (the 3th from back is the rule ID).
-            name = [x for x in ctx.children if isinstance(x, tree.Tree.TerminalNodeImpl)][-3].symbol.text
+            name = [x for x in ctx.children if isinstance(x, Tree.TerminalNodeImpl)][-3].symbol.text
             return ANTLRRule(name, replacements.get(name, None))
 
         # Alternations need special handling since their minimal replacements are their shortest
@@ -83,7 +84,7 @@ def analyze_grammars(antlr_lexer, antlr_parser, grammars, replacements):
         # Atom can also have quantifier. Furthermore it may have a terminal child
         # (DOT = matching any character) that has to be handled here.
         if isinstance(ctx, parser.AtomContext):
-            if isinstance(ctx.children[0], tree.Tree.TerminalNodeImpl):
+            if isinstance(ctx.children[0], Tree.TerminalNodeImpl):
                 assert ctx.children[0] == '.'
                 return ANTLRDotElement(optional=optional)
             # Create a base ANTLRElement anyway to make possible applying the quantifier
@@ -106,7 +107,7 @@ def analyze_grammars(antlr_lexer, antlr_parser, grammars, replacements):
         # invert these ranges.
         if isinstance(ctx, parser.LexerRuleSpecContext):
             # Just like at ANTLRRule, the 3rd terminal from the back contains the name of the lexer rule.
-            name = [x for x in ctx.children if isinstance(x, tree.Tree.TerminalNodeImpl)][-3].symbol.text
+            name = [x for x in ctx.children if isinstance(x, Tree.TerminalNodeImpl)][-3].symbol.text
             return ANTLRLexerRule(name, repl=replacements.get(name, None))
 
         # The same logic as with parser alternations.
@@ -133,7 +134,7 @@ def analyze_grammars(antlr_lexer, antlr_parser, grammars, replacements):
         # LexerAtom can also have quantifier. Furthermore it may have terminal children
         # (DOT or character set) that has to be handled here.
         if isinstance(ctx, parser.LexerAtomContext):
-            if isinstance(ctx.children[0], tree.Tree.TerminalNodeImpl):
+            if isinstance(ctx.children[0], Tree.TerminalNodeImpl):
                 content = ctx.children[0].symbol.text
                 if content == '.':
                     return ANTLRDotElement(optional=optional)
@@ -162,7 +163,7 @@ def analyze_grammars(antlr_lexer, antlr_parser, grammars, replacements):
         if isinstance(ctx, parser.SetElementContext):
             # If the first child is a terminal node then it must be one of the followings:
             # token_ref, string_literal or char set.
-            if isinstance(ctx.children[0], tree.Tree.TerminalNodeImpl):
+            if isinstance(ctx.children[0], Tree.TerminalNodeImpl):
                 if ctx.children[0].symbol.text.isupper():
                     return ANTLRTokenRef(ctx.children[0].symbol.text)
                 return ANTLRSetElement(content=ctx.children[0].symbol.text)
@@ -227,7 +228,7 @@ def analyze_grammars(antlr_lexer, antlr_parser, grammars, replacements):
         if node.getChildCount() > 0:
             # TerminalNodeImpl nodes already have been added by create_node
             # when processing their parent since at this point we don't know their type.
-            for i, c in enumerate([x for x in node.children if not isinstance(x, tree.Tree.TerminalNodeImpl)]):
+            for i, c in enumerate([x for x in node.children if not isinstance(x, Tree.TerminalNodeImpl)]):
                 quantifier = get_quantifier(node.children, i)
 
                 # Mark positions in parser rules that have any quantifier applied on them.
@@ -272,7 +273,7 @@ def analyze_grammars(antlr_lexer, antlr_parser, grammars, replacements):
     # Plug the referred node under the referrers.
     for i, x in enumerate(elements):
         if isinstance(x, (ANTLRRef, ANTLRTokenRef)):
-            assert len(elements[i].children) == 0, 'Referrer nodes must not contain children.'
+            assert not elements[i].children, 'Referrer nodes must not contain children.'
             elements[i].children = [elements[rules[x.ref]]]
 
     # Associate tree nodes with minimal string replacements.

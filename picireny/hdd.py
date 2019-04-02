@@ -50,7 +50,7 @@ def hddmin(hdd_tree, reduce_class, reduce_config, tester_class, tester_config, t
             if current_level == level and node.state == node.KEEP:
                 level_nodes.append(node)
             return current_level + 1
-        level_nodes = [] # Using `list` (not `set`) for the sake of stability.
+        level_nodes = []  # Using `list` (not `set`) for the sake of stability.
         hdd_tree.inherited_attribute(_collect_level_nodes, 0)
         return level_nodes
 

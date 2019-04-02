@@ -51,7 +51,7 @@ class HDDTree:
 
         :param visitor: Function applying to the visited nodes.
         """
-        assert False, 'Should never be reached: it should be overridden in sub-classes.'
+        raise NotImplementedError()
 
     def synthetic_attribute(self, visitor):
         """
@@ -61,7 +61,7 @@ class HDDTree:
         :param visitor: Function applying on the visited nodes.
         :return: The value returned by visitor after applying on the node.
         """
-        assert False, 'Should never be reached: it should be overridden in sub-classes.'
+        raise NotImplementedError()
 
     def inherited_attribute(self, visitor, attribute=None):
         """
@@ -71,7 +71,7 @@ class HDDTree:
         :param visitor: Function applying to the visited nodes.
         :param attribute: The propagated value.
         """
-        assert False, 'Should never be reached: it should be overridden in sub-classes.'
+        raise NotImplementedError()
 
     def unparse(self, with_whitespace=True):
         """

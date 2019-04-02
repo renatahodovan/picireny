@@ -16,12 +16,12 @@ from pkgutil import get_data
 from string import Template
 from subprocess import CalledProcessError, PIPE, Popen
 
-from antlr4 import *
+from antlr4 import CommonTokenStream, error, InputStream, Token
 from antlr4.Token import CommonToken
 
 from .grammar_analyzer import analyze_grammars
 from .parser_builder import build_grammars
-from ..hdd_tree import HDDRule, HDDToken, HDDTree, Position
+from ..hdd_tree import HDDRule, HDDToken, Position
 from ..transform import remove_empty_nodes
 
 
@@ -56,6 +56,8 @@ class HDDErrorToken(HDDToken):
 class ConsoleListener(error.ErrorListener.ConsoleErrorListener):
     def syntaxError(self, recognizer, offendingSymbol, line, column, msg, e):
         logger.debug('line %d:%d %s', line, column, msg)
+
+
 error.ErrorListener.ConsoleErrorListener.INSTANCE = ConsoleListener()
 
 
@@ -102,7 +104,7 @@ def create_hdd_tree(input_stream, input_format, start, antlr, work_dir, hidden_t
 
         for ln in positions:
             offset = 0
-            for i, position in enumerate(sorted(positions[ln], key=lambda x: x[1])):
+            for position in sorted(positions[ln], key=lambda x: x[1]):
                 if position[0] == 's':
                     lines[ln - 1] = lines[ln - 1][0:position[1] + offset] + languages[lang]['prefix'] + lines[ln - 1][position[1] + offset:]
                     offset += len(languages[lang]['prefix'])
@@ -258,7 +260,7 @@ def create_hdd_tree(input_stream, input_format, start, antlr, work_dir, hidden_t
                 self.current_node = node
 
             def recursion_push(self):
-                assert len(self.current_node.parent.children) > 0
+                assert self.current_node.parent.children
 
                 first_child = self.current_node.parent.children[0]
                 self.current_node.parent.remove_child(first_child)
@@ -291,7 +293,7 @@ def create_hdd_tree(input_stream, input_format, start, antlr, work_dir, hidden_t
                 while isinstance(self.current_node, HDDQuantifier):
                     self.exit_optional()
 
-                assert self.current_node.name == self.parser.ruleNames[ctx.getRuleIndex()],\
+                assert self.current_node.name == self.parser.ruleNames[ctx.getRuleIndex()], \
                     '%s (%s) != %s' % (self.current_node.name, repr(self.current_node), self.parser.ruleNames[ctx.getRuleIndex()])
 
                 if self.current_node.parent:
@@ -300,9 +302,8 @@ def create_hdd_tree(input_stream, input_format, start, antlr, work_dir, hidden_t
             def tokenBoundaries(self, token):
                 line_breaks = token.text.count('\n')
                 return Position(token.line, token.column), \
-                       Position(token.line + line_breaks,
-                                token.column + len(token.text) if not line_breaks else
-                                len(token.text) - token.text.rfind('\n'))
+                    Position(token.line + line_breaks,
+                             token.column + len(token.text) if not line_breaks else len(token.text) - token.text.rfind('\n'))
 
             def addToken(self, node, child):
                 if not self.seen_terminal:
@@ -401,7 +402,7 @@ def create_hdd_tree(input_stream, input_format, start, antlr, work_dir, hidden_t
 
                 name = node_dict.get('name', None)
                 children = node_dict.pop('children', None)
-                cls = eval(node_dict.pop('type'))
+                cls = globals()[node_dict.pop('type')]
                 node = cls(**node_dict)
 
                 if children:
@@ -529,10 +530,10 @@ def create_hdd_tree(input_stream, input_format, start, antlr, work_dir, hidden_t
 
         return node
 
-    _NAMED_GRP_PATTERN = re.compile(r'(?<!\\)(\(\?P<[^>]*>)')  # "(?P<NAME>" not prefixed by a "\"
+    _NAMED_GRP_PATTERN = re.compile(r'(?<!\\)(\(\?P<[^>]*>)')   # "(?P<NAME>" not prefixed by a "\"
     _NAMED_GRP_PREFIX = '(?P<'
     _NAMED_GRP_SUFFIX = '>'
-    _NAMED_REF_PATTERN = re.compile(r'(?<!\\)(\(\?P=[^)]*\))') # "(?P=NAME)" not prefixed by a "\"
+    _NAMED_REF_PATTERN = re.compile(r'(?<!\\)(\(\?P=[^)]*\))')  # "(?P=NAME)" not prefixed by a "\"
     _NAMED_REF_PREFIX = '(?P='
     _NAMED_REF_SUFFIX = ')'
 
