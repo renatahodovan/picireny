@@ -7,11 +7,9 @@
 
 from __future__ import absolute_import
 
-import antlerinator
 import codecs
 import json
 import logging
-import picire
 import pkgutil
 import sys
 
@@ -20,7 +18,11 @@ from os import makedirs
 from os.path import abspath, basename, dirname, exists, isdir, join, relpath
 from shutil import rmtree
 
+import antlerinator
+import picire
+
 from antlr4 import *
+
 from . import info, transform
 from .hdd import coarse_full_hddmin, coarse_hddmin, hddmin
 from .hddr import hddrmin

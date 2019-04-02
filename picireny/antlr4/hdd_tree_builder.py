@@ -10,13 +10,14 @@ import logging
 import re
 import sys
 
-from antlr4 import *
-from antlr4.Token import CommonToken
-from pkgutil import get_data
 from os import makedirs, pathsep
 from os.path import basename, isdir, join
+from pkgutil import get_data
 from string import Template
-from subprocess import CalledProcessError, Popen, PIPE
+from subprocess import CalledProcessError, PIPE, Popen
+
+from antlr4 import *
+from antlr4.Token import CommonToken
 
 from .grammar_analyzer import analyze_grammars
 from .parser_builder import build_grammars

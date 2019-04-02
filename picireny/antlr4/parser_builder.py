@@ -10,7 +10,7 @@ import sys
 
 from os import listdir
 from os.path import basename, commonprefix, split, splitext
-from subprocess import CalledProcessError, Popen, PIPE
+from subprocess import CalledProcessError, PIPE, Popen
 
 logger = logging.getLogger(__name__)
 grammar_cache = {}

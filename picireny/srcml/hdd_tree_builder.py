@@ -8,7 +8,7 @@
 import logging
 import xml.etree.ElementTree as ET
 
-from subprocess import CalledProcessError, Popen, PIPE
+from subprocess import CalledProcessError, PIPE, Popen
 
 from ..hdd_tree import HDDRule, HDDToken, Position
 from ..transform import remove_empty_nodes
