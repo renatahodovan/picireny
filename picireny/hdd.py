@@ -6,6 +6,7 @@
 # This file may not be copied, modified, or distributed except
 # according to those terms.
 
+import itertools
 import logging
 
 from os.path import join
@@ -54,16 +55,12 @@ def hddmin(hdd_tree, reduce_class, reduce_config, tester_class, tester_config, t
         hdd_tree.inherited_attribute(_collect_level_nodes, 0)
         return level_nodes
 
-    iter_cnt = -1
-    while True:
-        iter_cnt += 1
+    for iter_cnt in itertools.count():
         logger.info('Iteration #%d', iter_cnt)
         hdd_tree.check()
 
-        level = -1
         changed = False
-        while True:
-            level += 1
+        for level in itertools.count():
             level_nodes = collect_level_nodes(level)
             if not level_nodes:
                 break

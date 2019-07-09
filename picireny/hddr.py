@@ -5,6 +5,7 @@
 # This file may not be copied, modified, or distributed except
 # according to those terms.
 
+import itertools
 import logging
 
 from os.path import join
@@ -64,9 +65,7 @@ def hddrmin(hdd_tree, reduce_class, reduce_config, tester_class, tester_config, 
         config_filter is None).
     """
 
-    iter_cnt = -1
-    while True:
-        iter_cnt += 1
+    for iter_cnt in itertools.count():
         logger.info('Iteration #%d', iter_cnt)
         hdd_tree.check()
 
