@@ -10,7 +10,6 @@ from __future__ import absolute_import
 import codecs
 import json
 import logging
-import pkgutil
 import sys
 
 from argparse import ArgumentParser
@@ -20,13 +19,14 @@ from shutil import rmtree
 
 import antlerinator
 import picire
+import pkg_resources
 
 from antlr4 import InputStream
 
 from . import hdd, hddr, info, transform
 
 logger = logging.getLogger('picireny')
-__version__ = pkgutil.get_data(__package__, 'VERSION').decode('ascii').strip()
+__version__ = pkg_resources.get_distribution(__package__).version
 antlr_default_path = antlerinator.antlr_jar_path
 
 
