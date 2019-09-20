@@ -159,7 +159,7 @@ def log_args(title, args):
         if hasattr(args, '__name__'):
             return '.'.join(([args.__module__] if hasattr(args, '__module__') else []) + [args.__name__])
         return args
-    logger.info('%s\n\t%s\n', title, '\n\t'.join(_log_args(args)))
+    # logger.info('%s\n\t%s\n', title, '\n\t'.join(_log_args(args)))
 
 
 def log_tree(title, hdd_tree):
