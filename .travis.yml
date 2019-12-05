@@ -8,8 +8,6 @@ jobs:
     - stage: test
       python: 2.7
       env: TOXENV=py
-    - python: 3.4
-      env: TOXENV=py
     - python: 3.5
       env: TOXENV=py
     - python: 3.6
@@ -17,17 +15,17 @@ jobs:
     - python: 3.7
       env: TOXENV=py
       dist: xenial
-    - python: 3.4
+    - python: 3.5
       env: TOXENV=lint
 
     - stage: coverage
-      python: 3.4
+      python: 3.5
       env: TOXENV=cov
       before_script: pip install -U coveralls
       after_success: coveralls
 
     - stage: deploy
-      python: 3.4
+      python: 3.5
       install: skip
       script: skip
       deploy:

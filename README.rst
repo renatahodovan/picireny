@@ -38,7 +38,7 @@ still "interesting" output.
 Requirements
 ============
 
-* Python_ ~= 2.7 or >= 3.4
+* Python_ ~= 2.7 or >= 3.5
 * pip_ and setuptools Python packages (the latter is automatically installed by
   pip).
 * ANTLR_ v4

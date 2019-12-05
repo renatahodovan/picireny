@@ -17,7 +17,7 @@ disable=
     too-many-instance-attributes, too-few-public-methods,
     redefined-builtin, broad-except, protected-access,
     useless-object-inheritance, unnecessary-pass, duplicate-code,
-    attribute-defined-outside-init
+    attribute-defined-outside-init, import-outside-toplevel
 
 [REPORTS]
 
