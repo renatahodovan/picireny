@@ -1,5 +1,8 @@
 language: python
 
+git:
+  depth: false
+
 install: pip install -U tox
 script: tox -v
 
