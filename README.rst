@@ -7,8 +7,6 @@ Picireny
    :target: https://badge.fury.io/py/picireny
 .. image:: https://travis-ci.org/renatahodovan/picireny.svg?branch=master
    :target: https://travis-ci.org/renatahodovan/picireny
-.. image:: https://ci.appveyor.com/api/projects/status/jsg8qiflkakbhni1/branch/master?svg=true
-   :target: https://ci.appveyor.com/project/renatahodovan/picireny/branch/master
 .. image:: https://coveralls.io/repos/github/renatahodovan/picireny/badge.svg?branch=master
    :target: https://coveralls.io/github/renatahodovan/picireny?branch=master
 
@@ -111,8 +109,8 @@ Compatibility
 *picireny* was tested on:
 
 * Linux (Ubuntu 14.04 / 16.04 / 18.04)
-* Mac OS X (El Capitan 10.11 / Sierra 10.12 / High Sierra 10.13 / Mojave 10.14)
-* Windows (Server 2012 R2)
+* Mac OS X (El Capitan 10.11 / Sierra 10.12 / High Sierra 10.13 / Mojave 10.14 / Catalina 10.15)
+* Windows (Server 2012 R2 / Server version 1809 / Windows 10)
 
 
 Acknowledgement and Citations
