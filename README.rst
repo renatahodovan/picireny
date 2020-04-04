@@ -3,12 +3,14 @@ Picireny
 ========
 *Hierarchical Delta Debugging Framework*
 
-.. image:: https://badge.fury.io/py/picireny.svg
-   :target: https://badge.fury.io/py/picireny
-.. image:: https://travis-ci.org/renatahodovan/picireny.svg?branch=master
+.. image:: https://img.shields.io/pypi/v/picireny?logo=python&logoColor=white
+   :target: https://pypi.org/project/picireny/
+.. image:: https://img.shields.io/pypi/l/picireny?logo=open-source-initiative&logoColor=white
+   :target: https://pypi.org/project/picireny/
+.. image:: https://img.shields.io/travis/renatahodovan/picireny/master?logo=travis&logoColor=white
    :target: https://travis-ci.org/renatahodovan/picireny
-.. image:: https://coveralls.io/repos/github/renatahodovan/picireny/badge.svg?branch=master
-   :target: https://coveralls.io/github/renatahodovan/picireny?branch=master
+.. image:: https://img.shields.io/coveralls/github/renatahodovan/picireny/master?logo=coveralls&logoColor=white
+   :target: https://coveralls.io/github/renatahodovan/picireny
 
 Picireny is a Python implementation of the Hierarchical Delta Debugging
 (HDD in short) algorithm adapted to use ANTLR_ v4 for parsing both the input
