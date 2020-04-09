@@ -1,4 +1,4 @@
-# Copyright (c) 2016-2019 Renata Hodovan, Akos Kiss.
+# Copyright (c) 2016-2020 Renata Hodovan, Akos Kiss.
 #
 # Licensed under the BSD 3-Clause License
 # <LICENSE.rst or https://opensource.org/licenses/BSD-3-Clause>.
@@ -49,7 +49,7 @@ class ANTLRElement(object):
         :return: Boolean denoting if a new replacement was found or not.
         """
         if self.all_replacements_defined():
-            new_repl = self.sep.join([x.replacement for x in self.children if x.replacement])
+            new_repl = self.sep.join(x.replacement for x in self.children if x.replacement)
             if self.replacement is None or len(new_repl) < len(self.replacement) or (len(new_repl) == len(self.replacement) and new_repl < self.replacement):
                 self.replacement = new_repl
                 return True

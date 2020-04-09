@@ -1,4 +1,4 @@
-# Copyright (c) 2016-2019 Renata Hodovan, Akos Kiss.
+# Copyright (c) 2016-2020 Renata Hodovan, Akos Kiss.
 #
 # Licensed under the BSD 3-Clause License
 # <LICENSE.rst or https://opensource.org/licenses/BSD-3-Clause>.
@@ -166,8 +166,8 @@ def log_tree(title, hdd_tree):
     logger.debug('%s\n\theight: %s\n\tshape: %s\n\tnodes: %s\n',
                  title,
                  info.height(hdd_tree),
-                 ', '.join(['%s' % cnt for cnt in info.shape(hdd_tree)]),
-                 ', '.join(['%d %s' % (cnt, ty) for ty, cnt in sorted(info.count(hdd_tree).items())]))
+                 ', '.join('%s' % cnt for cnt in info.shape(hdd_tree)),
+                 ', '.join('%d %s' % (cnt, ty) for ty, cnt in sorted(info.count(hdd_tree).items())))
 
 
 def build_with_antlr4(input, src, encoding, out,

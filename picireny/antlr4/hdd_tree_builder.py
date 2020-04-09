@@ -1,4 +1,4 @@
-# Copyright (c) 2016-2019 Renata Hodovan, Akos Kiss.
+# Copyright (c) 2016-2020 Renata Hodovan, Akos Kiss.
 #
 # Licensed under the BSD 3-Clause License
 # <LICENSE.rst or https://opensource.org/licenses/BSD-3-Clause>.
@@ -472,7 +472,7 @@ def create_hdd_tree(input_stream, input_format, start, antlr, work_dir, hidden_t
         # Intervals describes a non-overlapping splitting of the content according to the pattern.
         intervals = []
         for m in re.finditer(pattern, content):
-            intervals.extend([(g, m.start(g), m.end(g)) for g in list(pattern.groupindex.keys()) if m.start(g) != m.end(g)])
+            intervals.extend((g, m.start(g), m.end(g)) for g in list(pattern.groupindex.keys()) if m.start(g) != m.end(g))
         intervals.sort(key=lambda x: (x[1], x[2]))
 
         for interval in intervals:

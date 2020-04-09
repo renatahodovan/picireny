@@ -1,5 +1,5 @@
 # Copyright (c) 2007 Ghassan Misherghi.
-# Copyright (c) 2016-2019 Renata Hodovan, Akos Kiss.
+# Copyright (c) 2016-2020 Renata Hodovan, Akos Kiss.
 #
 # Licensed under the BSD 3-Clause License
 # <LICENSE.rst or https://opensource.org/licenses/BSD-3-Clause>.
@@ -155,7 +155,7 @@ class HDDTree:
                                                 node.end.idx)) if self.start is not None and self.end is not None else '',
                 '*' if node == current else '',
                 node.replace,
-                ''.join(['    ' + line + '\n' for line in ''.join(attrib).splitlines()]))
+                ''.join('    ' + line + '\n' for line in ''.join(attrib).splitlines()))
 
         return self.synthetic_attribute(_tree_str)
 

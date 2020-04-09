@@ -1,4 +1,4 @@
-# Copyright (c) 2016-2019 Renata Hodovan, Akos Kiss.
+# Copyright (c) 2016-2020 Renata Hodovan, Akos Kiss.
 #
 # Licensed under the BSD 3-Clause License
 # <LICENSE.rst or https://opensource.org/licenses/BSD-3-Clause>.
@@ -228,7 +228,7 @@ def analyze_grammars(antlr_lexer, antlr_parser, grammars, replacements):
         if node.getChildCount() > 0:
             # TerminalNodeImpl nodes already have been added by create_node
             # when processing their parent since at this point we don't know their type.
-            for i, c in enumerate([x for x in node.children if not isinstance(x, Tree.TerminalNodeImpl)]):
+            for i, c in enumerate(x for x in node.children if not isinstance(x, Tree.TerminalNodeImpl)):
                 quantifier = get_quantifier(node.children, i)
 
                 # Mark positions in parser rules that have any quantifier applied on them.
