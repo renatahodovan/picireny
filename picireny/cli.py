@@ -39,6 +39,8 @@ args_hdd_choices = {
 args_phase_choices = {
     'prune': {},
     'coarse-prune': {'config_filter': filter.coarse_filter},
+    'hoist': {'pruning': False, 'hoisting': True},
+    'prune+hoist': {'hoisting': True},
 }
 
 

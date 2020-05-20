@@ -10,6 +10,7 @@ import logging
 
 from os.path import join
 
+from .hoist import hoist
 from .prune import prune
 
 logger = logging.getLogger(__name__)
@@ -17,7 +18,8 @@ logger = logging.getLogger(__name__)
 
 def hddrmin(hdd_tree, reduce_class, reduce_config, tester_class, tester_config, test_name, work_dir,
             hdd_star=True, id_prefix=(), cache=None, config_filter=None, unparse_with_whitespace=True,
-            pop_first=False, append_reversed=False):
+            pop_first=False, append_reversed=False,
+            pruning=True, hoisting=False):
     """
     Run the recursive variant of the hierarchical delta debugging reduce
     algorithm (a.k.a. HDDr).
@@ -60,6 +62,10 @@ def hddrmin(hdd_tree, reduce_class, reduce_config, tester_class, tester_config, 
     :param pop_first: Boolean to control tree traversal (see above for details).
     :param append_reverse: Boolean to control tree traversal (see above for
         details).
+    :param pruning: Binary flag denoting whether pruning is to be run at each
+        node.
+    :param hoisting: Binary flag denoting whether hoisting is to be run at each
+        node.
     :return: The reduced test case (1-tree-minimal if hdd_star is True and
         config_filter is None).
     """
@@ -87,13 +93,22 @@ def hddrmin(hdd_tree, reduce_class, reduce_config, tester_class, tester_config, 
 
             logger.info('Checking node #%d ...', node_cnt)
 
-            hdd_tree, pruned = prune(hdd_tree=hdd_tree, config_nodes=children,
-                                     reduce_class=reduce_class, reduce_config=reduce_config,
-                                     tester_class=tester_class, tester_config=tester_config,
-                                     test_pattern=join(work_dir, 'iter_%d' % iter_cnt, 'node_%d' % node_cnt, '%s', test_name),
-                                     id_prefix=id_prefix + ('i%d' % iter_cnt, 'n%d' % node_cnt),
-                                     cache=cache, unparse_with_whitespace=unparse_with_whitespace)
-            changed = changed or pruned
+            if pruning:
+                hdd_tree, pruned = prune(hdd_tree=hdd_tree, config_nodes=children,
+                                         reduce_class=reduce_class, reduce_config=reduce_config,
+                                         tester_class=tester_class, tester_config=tester_config,
+                                         test_pattern=join(work_dir, 'iter_%d' % iter_cnt, 'node_%d' % node_cnt, 'prune', '%s', test_name),
+                                         id_prefix=id_prefix + ('i%d' % iter_cnt, 'n%d' % node_cnt, 'p'),
+                                         cache=cache, unparse_with_whitespace=unparse_with_whitespace)
+                changed = changed or pruned
+
+            if hoisting:
+                hdd_tree, hoisted = hoist(hdd_tree=hdd_tree, config_nodes=children,
+                                          tester_class=tester_class, tester_config=tester_config,
+                                          test_pattern=join(work_dir, 'iter_%d' % iter_cnt, 'node_%d' % node_cnt, 'hoist', '%s', test_name),
+                                          id_prefix=id_prefix + ('i%d' % iter_cnt, 'n%d' % node_cnt, 'h'),
+                                          cache=cache, unparse_with_whitespace=unparse_with_whitespace)
+                changed = changed or hoisted
 
             for child in node.children if not append_reversed else reversed(node.children):
                 if child.state == child.KEEP:
