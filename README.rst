@@ -12,12 +12,12 @@ Picireny
 .. image:: https://img.shields.io/coveralls/github/renatahodovan/picireny/master?logo=coveralls&logoColor=white
    :target: https://coveralls.io/github/renatahodovan/picireny
 
-Picireny is a Python implementation of the Hierarchical Delta Debugging
+*Picireny* is a Python implementation of the Hierarchical Delta Debugging
 (HDD in short) algorithm adapted to use ANTLR_ v4 for parsing both the input
-and the grammar(s) describing the format of the input. It relies on picire_
+and the grammar(s) describing the format of the input. It relies on Picire_
 to provide the implementation of the core Delta Debugging algorithm along
-with various tweaks like parallelization. Just like the *picire* framework,
-*picireny* can also be used either as a command line tool or as a library.
+with various tweaks like parallelization. Just like the *Picire* framework,
+*Picireny* can also be used either as a command line tool or as a library.
 
 Both Hierarchical Delta Debugging and Delta Debugging automatically reduce
 "interesting" tests while keeping their "interesting" behaviour. (E.g.,
@@ -32,7 +32,8 @@ level of the tree from top to bottom, and DD is an iterative process itself,
 too. Finally, the nodes kept in the tree are "unparsed" to yield a reduced but
 still "interesting" output.
 
-.. _picire: https://github.com/renatahodovan/picire
+.. _ANTLR: http://www.antlr.org
+.. _Picire: https://github.com/renatahodovan/picire
 
 
 Requirements
@@ -41,24 +42,23 @@ Requirements
 * Python_ ~= 2.7 or >= 3.5
 * pip_ and setuptools Python packages (the latter is automatically installed by
   pip).
-* ANTLR_ v4
 * Java_ SE >= 7 JRE or JDK (the latter is optional, only needed if Java is used
   as the parser language)
 
 .. _Python: https://www.python.org
 .. _pip: https://pip.pypa.io
-.. _ANTLR: http://www.antlr.org
 .. _Java: https://www.oracle.com/java/
 
 
 Install
 =======
 
-The quick way::
+The quick way (to install the latest official release)::
 
     pip install picireny
 
-Alternatively, by cloning the project and running setuptools::
+Or clone the project and run setuptools (to install the freshest development
+revision)::
 
     python setup.py install
 
@@ -66,9 +66,9 @@ Alternatively, by cloning the project and running setuptools::
 Usage
 =====
 
-*picireny* uses the same CLI as *picire* and hence accepts the same
+*Picireny* uses the same CLI as *Picire* and hence accepts the same
 options_.
-On top of the inherited ones, *picireny* accepts several further arguments:
+On top of the inherited ones, *Picireny* accepts several further arguments:
 
 * ``--grammar`` (optional): List of grammars describing the input format. (You
   can write them by hand or simply download them from the
@@ -108,7 +108,7 @@ Example usage to reduce an HTML file::
 Compatibility
 =============
 
-*picireny* was tested on:
+*Picireny* was tested on:
 
 * Linux (Ubuntu 14.04 / 16.04 / 18.04)
 * Mac OS X (El Capitan 10.11 / Sierra 10.12 / High Sierra 10.13 / Mojave 10.14 / Catalina 10.15)
@@ -118,7 +118,7 @@ Compatibility
 Acknowledgement and Citations
 =============================
 
-*picireny* is motivated by the idea of Hierarchial Delta Debugging:
+*Picireny* is motivated by the idea of Hierarchial Delta Debugging:
 
 * G. Misherghi, Z. Su: "HDD: Hierarchical delta debugging",
   ICSE 2006.
