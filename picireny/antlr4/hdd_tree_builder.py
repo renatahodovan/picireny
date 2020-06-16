@@ -1,4 +1,4 @@
-# Copyright (c) 2016-2020 Renata Hodovan, Akos Kiss.
+# Copyright (c) 2016-2021 Renata Hodovan, Akos Kiss.
 #
 # Licensed under the BSD 3-Clause License
 # <LICENSE.rst or https://opensource.org/licenses/BSD-3-Clause>.
@@ -390,6 +390,10 @@ def create_hdd_tree(input_stream, input_format, start, antlr, work_dir, hidden_t
             else:
                 node.replace = grammar['replacements'].get(node.name, node.text)
 
+            if isinstance(node, HDDRule):
+                for child in node.children:
+                    set_replacement(child)
+
         logger.debug('Parse input with %s rule', start_rule)
         if lang != 'python':
 
@@ -440,7 +444,7 @@ def create_hdd_tree(input_stream, input_format, start, antlr, work_dir, hidden_t
             tree_root = parser_listener.root
 
         # Traverse the HDD tree and set minimal replacements for nodes.
-        tree_root.traverse(set_replacement)
+        set_replacement(tree_root)
         process_island_nodes(island_nodes, grammar['islands'])
         logger.debug('Parse done.')
         return tree_root

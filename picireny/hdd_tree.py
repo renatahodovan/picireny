@@ -1,5 +1,5 @@
 # Copyright (c) 2007 Ghassan Misherghi.
-# Copyright (c) 2016-2020 Renata Hodovan, Akos Kiss.
+# Copyright (c) 2016-2021 Renata Hodovan, Akos Kiss.
 #
 # Licensed under the BSD 3-Clause License
 # <LICENSE.rst or https://opensource.org/licenses/BSD-3-Clause>.
@@ -45,34 +45,6 @@ class HDDTree:
         self.state = self.KEEP
         self.id = id(self)
 
-    def traverse(self, visitor):
-        """
-        Function providing depth-first traversal for a visitor function.
-
-        :param visitor: Function applying to the visited nodes.
-        """
-        raise NotImplementedError()
-
-    def synthetic_attribute(self, visitor):
-        """
-        Call visitor on nodes without propagating any values (used by
-        unparsing).
-
-        :param visitor: Function applying on the visited nodes.
-        :return: The value returned by visitor after applying on the node.
-        """
-        raise NotImplementedError()
-
-    def inherited_attribute(self, visitor, attribute=None):
-        """
-        Call visitor on the nodes and propagate the return value to the children
-        (only setLevel uses it).
-
-        :param visitor: Function applying to the visited nodes.
-        :param attribute: The propagated value.
-        """
-        raise NotImplementedError()
-
     def unparse(self, with_whitespace=True):
         """
         Build test case from a HDD tree.
@@ -81,35 +53,34 @@ class HDDTree:
             nonadjacent nodes.
         :return: The unparsed test case.
         """
-        def unparse_attribute(node, attribs):
-            if node.state != self.KEEP:
+        def _unparse(node):
+            if node.state != node.KEEP:
                 return node.replace
 
             # Keep the text of the token.
             if isinstance(node, HDDToken):
                 return node.text
 
-            if not attribs:
+            if not node.children:
                 return ''
 
             # Concat the text of children.
-            assert node.children
-            test_src = attribs[0]
-            if len(node.children) > 1:
-                for i in range(1, len(node.children)):
-                    # Do not add extra spaces if the next chunk is empty.
-                    if not attribs[i]:
-                        continue
-                    if with_whitespace:
-                        if node.children[i].start.line > node.children[i - 1].end.line:
-                            test_src += '\n'
-                        elif node.children[i].start.idx > node.children[i - 1].end.idx:
-                            test_src += ' '
-                    test_src += attribs[i]
+            child_strs = [_unparse(child) for child in node.children]
+            node_str = child_strs[0]
+            for i in range(1, len(node.children)):
+                # Do not add extra spaces if the next chunk is empty.
+                if not child_strs[i]:
+                    continue
+                if with_whitespace:
+                    if node.children[i].start.line > node.children[i - 1].end.line:
+                        node_str += '\n'
+                    elif node.children[i].start.idx > node.children[i - 1].end.idx:
+                        node_str += ' '
+                node_str += child_strs[i]
 
-            return test_src
+            return node_str
 
-        return self.synthetic_attribute(unparse_attribute)
+        return _unparse(self)
 
     def set_state(self, ids, keepers):
         """
@@ -121,18 +92,11 @@ class HDDTree:
         """
         def _set_state(node):
             if node.id in ids:
-                node.state = self.KEEP if node.id in keepers else self.REMOVED
-        self.traverse(_set_state)
-
-    def check(self):
-        """
-        Run sanity check on the HDD tree.
-        """
-        def bad_parent(node):
-            if node is None:
-                return
-            assert isinstance(node, HDDToken) or None not in node.children, 'Bad parent node: %s' % node.name
-        self.traverse(bad_parent)
+                node.state = node.KEEP if node.id in keepers else node.REMOVED
+            elif isinstance(node, HDDRule) and node.state == node.KEEP:
+                for child in node.children:
+                    _set_state(child)
+        _set_state(self)
 
     def tree_str(self, current=None):
         """
@@ -142,8 +106,11 @@ class HDDTree:
             the output.
         :return: String representation of the tree.
         """
+        def _indent(text, prefix):
+            return ''.join(prefix + line for line in text.splitlines(True))
 
-        def _tree_str(node, attrib):
+        def _tree_str(node):
+
             if node.state != node.KEEP:
                 return ''
 
@@ -155,9 +122,9 @@ class HDDTree:
                                                 node.end.idx)) if self.start is not None and self.end is not None else '',
                 '*' if node == current else '',
                 node.replace,
-                ''.join('    ' + line + '\n' for line in ''.join(attrib).splitlines()))
+                ''.join(_indent(_tree_str(child), '    ') for child in node.children) if isinstance(node, HDDRule) else '')
 
-        return self.synthetic_attribute(_tree_str)
+        return _tree_str(self)
 
     def replace_with(self, other):
         """
@@ -173,15 +140,6 @@ class HDDToken(HDDTree):
     def __init__(self, name, text, start, end, replace=None):
         HDDTree.__init__(self, name, start=start, end=end, replace=replace)
         self.text = text
-
-    def traverse(self, visitor):
-        visitor(self)
-
-    def synthetic_attribute(self, visitor):
-        return visitor(self, [])
-
-    def inherited_attribute(self, visitor, attribute=None):
-        visitor(self, attribute)
 
 
 class HDDRule(HDDTree):
@@ -199,24 +157,3 @@ class HDDRule(HDDTree):
 
     def remove_child(self, child):
         self.children.remove(child)
-
-    def traverse(self, visitor):
-        visitor(self)
-        if self.state != self.KEEP:
-            return
-        for child in self.children:
-            child.traverse(visitor)
-
-    def synthetic_attribute(self, visitor):
-        if self.state != self.KEEP:
-            return visitor(self, [])
-        return visitor(self, [child.synthetic_attribute(visitor) for child in self.children])
-
-    def inherited_attribute(self, visitor, attribute=None):
-        inherit_value = visitor(self, attribute)
-
-        if self.state != self.KEEP:
-            return
-
-        for child in self.children:
-            child.inherited_attribute(visitor, inherit_value)

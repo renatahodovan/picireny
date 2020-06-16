@@ -1,5 +1,5 @@
 # Copyright (c) 2007 Ghassan Misherghi.
-# Copyright (c) 2016-2019 Renata Hodovan, Akos Kiss.
+# Copyright (c) 2016-2021 Renata Hodovan, Akos Kiss.
 #
 # Licensed under the BSD 3-Clause License
 # <LICENSE.rst or https://opensource.org/licenses/BSD-3-Clause>.
@@ -12,6 +12,7 @@ import logging
 from os.path import join
 
 from .empty_dd import EmptyDD
+from .hdd_tree import HDDRule
 from .info import height
 from .unparser import Unparser
 
@@ -48,16 +49,19 @@ def hddmin(hdd_tree, reduce_class, reduce_config, tester_class, tester_config, t
 
     def collect_level_nodes(level):
         def _collect_level_nodes(node, current_level):
-            if current_level == level and node.state == node.KEEP:
+            if node.state != node.KEEP:
+                return
+            if current_level == level:
                 level_nodes.append(node)
-            return current_level + 1
+            elif isinstance(node, HDDRule):
+                for child in node.children:
+                    _collect_level_nodes(child, current_level + 1)
         level_nodes = []  # Using `list` (not `set`) for the sake of stability.
-        hdd_tree.inherited_attribute(_collect_level_nodes, 0)
+        _collect_level_nodes(hdd_tree, 0)
         return level_nodes
 
     for iter_cnt in itertools.count():
         logger.info('Iteration #%d', iter_cnt)
-        hdd_tree.check()
 
         changed = False
         for level in itertools.count():
