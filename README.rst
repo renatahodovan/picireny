@@ -101,7 +101,7 @@ rule of the top-level parser must be defined with an arbitrary combination of th
 Example usage to reduce an HTML file::
 
     picireny --input=<path/to/the/input.html> --test=<path/to/the/tester> \
-             --grammar "HTMLLexer.g4 HTMLParser.g4" --start htmlDocument \
+             --grammar HTMLLexer.g4 HTMLParser.g4 --start htmlDocument \
              --parallel --subset-iterator=skip --complement-iterator=backward
 
 
