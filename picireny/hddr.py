@@ -1,4 +1,4 @@
-# Copyright (c) 2018-2019 Renata Hodovan, Akos Kiss.
+# Copyright (c) 2018-2020 Renata Hodovan, Akos Kiss.
 #
 # Licensed under the BSD 3-Clause License
 # <LICENSE.rst or https://opensource.org/licenses/BSD-3-Clause>.
@@ -67,7 +67,6 @@ def hddrmin(hdd_tree, reduce_class, reduce_config, tester_class, tester_config, 
 
     for iter_cnt in itertools.count():
         logger.info('Iteration #%d', iter_cnt)
-        hdd_tree.check()
 
         node_cnt = -1
         changed = False
