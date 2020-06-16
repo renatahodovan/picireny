@@ -1,9 +1,11 @@
-# Copyright (c) 2017-2019 Renata Hodovan, Akos Kiss.
+# Copyright (c) 2017-2021 Renata Hodovan, Akos Kiss.
 #
 # Licensed under the BSD 3-Clause License
 # <LICENSE.rst or https://opensource.org/licenses/BSD-3-Clause>.
 # This file may not be copied, modified, or distributed except
 # according to those terms.
+
+from copy import copy
 
 
 class Unparser(object):
@@ -31,5 +33,12 @@ class Unparser(object):
         :return: The unparsed test case containing only the units defined in
             config.
         """
-        self.tree.set_state(self.ids, set(config))
-        return self.tree.unparse(with_whitespace=self.with_whitespace)
+        def removed(node):
+            if node.id in self.ids and node.id not in config:
+                removed_node = copy(node)
+                removed_node.state = removed_node.REMOVED
+                return removed_node
+            return node
+
+        config = set(config)
+        return self.tree.unparse(with_whitespace=self.with_whitespace, transform=removed)

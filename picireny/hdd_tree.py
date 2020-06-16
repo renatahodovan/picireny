@@ -53,15 +53,20 @@ class HDDTree:
         self.state = self.KEEP
         self.id = next(self.__id)
 
-    def unparse(self, with_whitespace=True):
+    def unparse(self, with_whitespace=True, transform=None):
         """
         Build test case from a HDD tree.
 
         :param with_whitespace: Add whitespace (space, new line) to separate
             nonadjacent nodes.
+        :param transform: A function applied to each node before unparsing, or
+            None.
         :return: The unparsed test case.
         """
         def _unparse(node):
+            if transform:
+                node = transform(node)
+
             if node.state != node.KEEP:
                 return node.replace
 
