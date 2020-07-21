@@ -240,7 +240,7 @@ def reduce(hdd_tree,
            input, encoding, out, hddmin, hdd_star=True,
            flatten_recursion=False, squeeze_tree=True,
            skip_unremovable=True, skip_whitespace=False,
-           unparse_with_whitespace=True, granularity=2,
+           unparse_with_whitespace=True,
            cache_class=None, cleanup=True):
     """
     Execute tree reduction part of picireny as if invoked from command line,
@@ -270,7 +270,6 @@ def reduce(hdd_tree,
         ddmin.
     :param unparse_with_whitespace: Unparse by adding whitespace between
         nonadjacent nodes.
-    :param granularity: Initial granularity.
     :param cache_class: Reference to the cache class to use.
     :param cleanup: Binary flag denoting whether removing auxiliary files at the
         end is enabled.
@@ -313,8 +312,7 @@ def reduce(hdd_tree,
                      tests_workdir,
                      hdd_star=hdd_star,
                      cache=cache_class() if cache_class else None,
-                     unparse_with_whitespace=unparse_with_whitespace,
-                     granularity=granularity)
+                     unparse_with_whitespace=unparse_with_whitespace)
     out_file = join(out, basename(input))
     with codecs.open(out_file, 'w', encoding=encoding, errors='ignore') as f:
         f.write(out_src)
@@ -406,5 +404,5 @@ def execute():
            hddmin=args.hddmin, hdd_star=args.hdd_star,
            flatten_recursion=args.flatten_recursion, squeeze_tree=args.squeeze_tree,
            skip_unremovable=args.skip_unremovable, skip_whitespace=args.skip_whitespace,
-           unparse_with_whitespace=unparse_with_whitespace, granularity=args.granularity,
+           unparse_with_whitespace=unparse_with_whitespace,
            cache_class=args.cache, cleanup=args.cleanup)

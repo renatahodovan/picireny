@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 
 def hddrmin(hdd_tree, reduce_class, reduce_config, tester_class, tester_config, test_name, work_dir,
-            hdd_star=True, cache=None, config_filter=None, unparse_with_whitespace=True, granularity=2,
+            hdd_star=True, cache=None, config_filter=None, unparse_with_whitespace=True,
             pop_first=False, append_reversed=False):
     """
     Run the recursive variant of the hierarchical delta debugging reduce
@@ -57,7 +57,6 @@ def hddrmin(hdd_tree, reduce_class, reduce_config, tester_class, tester_config, 
         hddmin selectively.
     :param unparse_with_whitespace: Build test case by adding whitespace between
         nonadjacent tree nodes during unparsing.
-    :param granularity: Initial granularity.
     :param pop_first: Boolean to control tree traversal (see above for details).
     :param append_reverse: Boolean to control tree traversal (see above for
         details).
@@ -92,7 +91,8 @@ def hddrmin(hdd_tree, reduce_class, reduce_config, tester_class, tester_config, 
             children_ids_set = set(children_ids)
 
             test_builder = Unparser(hdd_tree, children_ids_set, with_whitespace=unparse_with_whitespace)
-            if hasattr(cache, 'set_test_builder'):
+            if cache:
+                cache.clear()
                 cache.set_test_builder(test_builder)
 
             test = tester_class(test_builder=test_builder,
@@ -100,14 +100,12 @@ def hddrmin(hdd_tree, reduce_class, reduce_config, tester_class, tester_config, 
                                 **tester_config)
             id_prefix = ('i%d' % iter_cnt, 'n%d' % node_cnt)
             dd = reduce_class(test, cache=cache, id_prefix=id_prefix, **reduce_config)
-            c = dd.ddmin(children_ids, n=granularity)
+            c = dd.ddmin(children_ids)
             if len(c) == 1:
                 dd = EmptyDD(test, cache=cache, id_prefix=id_prefix)
-                c = dd.ddmin(c, n=granularity)
+                c = dd.ddmin(c)
             c = set(c)
             changed = changed or len(c) < len(children_ids_set)
-            if cache:
-                cache.clear()
 
             hdd_tree.set_state(children_ids_set, c)
 

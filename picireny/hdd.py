@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 
 def hddmin(hdd_tree, reduce_class, reduce_config, tester_class, tester_config, test_name, work_dir,
-           hdd_star=True, cache=None, config_filter=None, unparse_with_whitespace=True, granularity=2):
+           hdd_star=True, cache=None, config_filter=None, unparse_with_whitespace=True):
     """
     Run the hierarchical delta debugging reduce algorithm.
 
@@ -42,7 +42,6 @@ def hddmin(hdd_tree, reduce_class, reduce_config, tester_class, tester_config, t
         hddmin selectively.
     :param unparse_with_whitespace: Build test case by adding whitespace between
         nonadjacent tree nodes during unparsing.
-    :param granularity: Initial granularity.
     :return: The reduced test case (1-tree-minimal if hdd_star is True and
         config_filter is None).
     """
@@ -80,7 +79,8 @@ def hddmin(hdd_tree, reduce_class, reduce_config, tester_class, tester_config, t
             level_ids_set = set(level_ids)
 
             test_builder = Unparser(hdd_tree, level_ids_set, with_whitespace=unparse_with_whitespace)
-            if hasattr(cache, 'set_test_builder'):
+            if cache:
+                cache.clear()
                 cache.set_test_builder(test_builder)
 
             test = tester_class(test_builder=test_builder,
@@ -88,14 +88,12 @@ def hddmin(hdd_tree, reduce_class, reduce_config, tester_class, tester_config, t
                                 **tester_config)
             id_prefix = ('i%d' % iter_cnt, 'l%d' % level)
             dd = reduce_class(test, cache=cache, id_prefix=id_prefix, **reduce_config)
-            c = dd.ddmin(level_ids, n=granularity)
+            c = dd.ddmin(level_ids)
             if len(c) == 1:
                 dd = EmptyDD(test, cache=cache, id_prefix=id_prefix)
-                c = dd.ddmin(c, n=granularity)
+                c = dd.ddmin(c)
             c = set(c)
             changed = changed or len(c) < len(level_ids_set)
-            if cache:
-                cache.clear()
 
             hdd_tree.set_state(level_ids_set, c)
 
