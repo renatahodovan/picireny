@@ -1,4 +1,4 @@
-# Copyright (c) 2016-2020 Renata Hodovan, Akos Kiss.
+# Copyright (c) 2016-2021 Renata Hodovan, Akos Kiss.
 #
 # Licensed under the BSD 3-Clause License
 # <LICENSE.rst or https://opensource.org/licenses/BSD-3-Clause>.
@@ -7,6 +7,8 @@
 
 import logging
 import re
+
+from sys import maxunicode
 
 logger = logging.getLogger(__name__)
 
@@ -271,7 +273,7 @@ class ANTLRNotSet(ANTLRLexerElement):
             # the last interval's upper limit is suitable for negation.
             if intervals[0][0] > 0:
                 neighbour_char = intervals[0][0] - 1
-            elif intervals[-1][-1] < 0x10FFFF:
+            elif intervals[-1][-1] < maxunicode:
                 neighbour_char = intervals[-1][-1] + 1
             else:
                 assert False, 'Cannot negate the whole unicode range.'

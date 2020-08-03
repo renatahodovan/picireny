@@ -1,4 +1,4 @@
-# Copyright (c) 2016-2020 Renata Hodovan, Akos Kiss.
+# Copyright (c) 2016-2021 Renata Hodovan, Akos Kiss.
 #
 # Licensed under the BSD 3-Clause License
 # <LICENSE.rst or https://opensource.org/licenses/BSD-3-Clause>.
@@ -66,7 +66,7 @@ def analyze_grammars(antlr_lexer, antlr_parser, grammars, replacements):
             # by indices. Since only the first terminal is optional indexing them from the back is safe
             # (the 3th from back is the rule ID).
             name = [x for x in ctx.children if isinstance(x, Tree.TerminalNodeImpl)][-3].symbol.text
-            return ANTLRRule(name, replacements.get(name, None))
+            return ANTLRRule(name, repl=replacements.get(name, None))
 
         # Alternations need special handling since their minimal replacements are their shortest
         # child (in every other cases the children would be concatenated).
@@ -266,7 +266,7 @@ def analyze_grammars(antlr_lexer, antlr_parser, grammars, replacements):
 
     # EOF is a special token provided by the ANTLR framework. It's added preliminarily to
     # our tree to avoid dead links to it.
-    elements = [ANTLRLexerRule('EOF', '')]
+    elements = [ANTLRLexerRule('EOF', repl='')]
     action_positions = {}
     replacements = replacements if replacements else {}
     # Fill elements with node representations.
