@@ -6,6 +6,8 @@
 # This file may not be copied, modified, or distributed except
 # according to those terms.
 
+from itertools import count
+
 
 class Position(object):
     """
@@ -28,6 +30,9 @@ class HDDTree:
     REMOVED = 0
     KEEP = 1
 
+    # ID generator
+    __id = count()
+
     def __init__(self, name, start=None, end=None, replace=None):
         """
         Initialize a HDD tree/node.
@@ -43,7 +48,7 @@ class HDDTree:
         self.end = end
         self.parent = None
         self.state = self.KEEP
-        self.id = id(self)
+        self.id = next(self.__id)
 
     def unparse(self, with_whitespace=True):
         """
@@ -114,7 +119,7 @@ class HDDTree:
             if node.state != node.KEEP:
                 return ''
 
-            return '[%s:%s]%s%s%s(%s)\n%s' % (
+            return '[%s:%s]%s%s%s(%s)#%s\n%s' % (
                 node.name,
                 node.__class__.__name__,
                 ('"%s"' % node.text) if isinstance(node, HDDToken) else '',
@@ -122,6 +127,7 @@ class HDDTree:
                                                 node.end.idx)) if self.start is not None and self.end is not None else '',
                 '*' if node == current else '',
                 node.replace,
+                node.id,
                 ''.join(_indent(_tree_str(child), '    ') for child in node.children) if isinstance(node, HDDRule) else '')
 
         return _tree_str(self)
