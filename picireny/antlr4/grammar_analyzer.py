@@ -170,6 +170,15 @@ def analyze_grammars(antlr_lexer, antlr_parser, grammars, replacements):
             # In this case we have a character range.
             return ANTLRSetElement()
 
+        # Tokens without lexer rules.
+
+        # Identifiers in a TokensSpec are definitions of token names without an
+        # associated lexer rule. We don't know anything about them, but they are
+        # added with a dummy representation to the tree to avoid dead links (as
+        # they may be referenced from other (parser) rules).
+        if isinstance(ctx, parser.IdentifierContext) and isinstance(ctx.parentCtx, parser.IdListContext) and isinstance(ctx.parentCtx.parentCtx, parser.TokensSpecContext):
+            return ANTLRLexerRule(str(ctx.TOKEN_REF()), repl='')
+
         return None
 
     def get_quantifier(children, idx):
