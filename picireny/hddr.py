@@ -10,8 +10,7 @@ import logging
 
 from os.path import join
 
-from .empty_dd import EmptyDD
-from .unparser import Unparser
+from .prune import prune
 
 logger = logging.getLogger(__name__)
 
@@ -67,10 +66,11 @@ def hddrmin(hdd_tree, reduce_class, reduce_config, tester_class, tester_config, 
     for iter_cnt in itertools.count():
         logger.info('Iteration #%d', iter_cnt)
 
-        node_cnt = -1
         changed = False
         queue = [hdd_tree]
-        while queue:
+        for node_cnt in itertools.count():
+            if not queue:
+                break
             if pop_first:
                 queue, node = queue[1:], queue[0]
             else:
@@ -84,30 +84,15 @@ def hddrmin(hdd_tree, reduce_class, reduce_config, tester_class, tester_config, 
             if not children:
                 continue
 
-            node_cnt += 1
             logger.info('Checking node #%d ...', node_cnt)
 
-            children_ids = [child.id for child in children]
-            children_ids_set = set(children_ids)
-
-            test_builder = Unparser(hdd_tree, children_ids_set, with_whitespace=unparse_with_whitespace)
-            if cache:
-                cache.clear()
-                cache.set_test_builder(test_builder)
-
-            test = tester_class(test_builder=test_builder,
-                                test_pattern=join(work_dir, 'iter_%d' % iter_cnt, 'node_%d' % node_cnt, '%s', test_name),
-                                **tester_config)
-            id_prefix = ('i%d' % iter_cnt, 'n%d' % node_cnt)
-            dd = reduce_class(test, cache=cache, id_prefix=id_prefix, **reduce_config)
-            c = dd.ddmin(children_ids)
-            if len(c) == 1:
-                dd = EmptyDD(test, cache=cache, id_prefix=id_prefix)
-                c = dd.ddmin(c)
-            c = set(c)
-            changed = changed or len(c) < len(children_ids_set)
-
-            hdd_tree.set_state(children_ids_set, c)
+            hdd_tree, pruned = prune(hdd_tree=hdd_tree, config_nodes=children,
+                                     reduce_class=reduce_class, reduce_config=reduce_config,
+                                     tester_class=tester_class, tester_config=tester_config,
+                                     test_pattern=join(work_dir, 'iter_%d' % iter_cnt, 'node_%d' % node_cnt, '%s', test_name),
+                                     id_prefix=('i%d' % iter_cnt, 'n%d' % node_cnt),
+                                     cache=cache, unparse_with_whitespace=unparse_with_whitespace)
+            changed = changed or pruned
 
             for child in node.children if not append_reversed else reversed(node.children):
                 if child.state == child.KEEP:

@@ -11,10 +11,8 @@ import logging
 
 from os.path import join
 
-from .empty_dd import EmptyDD
-from .hdd_tree import HDDRule
 from .info import height
-from .unparser import Unparser
+from .prune import prune
 
 logger = logging.getLogger(__name__)
 
@@ -52,7 +50,7 @@ def hddmin(hdd_tree, reduce_class, reduce_config, tester_class, tester_config, t
                 return
             if current_level == level:
                 level_nodes.append(node)
-            elif isinstance(node, HDDRule):
+            elif hasattr(node, 'children'):
                 for child in node.children:
                     _collect_level_nodes(child, current_level + 1)
         level_nodes = []  # Using `list` (not `set`) for the sake of stability.
@@ -75,27 +73,13 @@ def hddmin(hdd_tree, reduce_class, reduce_config, tester_class, tester_config, t
 
             logger.info('Checking level %d / %d ...', level, height(hdd_tree))
 
-            level_ids = [node.id for node in level_nodes]
-            level_ids_set = set(level_ids)
-
-            test_builder = Unparser(hdd_tree, level_ids_set, with_whitespace=unparse_with_whitespace)
-            if cache:
-                cache.clear()
-                cache.set_test_builder(test_builder)
-
-            test = tester_class(test_builder=test_builder,
-                                test_pattern=join(work_dir, 'iter_%d' % iter_cnt, 'level_%d' % level, '%s', test_name),
-                                **tester_config)
-            id_prefix = ('i%d' % iter_cnt, 'l%d' % level)
-            dd = reduce_class(test, cache=cache, id_prefix=id_prefix, **reduce_config)
-            c = dd.ddmin(level_ids)
-            if len(c) == 1:
-                dd = EmptyDD(test, cache=cache, id_prefix=id_prefix)
-                c = dd.ddmin(c)
-            c = set(c)
-            changed = changed or len(c) < len(level_ids_set)
-
-            hdd_tree.set_state(level_ids_set, c)
+            hdd_tree, pruned = prune(hdd_tree=hdd_tree, config_nodes=level_nodes,
+                                     reduce_class=reduce_class, reduce_config=reduce_config,
+                                     tester_class=tester_class, tester_config=tester_config,
+                                     test_pattern=join(work_dir, 'iter_%d' % iter_cnt, 'level_%d' % level, '%s', test_name),
+                                     id_prefix=('i%d' % iter_cnt, 'l%d' % level),
+                                     cache=cache, unparse_with_whitespace=unparse_with_whitespace)
+            changed = changed or pruned
 
         if not hdd_star or not changed:
             break
