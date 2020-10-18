@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 
 def hddmin(hdd_tree, reduce_class, reduce_config, tester_class, tester_config, test_name, work_dir,
-           hdd_star=True, cache=None, config_filter=None, unparse_with_whitespace=True):
+           hdd_star=True, id_prefix=(), cache=None, config_filter=None, unparse_with_whitespace=True):
     """
     Run the hierarchical delta debugging reduce algorithm.
 
@@ -35,6 +35,7 @@ def hddmin(hdd_tree, reduce_class, reduce_config, tester_class, tester_config, t
     :param test_name: Name of the test case file.
     :param work_dir: Directory to save temporary test files.
     :param hdd_star: Boolean to enable the HDD star algorithm.
+    :param id_prefix: Tuple to prepend to config IDs during tests.
     :param cache: Cache to use.
     :param config_filter: Filter function from node to boolean, to allow running
         hddmin selectively.
@@ -77,41 +78,11 @@ def hddmin(hdd_tree, reduce_class, reduce_config, tester_class, tester_config, t
                                      reduce_class=reduce_class, reduce_config=reduce_config,
                                      tester_class=tester_class, tester_config=tester_config,
                                      test_pattern=join(work_dir, 'iter_%d' % iter_cnt, 'level_%d' % level, '%s', test_name),
-                                     id_prefix=('i%d' % iter_cnt, 'l%d' % level),
+                                     id_prefix=id_prefix + ('i%d' % iter_cnt, 'l%d' % level),
                                      cache=cache, unparse_with_whitespace=unparse_with_whitespace)
             changed = changed or pruned
 
         if not hdd_star or not changed:
             break
 
-    return hdd_tree.unparse(with_whitespace=unparse_with_whitespace)
-
-
-def coarse_filter(node):
-    """
-    Config filter to keep nodes with empty replacements only, which is the core
-    of the coarse hierarchical delta debugging reduce algorithm.
-    """
-    return node.replace == ''
-
-
-def coarse_hddmin(*args, **kwargs):
-    """
-    Run the coarse hierarchical delta debugging reduce algorithm.
-
-    Note: Same as calling hddmin with coarse_filter as config_filter.
-    """
-    return hddmin(*args, **dict(kwargs, config_filter=coarse_filter))
-
-
-def coarse_full_hddmin(*args, **kwargs):
-    """
-    Run the coarse and the full hierarchical delta debugging reduce algorithms
-    in sequence.
-
-    Note: Same as calling coarse_hddmin and hddmin in sequence with the same
-    arguments.
-    """
-    # Note: `args[-1]` is `work_dir`.
-    coarse_hddmin(*(args[:-1] + (join(args[-1], 'coarse'),)), **kwargs)
-    return hddmin(*(args[:-1] + (join(args[-1], 'full'),)), **kwargs)
+    return hdd_tree

@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 
 def hddrmin(hdd_tree, reduce_class, reduce_config, tester_class, tester_config, test_name, work_dir,
-            hdd_star=True, cache=None, config_filter=None, unparse_with_whitespace=True,
+            hdd_star=True, id_prefix=(), cache=None, config_filter=None, unparse_with_whitespace=True,
             pop_first=False, append_reversed=False):
     """
     Run the recursive variant of the hierarchical delta debugging reduce
@@ -51,6 +51,7 @@ def hddrmin(hdd_tree, reduce_class, reduce_config, tester_class, tester_config, 
     :param test_name: Name of the test case file.
     :param work_dir: Directory to save temporary test files.
     :param hdd_star: Boolean to enable the HDD star algorithm.
+    :param id_prefix: Tuple to prepend to config IDs during tests.
     :param cache: Cache to use.
     :param config_filter: Filter function from node to boolean, to allow running
         hddmin selectively.
@@ -90,7 +91,7 @@ def hddrmin(hdd_tree, reduce_class, reduce_config, tester_class, tester_config, 
                                      reduce_class=reduce_class, reduce_config=reduce_config,
                                      tester_class=tester_class, tester_config=tester_config,
                                      test_pattern=join(work_dir, 'iter_%d' % iter_cnt, 'node_%d' % node_cnt, '%s', test_name),
-                                     id_prefix=('i%d' % iter_cnt, 'n%d' % node_cnt),
+                                     id_prefix=id_prefix + ('i%d' % iter_cnt, 'n%d' % node_cnt),
                                      cache=cache, unparse_with_whitespace=unparse_with_whitespace)
             changed = changed or pruned
 
@@ -101,4 +102,4 @@ def hddrmin(hdd_tree, reduce_class, reduce_config, tester_class, tester_config, 
         if not hdd_star or not changed:
             break
 
-    return hdd_tree.unparse(with_whitespace=unparse_with_whitespace)
+    return hdd_tree

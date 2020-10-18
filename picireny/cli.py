@@ -23,7 +23,7 @@ import pkg_resources
 from antlr4 import InputStream
 from picire import logging
 
-from . import hdd, hddr, info, transform
+from . import filter, hdd, hddr, info, transform
 
 logger = logging.getLogger('picireny')
 __version__ = pkg_resources.get_distribution(__package__).version
@@ -31,10 +31,14 @@ antlr_default_path = antlerinator.antlr_jar_path
 
 
 args_hdd_choices = {
-    'full': hdd.hddmin,
-    'coarse': hdd.coarse_hddmin,
-    'coarse-full': hdd.coarse_full_hddmin,
+    'hdd': hdd.hddmin,
     'hddr': hddr.hddrmin,
+}
+
+
+args_phase_choices = {
+    'prune': {},
+    'coarse-prune': {'config_filter': filter.coarse_filter},
 }
 
 
@@ -129,6 +133,7 @@ def process_srcml_args(arg_parser, args):
 
 def process_args(arg_parser, args):
     args.hddmin = args_hdd_choices[args.hdd]
+    args.hdd_phase_configs = [args_phase_choices[phase] for phase in (args.phase or ['prune'])]
 
     if args.builder == 'antlr4':
         process_antlr4_args(arg_parser, args)
@@ -244,10 +249,11 @@ def build_with_srcml(input, src, language):
     return create_hdd_tree(src, language)
 
 
-def reduce(hdd_tree,
+def reduce(hdd_tree, hddmin,
            reduce_class, reduce_config,
            tester_class, tester_config,
-           input, encoding, out, hddmin, hdd_star=True,
+           input, encoding, out,
+           hdd_star=True, hdd_phase_configs=({},),
            flatten_recursion=False, squeeze_tree=True,
            skip_unremovable=True, skip_whitespace=False,
            unparse_with_whitespace=True,
@@ -258,6 +264,7 @@ def reduce(hdd_tree,
     parameters.
 
     :param hdd_tree: HDD tree to reduce.
+    :param hddmin: Function implementing a HDD minimization algorithm.
     :param reduce_class: Reference to the reducer class.
     :param reduce_config: Dictionary containing information to initialize the
         reduce_class.
@@ -269,8 +276,9 @@ def reduce(hdd_tree,
         name of the output file).
     :param encoding: Encoding of the input test case.
     :param out: Path to the output directory.
-    :param hddmin: Function implementing a HDD minimization algorithm.
     :param hdd_star: Boolean to enable the HDD star algorithm.
+    :param hdd_phase_configs: Sequence of dictionaries containing information to
+        parametrize the hddmin function.
     :param flatten_recursion: Boolean to enable flattening left/right-recursive
         trees.
     :param squeeze_tree: Boolean to enable the tree squeezing optimization.
@@ -309,27 +317,35 @@ def reduce(hdd_tree,
         hdd_tree = transform.skip_whitespace(hdd_tree)
         log_tree('Tree after skipping whitespace tokens', hdd_tree)
 
-    # Start reduce and save result to a file named the same like the original.
-    tests_workdir = join(out, 'tests')
-    if not isdir(tests_workdir):
-        makedirs(tests_workdir)
-    out_src = hddmin(hdd_tree,
-                     reduce_class,
-                     reduce_config,
-                     tester_class,
-                     tester_config,
-                     basename(input),
-                     tests_workdir,
-                     hdd_star=hdd_star,
-                     cache=cache_class() if cache_class else None,
-                     unparse_with_whitespace=unparse_with_whitespace)
+    # Perform reduction.
+    for phase_cnt, phase_config in enumerate(hdd_phase_configs):
+        logger.info('Phase #%d', phase_cnt)
+
+        tests_workdir = join(out, 'tests', 'phase_%d' % phase_cnt)
+        if not isdir(tests_workdir):
+            makedirs(tests_workdir)
+
+        hdd_tree = hddmin(hdd_tree,
+                          reduce_class, reduce_config,
+                          tester_class, tester_config,
+                          test_name=basename(input),
+                          work_dir=tests_workdir,
+                          id_prefix=('p%d' % phase_cnt,),
+                          hdd_star=hdd_star,
+                          cache=cache_class() if cache_class else None,
+                          unparse_with_whitespace=unparse_with_whitespace,
+                          **phase_config)
+        log_tree('Tree after reduction phase #%d' % phase_cnt, hdd_tree)
+
+        if cleanup:
+            rmtree(tests_workdir)
+
+    # Save result to a file named the same like the original.
     out_file = join(out, basename(input))
+    out_src = hdd_tree.unparse(with_whitespace=unparse_with_whitespace)
     with codecs.open(out_file, 'w', encoding=encoding, errors='ignore') as f:
         f.write(out_src)
     logger.info('Result is saved to %s.', out_file)
-
-    if cleanup:
-        rmtree(tests_workdir)
 
     return out_file
 
@@ -345,8 +361,11 @@ def execute():
     # General HDD settings.
     arg_parser.add_argument('--builder', metavar='NAME', choices=['antlr4', 'srcml'], default='antlr4',
                             help='tool to build tree representation from input (%(choices)s; default: %(default)s)')
-    arg_parser.add_argument('--hdd', metavar='NAME', choices=args_hdd_choices.keys(), default='full',
+    arg_parser.add_argument('--hdd', metavar='NAME', choices=args_hdd_choices.keys(), default='hdd',
                             help='HDD variant to run (%(choices)s; default: %(default)s)')
+    arg_parser.add_argument('--phase', metavar='NAME', choices=args_phase_choices.keys(), action='append',
+                            help='parametrization of the HDD variant to run (%(choices)s; default: prune) '
+                                 '(may be specified multiple times to run different parametrizations in sequence)')
     arg_parser.add_argument('--no-hdd-star', dest='hdd_star', default=True, action='store_false',
                             help='run the hddmin algorithm only once')
     arg_parser.add_argument('--flatten-recursion', default=False, action='store_true',
@@ -407,11 +426,11 @@ def execute():
         hdd_tree = build_with_srcml(input=args.input, src=args.src, language=args.srcml_language)
         unparse_with_whitespace = False
 
-    reduce(hdd_tree=hdd_tree,
+    reduce(hdd_tree=hdd_tree, hddmin=args.hddmin,
            reduce_class=args.reduce_class, reduce_config=args.reduce_config,
            tester_class=args.tester_class, tester_config=args.tester_config,
            input=args.input, encoding=args.encoding, out=args.out,
-           hddmin=args.hddmin, hdd_star=args.hdd_star,
+           hdd_star=args.hdd_star, hdd_phase_configs=args.hdd_phase_configs,
            flatten_recursion=args.flatten_recursion, squeeze_tree=args.squeeze_tree,
            skip_unremovable=args.skip_unremovable, skip_whitespace=args.skip_whitespace,
            unparse_with_whitespace=unparse_with_whitespace,
