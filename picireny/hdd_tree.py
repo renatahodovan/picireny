@@ -95,22 +95,6 @@ class HDDTree:
 
         return _unparse(self)
 
-    def set_state(self, ids, keepers):
-        """
-        Set the status of some selected nodes: if they are in the collection of
-        keepers, mark them as kept, otherwise mark them as removed.
-
-        :param ids: The collection (list or set) of node IDs to set state for.
-        :param keepers: The collection (list or set) of IDs to be kept.
-        """
-        def _set_state(node):
-            if node.id in ids:
-                node.state = node.KEEP if node.id in keepers else node.REMOVED
-            elif isinstance(node, HDDRule) and node.state == node.KEEP:
-                for child in node.children:
-                    _set_state(child)
-        _set_state(self)
-
     def replace_with(self, other):
         """
         Replace the current node with `other` in the HDD tree.
