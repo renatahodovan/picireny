@@ -155,10 +155,20 @@ def log_args(title, args):
                     log += ['%s: %s' % (k_log, v_log)]
             return log if len(log) > 1 else log[0]
         if isinstance(args, list):
-            return ', '.join(_log_args(v) for v in args)
+            v_logs = [_log_args(v) for v in args]
+            if any(isinstance(v_log, list) for v_log in v_logs):
+                log = []
+                for v_log in v_logs:
+                    if not isinstance(v_log, list):
+                        v_log = [v_log]
+                    for i, line in enumerate(v_log):
+                        log += ['%s %s' % ('-' if i == 0 else ' ', line)]
+            else:
+                log = ', '.join(v_log for v_log in v_logs)
+            return log
         if hasattr(args, '__name__'):
             return '.'.join(([args.__module__] if hasattr(args, '__module__') else []) + [args.__name__])
-        return args
+        return str(args)
     logger.info('%s\n\t%s\n', title, '\n\t'.join(_log_args(args)))
 
 
