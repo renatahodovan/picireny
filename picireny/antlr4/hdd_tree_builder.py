@@ -349,10 +349,6 @@ def create_hdd_tree(input_stream, input_format, start, antlr, work_dir, hidden_t
 
                 self.current_node = self.current_node.parent
 
-            def print_tree(self):
-                if self.root and logger.isEnabledFor(logging.DEBUG):
-                    logger.debug(self.root.tree_str(current=self.current_node))
-
         input_format[grammar_name].update({'lexer': ExtendedTargetLexer, 'parser': ExtendedTargetParser, 'listener': ExtendedTargetListener, 'replacements': replacements})
 
     class ExtendedErrorListener(error.ErrorListener.ErrorListener):

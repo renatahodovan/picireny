@@ -1,4 +1,4 @@
-# Copyright (c) 2016-2020 Renata Hodovan, Akos Kiss.
+# Copyright (c) 2016-2021 Renata Hodovan, Akos Kiss.
 #
 # Licensed under the BSD 3-Clause License
 # <LICENSE.rst or https://opensource.org/licenses/BSD-3-Clause>.
@@ -9,7 +9,6 @@ from __future__ import absolute_import
 
 import codecs
 import json
-import logging
 import sys
 
 from argparse import ArgumentParser
@@ -22,6 +21,7 @@ import picire
 import pkg_resources
 
 from antlr4 import InputStream
+from picire import logging
 
 from . import hdd, hddr, info, transform
 
@@ -168,6 +168,7 @@ def log_tree(title, hdd_tree):
                  info.height(hdd_tree),
                  ', '.join('%s' % cnt for cnt in info.shape(hdd_tree)),
                  ', '.join('%d %s' % (cnt, ty) for ty, cnt in sorted(info.count(hdd_tree).items())))
+    logger.trace('%r', hdd_tree)
 
 
 def build_with_antlr4(input, src, encoding, out,

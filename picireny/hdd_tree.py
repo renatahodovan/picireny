@@ -24,6 +24,9 @@ class Position(object):
         self.line = line
         self.idx = idx
 
+    def __repr__(self):
+        return '%s(%r, %r)' % (self.__class__.__name__, self.line, self.idx)
+
 
 class HDDTree:
     # Node states for unparsing.
@@ -103,35 +106,6 @@ class HDDTree:
                     _set_state(child)
         _set_state(self)
 
-    def tree_str(self, current=None):
-        """
-        Pretty print HDD tree to help debugging.
-
-        :param current: Reference to a node that will be marked with a '*' in
-            the output.
-        :return: String representation of the tree.
-        """
-        def _indent(text, prefix):
-            return ''.join(prefix + line for line in text.splitlines(True))
-
-        def _tree_str(node):
-
-            if node.state != node.KEEP:
-                return ''
-
-            return '[%s:%s]%s%s%s(%s)#%s\n%s' % (
-                node.name,
-                node.__class__.__name__,
-                ('"%s"' % node.text) if isinstance(node, HDDToken) else '',
-                ('(ln:%d,i:%d)-(ln:%d,i:%d)' % (node.start.line, node.start.idx, node.end.line,
-                                                node.end.idx)) if self.start is not None and self.end is not None else '',
-                '*' if node == current else '',
-                node.replace,
-                node.id,
-                ''.join(_indent(_tree_str(child), '    ') for child in node.children) if isinstance(node, HDDRule) else '')
-
-        return _tree_str(self)
-
     def replace_with(self, other):
         """
         Replace the current node with `other` in the HDD tree.
@@ -146,6 +120,23 @@ class HDDToken(HDDTree):
     def __init__(self, name, text, start, end, replace=None):
         HDDTree.__init__(self, name, start=start, end=end, replace=replace)
         self.text = text
+
+    def __repr__(self):
+        parts = [
+            'name=%r' % self.name,
+            'text=%r' % self.text,
+        ]
+        if self.replace is not None:
+            parts.append('replace=%r' % self.replace)
+        if self.start is not None:
+            parts.append('start=%r' % self.start)
+        if self.end is not None:
+            parts.append('end=%r' % self.end)
+        parts.append('id=%r' % self.id)
+        if self.state != self.KEEP:
+            parts.append('state=%r' % self.state)
+
+        return '%s(%s)' % (self.__class__.__name__, ', '.join(parts))
 
 
 class HDDRule(HDDTree):
@@ -163,3 +154,24 @@ class HDDRule(HDDTree):
 
     def remove_child(self, child):
         self.children.remove(child)
+
+    def __repr__(self):
+        def _indent(text, prefix):
+            return ''.join(prefix + line for line in text.splitlines(True))
+
+        parts = [
+            'name=%r' % self.name,
+        ]
+        if self.replace is not None:
+            parts.append('replace=%r' % self.replace)
+        if self.start is not None:
+            parts.append('start=%r' % self.start)
+        if self.end is not None:
+            parts.append('end=%r' % self.end)
+        parts.append('id=%r' % self.id)
+        if self.state != self.KEEP:
+            parts.append('state=%r' % self.state)
+        if self.state == self.KEEP and self.children:
+            parts.append('children=[\n%s\n]' % _indent(',\n'.join(repr(child) for child in self.children), '  '))
+
+        return '%s(%s)' % (self.__class__.__name__, ', '.join(parts))

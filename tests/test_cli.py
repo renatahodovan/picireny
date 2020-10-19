@@ -1,4 +1,4 @@
-# Copyright (c) 2016-2020 Renata Hodovan, Akos Kiss.
+# Copyright (c) 2016-2021 Renata Hodovan, Akos Kiss.
 #
 # Licensed under the BSD 3-Clause License
 # <LICENSE.rst or https://opensource.org/licenses/BSD-3-Clause>.
@@ -42,7 +42,7 @@ def test_cli(test, inp, exp, grammar, rule, input_format, args, tmpdir):
     out_dir = '%s' % tmpdir
     cmd = (sys.executable, '-m', 'picireny') \
           + ('--test=' + test + script_ext, '--input=' + inp, '--out=' + out_dir) \
-          + ('--log-level=DEBUG', )
+          + ('--log-level=TRACE', )
     if grammar:
         cmd += ('--grammar=' + grammar, )
     if rule:
