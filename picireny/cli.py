@@ -14,7 +14,7 @@ import sys
 
 from argparse import ArgumentParser
 from os import makedirs
-from os.path import abspath, basename, dirname, exists, isdir, join, relpath
+from os.path import abspath, basename, dirname, exists, isdir, join, realpath
 from shutil import rmtree
 
 import antlerinator
@@ -47,7 +47,7 @@ def process_antlr4_path(antlr=None):
         logger.error('%s does not exist.', antlr)
         return None
 
-    return abspath(relpath(antlr))
+    return realpath(antlr)
 
 
 def process_antlr4_format(format=None, grammar=None, start=None, replacements=None):
@@ -91,7 +91,7 @@ def process_antlr4_format(format=None, grammar=None, start=None, replacements=No
 
         if grammar:
             for i, g in enumerate(grammar):
-                input_format['']['files'].append(abspath(relpath(g)))
+                input_format['']['files'].append(realpath(g))
                 if not exists(input_format['']['files'][i]):
                     logger.error('%s does not exist.', input_format['']['files'][i])
                     return None, None
