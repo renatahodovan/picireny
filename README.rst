@@ -118,22 +118,39 @@ Compatibility
 Acknowledgement and Citations
 =============================
 
-*Picireny* is motivated by the idea of Hierarchial Delta Debugging:
+*Picireny* is motivated by the idea of Hierarchical Delta Debugging:
 
-* G. Misherghi, Z. Su: "HDD: Hierarchical delta debugging",
-  ICSE 2006.
+* Ghassan Misherghi and Zhendong Su. HDD: Hierarchical Delta Debugging.
+  In Proceedings of the 28th International Conference on Software Engineering
+  (ICSE '06), pages 142-151, Shanghai, China, May 2006. ACM.
+  https://doi.org/10.1145/1134285.1134307
 
-The details of the modernized reimplementation and further improvements are
+The details of the modernized re-implementation and further improvements are
 published in:
 
-* R. Hodovan, A. Kiss: "Modernizing Hierarchical Delta Debugging.",
-  A-TEST 2016.
-* R. Hodovan, A. Kiss, T. Gyimothy: "Tree Preprocessing and Test Outcome
-  Caching for Efficient Hierarchical Delta Debugging", AST 2017.
-* R. Hodovan, A. Kiss, T. Gyimothy: "Coarse Hierarchical Delta Debugging",
-  ICSME 2017.
-* A. Kiss, R. Hodovan, T. Gyimothy: "HDDr: A Recursive Variant of the
-  Hierarchical Delta Debugging Algorithm", A-TEST 2018.
+* Renata Hodovan and Akos Kiss. Modernizing Hierarchical Delta Debugging.
+  In Proceedings of the 7th International Workshop on Automating Test Case
+  Design, Selection, and Evaluation (A-TEST 2016), pages 31-37, Seattle,
+  Washington, USA, November 2016. ACM.
+  https://doi.org/10.1145/2994291.2994296
+* Renata Hodovan, Akos Kiss, and Tibor Gyimothy. Tree Preprocessing and Test
+  Outcome Caching for Efficient Hierarchical Delta Debugging.
+  In Proceedings of the 12th IEEE/ACM International Workshop on Automation of
+  Software Testing (AST 2017), pages 23-29, Buenos Aires, Argentina, May 2017.
+  IEEE.
+  https://doi.org/10.1109/AST.2017.4
+* Renata Hodovan, Akos Kiss, and Tibor Gyimothy. Coarse Hierarchical Delta
+  Debugging.
+  In Proceedings of the 33rd IEEE International Conference on Software
+  Maintenance and Evolution (ICSME 2017), pages 194-203, Shanghai, China,
+  September 2017. IEEE.
+  https://doi.org/10.1109/ICSME.2017.26
+* Akos Kiss, Renata Hodovan, and Tibor Gyimothy. HDDr: A Recursive Variant of
+  the Hierarchical Delta Debugging Algorithm.
+  In Proceedings of the 9th ACM SIGSOFT International Workshop on Automating
+  Test Case Design, Selection, and Evaluation (A-TEST 2018), pages 16-22, Lake
+  Buena Vista, Florida, USA, November 2018. ACM.
+  https://doi.org/10.1145/3278186.3278189
 
 
 Copyright and Licensing
