@@ -8,6 +8,7 @@
 import json
 import logging
 import re
+import shutil
 import sys
 
 from os import makedirs, pathsep
@@ -163,8 +164,12 @@ def create_hdd_tree(input_stream, input_format, start, antlr, work_dir, hidden_t
 
         :param grammar_name: Name of the grammar to use for parsing.
         """
-        grammar = input_format[grammar_name]
         antlr_lexer_class, antlr_parser_class = build_antlr_grammars()
+
+        grammar = input_format[grammar_name]
+        resources = [fn for fn in grammar['files'] if not fn.endswith('.g4')]
+        grammar['files'] = [fn for fn in grammar['files'] if fn.endswith('.g4')]
+
         replacements, action_positions = analyze_grammars(antlr_lexer_class, antlr_parser_class, grammar['files'], grammar['replacements'])
         logger.debug('Replacements are calculated...')
 
@@ -178,6 +183,9 @@ def create_hdd_tree(input_stream, input_format, start, antlr, work_dir, hidden_t
         for i, g in enumerate(grammar['files']):
             grammar['files'][i] = join(current_workdir, basename(g))
             inject_optional_actions(g, action_positions[g], grammar['files'][i])
+
+        for r in resources:
+            shutil.copy(r, current_workdir)
 
         target_lexer_class, target_parser_class, target_listener_class = build_grammars(tuple(grammar['files']), current_workdir, antlr, lang)
         logger.debug('Target grammars are processed...')
