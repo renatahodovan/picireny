@@ -422,6 +422,8 @@ def create_hdd_tree(input_stream, input_format, start, antlr, work_dir, hidden_t
             if proc.returncode != 0:
                 logger.error('Java parser failed!\n%s\n%s', stdout, stderr)
                 raise CalledProcessError(returncode=proc.returncode, cmd=cmd, output=stdout + stderr)
+            if stderr:
+                logger.debug(stderr)
             result = json.loads(stdout)
             tree_root = hdd_tree_from_json(result)
         else:
