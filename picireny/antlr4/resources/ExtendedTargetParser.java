@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018 Renata Hodovan, Akos Kiss.
+ * Copyright (c) 2016-2020 Renata Hodovan, Akos Kiss.
  *
  * Licensed under the BSD 3-Clause License
  * <LICENSE.rst or https://opensource.org/licenses/BSD-3-Clause>.
@@ -365,7 +365,7 @@ public class Extended$parser_class extends $parser_class {
     }
 
     private void syntaxErrorWarning() {
-        if (_syntaxErrors > 0)
-            System.err.println("$parser_class finished with " + _syntaxErrors + " syntax errors. This may decrease quality.");
+        if (getNumberOfSyntaxErrors() > 0)
+            System.err.println("$parser_class finished with " + getNumberOfSyntaxErrors() + " syntax errors. This may decrease quality.");
     }
 }

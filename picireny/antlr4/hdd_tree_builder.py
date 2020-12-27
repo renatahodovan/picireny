@@ -234,9 +234,9 @@ def create_hdd_tree(input_stream, input_format, start, antlr, work_dir, hidden_t
                         getattr(listener, event)()
 
             def syntax_error_warning(self):
-                if self._syntaxErrors:
+                if self.getNumberOfSyntaxErrors() > 0:
                     logger.warning('%s finished with %d syntax errors. This may decrease reduce quality.',
-                                   target_parser_class.__name__, self._syntaxErrors)
+                                   target_parser_class.__name__, self.getNumberOfSyntaxErrors())
 
         class ExtendedTargetListener(target_listener_class):
             """
