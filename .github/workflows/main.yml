@@ -10,7 +10,7 @@ jobs:
         # relpath(args.out) cannot handle when args.out is on a different drive
         # than current directory
         # "ValueError: path is on drive c:, start on drive D:"
-        python-version: [2.7, 3.5, 3.6, 3.7, 3.8]
+        python-version: [2.7, 3.5, 3.6, 3.7, 3.8, 3.9]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v2
