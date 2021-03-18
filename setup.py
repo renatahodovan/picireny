@@ -1,4 +1,4 @@
-# Copyright (c) 2016-2020 Renata Hodovan, Akos Kiss.
+# Copyright (c) 2016-2021 Renata Hodovan, Akos Kiss.
 #
 # Licensed under the BSD 3-Clause License
 # <LICENSE.rst or https://opensource.org/licenses/BSD-3-Clause>.
@@ -37,7 +37,7 @@ setup(
     install_requires=['antlerinator==4.9', 'picire==19.3', 'setuptools'],
     zip_safe=False,
     include_package_data=True,
-    setup_requires=['setuptools_scm'],
+    setup_requires=['setuptools_scm<6.0.0'],  # FIXME: pinning required for py2.7 and py3.5
     use_scm_version=picireny_version,
     entry_points={
         'console_scripts': [
