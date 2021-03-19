@@ -2,6 +2,36 @@
 *Picireny* Release Notes
 ========================
 
+21.3
+====
+
+Summary of changes:
+
+* Introduced phases of reduction to allow executing the same HDD algorithm
+  variant multiple times with different parametrizations (e.g., run Coarse HDDr
+  and HDDr after each other).
+* Added a new transformation-based reduction technique called hoisting, as a new
+  optional phase, to complement the existing pruning-based approaches.
+* Added support for "tokens" section (i.e., token names without an associated
+  lexer rule) in grammars.
+* Added support for grammars with resource files that contain utility code or
+  base classes of lexers and parsers.
+* Upgraded dependency to *Picire* 20.12 to utilize its new generalized split
+  factor concept and updated API.
+* Upgraded dependency to ANTLR v4.9 (via *ANTLeRinator*).
+* Bumped minimum Python 3 requirement to 3.5.
+* Improved log output.
+* Adapted versioning to use setuptools_scm (included distance from latest
+  release into non-released version strings).
+* Added classification metadata to project.
+* Improved documentation.
+* Improved the testing infrastructure (linting, faster test suite, testing
+  Python 3.8 and 3.9, testing macOS, migrated testing from Travis CI to GitHub
+  Actions).
+* Various internal refactorings and performance improvements.
+* Minor bug fixes.
+
+
 19.3
 ====
 
