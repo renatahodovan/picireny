@@ -61,7 +61,7 @@ class EmptyDD(AbstractDD):
         :param cache: Cache object to use.
         :param id_prefix: Tuple to prepend to config IDs during tests.
         """
-        AbstractDD.__init__(self, test, None, cache=cache, id_prefix=id_prefix)
+        AbstractDD.__init__(self, test=test, split=None, cache=cache, id_prefix=id_prefix)
 
     def ddmin(self, config):
         """
