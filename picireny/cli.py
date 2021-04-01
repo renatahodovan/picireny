@@ -41,6 +41,7 @@ args_phase_choices = {
     'coarse-prune': {'config_filter': filter.coarse_filter},
     'hoist': {'pruning': False, 'hoisting': True},
     'prune+hoist': {'hoisting': True},
+    'coarse-prune+hoist': {'config_filter': filter.coarse_filter, 'hoisting': True}
 }
 
 
