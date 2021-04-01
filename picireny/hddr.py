@@ -88,27 +88,26 @@ def hddrmin(hdd_tree, reduce_class, reduce_config, tester_class, tester_config, 
             children = [child for child in node.children if child.state == child.KEEP]
             if config_filter:
                 children = list(filter(config_filter, children))
-            if not children:
-                continue
 
-            logger.info('Checking node #%d ...', node_cnt)
+            if children:
+                logger.info('Checking node #%d ...', node_cnt)
 
-            if pruning:
-                hdd_tree, pruned = prune(hdd_tree=hdd_tree, config_nodes=children,
-                                         reduce_class=reduce_class, reduce_config=reduce_config,
-                                         tester_class=tester_class, tester_config=tester_config,
-                                         test_pattern=join(work_dir, 'iter_%d' % iter_cnt, 'node_%d' % node_cnt, 'prune', '%s', test_name),
-                                         id_prefix=id_prefix + ('i%d' % iter_cnt, 'n%d' % node_cnt, 'p'),
-                                         cache=cache, unparse_with_whitespace=unparse_with_whitespace)
-                changed = changed or pruned
+                if pruning:
+                    hdd_tree, pruned = prune(hdd_tree=hdd_tree, config_nodes=children,
+                                             reduce_class=reduce_class, reduce_config=reduce_config,
+                                             tester_class=tester_class, tester_config=tester_config,
+                                             test_pattern=join(work_dir, 'iter_%d' % iter_cnt, 'node_%d' % node_cnt, 'prune', '%s', test_name),
+                                             id_prefix=id_prefix + ('i%d' % iter_cnt, 'n%d' % node_cnt, 'p'),
+                                             cache=cache, unparse_with_whitespace=unparse_with_whitespace)
+                    changed = changed or pruned
 
-            if hoisting:
-                hdd_tree, hoisted = hoist(hdd_tree=hdd_tree, config_nodes=children,
-                                          tester_class=tester_class, tester_config=tester_config,
-                                          test_pattern=join(work_dir, 'iter_%d' % iter_cnt, 'node_%d' % node_cnt, 'hoist', '%s', test_name),
-                                          id_prefix=id_prefix + ('i%d' % iter_cnt, 'n%d' % node_cnt, 'h'),
-                                          cache=cache, unparse_with_whitespace=unparse_with_whitespace)
-                changed = changed or hoisted
+                if hoisting:
+                    hdd_tree, hoisted = hoist(hdd_tree=hdd_tree, config_nodes=children,
+                                              tester_class=tester_class, tester_config=tester_config,
+                                              test_pattern=join(work_dir, 'iter_%d' % iter_cnt, 'node_%d' % node_cnt, 'hoist', '%s', test_name),
+                                              id_prefix=id_prefix + ('i%d' % iter_cnt, 'n%d' % node_cnt, 'h'),
+                                              cache=cache, unparse_with_whitespace=unparse_with_whitespace)
+                    changed = changed or hoisted
 
             for child in node.children if not append_reversed else reversed(node.children):
                 if child.state == child.KEEP:
