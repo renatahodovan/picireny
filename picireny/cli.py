@@ -253,7 +253,7 @@ def build_with_srcml(input, src, language):
 def reduce(hdd_tree, hddmin,
            reduce_class, reduce_config,
            tester_class, tester_config,
-           input, encoding, out,
+           test_name, encoding, out,
            hdd_star=True, hdd_phase_configs=({},),
            flatten_recursion=False, squeeze_tree=True,
            skip_unremovable=True, skip_whitespace=False,
@@ -273,8 +273,7 @@ def reduce(hdd_tree, hddmin,
         interestingness of a test case.
     :param tester_config: Dictionary containing information to initialize the
         tester_class.
-    :param input: Path to the test case to reduce (only used to determine the
-        name of the output file).
+    :param test_name: Name of the output test file with extension.
     :param encoding: Encoding of the input test case.
     :param out: Path to the output directory.
     :param hdd_star: Boolean to enable the HDD star algorithm.
@@ -292,12 +291,12 @@ def reduce(hdd_tree, hddmin,
     :param cache_class: Reference to the cache class to use.
     :param cleanup: Binary flag denoting whether removing auxiliary files at the
         end is enabled.
-    :return: The path to the minimal test case.
+    :return: The reduced HDD tree.
     """
     # Get the parameters in a dictionary so that they can be pretty-printed
     args = locals().copy()
     del args['hdd_tree']
-    log_args('Reduce session starts for %s' % input, args)
+    log_args('Reduce session starts for %s' % test_name, args)
 
     log_tree('Initial tree', hdd_tree)
 
@@ -329,7 +328,7 @@ def reduce(hdd_tree, hddmin,
         hdd_tree = hddmin(hdd_tree,
                           reduce_class, reduce_config,
                           tester_class, tester_config,
-                          test_name=basename(input),
+                          test_name=test_name,
                           work_dir=tests_workdir,
                           id_prefix=('p%d' % phase_cnt,),
                           hdd_star=hdd_star,
@@ -341,14 +340,7 @@ def reduce(hdd_tree, hddmin,
         if cleanup:
             rmtree(tests_workdir)
 
-    # Save result to a file named the same like the original.
-    out_file = join(out, basename(input))
-    out_src = hdd_tree.unparse(with_whitespace=unparse_with_whitespace)
-    with codecs.open(out_file, 'w', encoding=encoding, errors='ignore') as f:
-        f.write(out_src)
-    logger.info('Result is saved to %s.', out_file)
-
-    return out_file
+    return hdd_tree
 
 
 def execute():
@@ -425,12 +417,20 @@ def execute():
         hdd_tree = build_with_srcml(input=args.input, src=args.src, language=args.srcml_language)
         unparse_with_whitespace = False
 
-    reduce(hdd_tree=hdd_tree, hddmin=args.hddmin,
-           reduce_class=args.reduce_class, reduce_config=args.reduce_config,
-           tester_class=args.tester_class, tester_config=args.tester_config,
-           input=args.input, encoding=args.encoding, out=args.out,
-           hdd_star=args.hdd_star, hdd_phase_configs=args.hdd_phase_configs,
-           flatten_recursion=args.flatten_recursion, squeeze_tree=args.squeeze_tree,
-           skip_unremovable=args.skip_unremovable, skip_whitespace=args.skip_whitespace,
-           unparse_with_whitespace=unparse_with_whitespace,
-           cache_class=args.cache, cleanup=args.cleanup)
+    test_name = basename(args.input)
+    hdd_tree = reduce(hdd_tree=hdd_tree, hddmin=args.hddmin,
+                      reduce_class=args.reduce_class, reduce_config=args.reduce_config,
+                      tester_class=args.tester_class, tester_config=args.tester_config,
+                      test_name=test_name, encoding=args.encoding, out=args.out,
+                      hdd_star=args.hdd_star, hdd_phase_configs=args.hdd_phase_configs,
+                      flatten_recursion=args.flatten_recursion, squeeze_tree=args.squeeze_tree,
+                      skip_unremovable=args.skip_unremovable, skip_whitespace=args.skip_whitespace,
+                      unparse_with_whitespace=unparse_with_whitespace,
+                      cache_class=args.cache, cleanup=args.cleanup)
+    out_src = hdd_tree.unparse(with_whitespace=unparse_with_whitespace)
+
+    # Save result to a file named the same like the original.
+    out_file = join(args.out, test_name)
+    with codecs.open(out_file, 'w', encoding=args.encoding, errors='ignore') as f:
+        f.write(out_src)
+    logger.info('Result is saved to %s.', out_file)
