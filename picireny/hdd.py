@@ -1,5 +1,6 @@
 # Copyright (c) 2007 Ghassan Misherghi.
 # Copyright (c) 2016-2021 Renata Hodovan, Akos Kiss.
+# Copyright (c) 2021 Daniel Vince
 #
 # Licensed under the BSD 3-Clause License
 # <LICENSE.rst or https://opensource.org/licenses/BSD-3-Clause>.
@@ -11,7 +12,6 @@ import logging
 
 from os.path import join
 
-from .hoist import hoist
 from .info import height
 from .prune import prune
 
@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 def hddmin(hdd_tree, reduce_class, reduce_config, tester_class, tester_config, test_name, work_dir,
            hdd_star=True, id_prefix=(), cache=None, config_filter=None, unparse_with_whitespace=True,
-           pruning=True, hoisting=False):
+           transformations=(prune,)):
     """
     Run the hierarchical delta debugging reduce algorithm.
 
@@ -43,10 +43,8 @@ def hddmin(hdd_tree, reduce_class, reduce_config, tester_class, tester_config, t
         hddmin selectively.
     :param unparse_with_whitespace: Build test case by adding whitespace between
         nonadjacent tree nodes during unparsing.
-    :param pruning: Binary flag denoting whether pruning is to be run at each
-        level.
-    :param hoisting: Binary flag denoting whether hoisting is to be run at each
-        level.
+    :param transformations: Iterable of transformations that reduce a
+        configuration of nodes.
     :return: The reduced test case (1-tree-minimal if hdd_star is True and
         config_filter is None).
     """
@@ -80,22 +78,15 @@ def hddmin(hdd_tree, reduce_class, reduce_config, tester_class, tester_config, t
 
             logger.info('Checking level %d / %d ...', level, height(hdd_tree))
 
-            if pruning:
-                hdd_tree, pruned = prune(hdd_tree=hdd_tree, config_nodes=level_nodes,
-                                         reduce_class=reduce_class, reduce_config=reduce_config,
-                                         tester_class=tester_class, tester_config=tester_config,
-                                         test_pattern=join(work_dir, 'iter_%d' % iter_cnt, 'level_%d' % level, 'prune', '%s', test_name),
-                                         id_prefix=id_prefix + ('i%d' % iter_cnt, 'l%d' % level, 'p'),
-                                         cache=cache, unparse_with_whitespace=unparse_with_whitespace)
-                changed = changed or pruned
+            for trans_cnt, transformation in enumerate(transformations):
+                hdd_tree, transformed = transformation(hdd_tree=hdd_tree, config_nodes=level_nodes,
+                                                       reduce_class=reduce_class, reduce_config=reduce_config,
+                                                       tester_class=tester_class, tester_config=tester_config,
+                                                       test_pattern=join(work_dir, 'iter_%d' % iter_cnt, 'level_%d' % level, 'trans_%d' % trans_cnt, '%s', test_name),
+                                                       id_prefix=id_prefix + ('i%d' % iter_cnt, 'l%d' % level, 't%d' % trans_cnt),
+                                                       cache=cache, unparse_with_whitespace=unparse_with_whitespace)
 
-            if hoisting:
-                hdd_tree, hoisted = hoist(hdd_tree=hdd_tree, config_nodes=level_nodes,
-                                          tester_class=tester_class, tester_config=tester_config,
-                                          test_pattern=join(work_dir, 'iter_%d' % iter_cnt, 'level_%d' % level, 'hoist', '%s', test_name),
-                                          id_prefix=id_prefix + ('i%d' % iter_cnt, 'l%d' % level, 'h'),
-                                          cache=cache, unparse_with_whitespace=unparse_with_whitespace)
-                changed = changed or hoisted
+                changed = changed or transformed
 
         if not hdd_star or not changed:
             break

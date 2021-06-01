@@ -23,7 +23,7 @@ import pkg_resources
 from antlr4 import InputStream
 from picire import logging
 
-from . import filter, hdd, hddr, info, transform
+from . import filter, hdd, hddr, hoist, info, prune, transform
 
 logger = logging.getLogger('picireny')
 __version__ = pkg_resources.get_distribution(__package__).version
@@ -37,11 +37,11 @@ args_hdd_choices = {
 
 
 args_phase_choices = {
-    'prune': {},
-    'coarse-prune': {'config_filter': filter.coarse_filter},
-    'hoist': {'pruning': False, 'hoisting': True},
-    'prune+hoist': {'hoisting': True},
-    'coarse-prune+hoist': {'config_filter': filter.coarse_filter, 'hoisting': True}
+    'prune': {'transformations': [prune.prune]},
+    'coarse-prune': {'transformations': [prune.prune], 'config_filter': filter.coarse_filter},
+    'hoist': {'transformations': [hoist.hoist]},
+    'prune+hoist': {'transformations': [prune.prune, hoist.hoist]},
+    'coarse-prune+hoist': {'transformations': [prune.prune, hoist.hoist], 'config_filter': filter.coarse_filter}
 }
 
 

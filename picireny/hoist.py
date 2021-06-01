@@ -102,7 +102,7 @@ class MappingMin(AbstractDD):
 
 
 def hoist(hdd_tree, config_nodes, tester_class, tester_config, test_pattern, id_prefix,
-          cache, unparse_with_whitespace):
+          cache, unparse_with_whitespace, reduce_class=None, reduce_config=None):
     """
     Try hoisting subtrees.
 
@@ -117,6 +117,10 @@ def hoist(hdd_tree, config_nodes, tester_class, tester_config, test_pattern, id_
     :param cache: Cache to use.
     :param unparse_with_whitespace: Build test case by adding whitespace between
         nonadjacent tree nodes during unparsing.
+    :param reduce_class: Unused, present for being compatible with 'prune'
+        transformation.
+    :param reduce_config: Unused, present for being compatible with 'prune'
+        transformation.
     :return: The reduced tree and a boolean value that shows whether the tree
         has changed during hoisting.
     """
