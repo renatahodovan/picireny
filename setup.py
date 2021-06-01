@@ -41,7 +41,7 @@ setup(
     ],
     zip_safe=False,
     include_package_data=True,
-    setup_requires=['setuptools_scm<6.0.0'],  # FIXME: pinning required for py2.7 and py3.5
+    setup_requires=['setuptools_scm'],
     use_scm_version=picireny_version,
     entry_points={
         'console_scripts': [
