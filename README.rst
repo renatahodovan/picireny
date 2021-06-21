@@ -40,8 +40,7 @@ Requirements
 ============
 
 * Python_ ~= 2.7 or >= 3.5
-* pip_ and setuptools Python packages (the latter is automatically installed by
-  pip).
+* pip_
 * Java_ SE >= 7 JRE or JDK (the latter is optional, only needed if Java is used
   as the parser language)
 
@@ -57,10 +56,10 @@ The quick way (to install the latest official release)::
 
     pip install picireny
 
-Or clone the project and run setuptools (to install the freshest development
-revision)::
+Or clone the project and perform a local install (to install the freshest
+development revision)::
 
-    python setup.py install
+    pip install .
 
 
 Usage

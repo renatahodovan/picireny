@@ -1,7 +1,0 @@
-include README.rst
-include LICENSE.rst
-include RELNOTES.rst
-include MANIFEST.in
-recursive-include picireny/antlr4/resources *
-global-exclude __pycache__
-global-exclude *.py[co]
