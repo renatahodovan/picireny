@@ -9,25 +9,24 @@ from __future__ import absolute_import
 
 import codecs
 import json
-import sys
 
-from argparse import ArgumentParser
+from argparse import ArgumentParser, Namespace
 from os import makedirs
 from os.path import abspath, basename, dirname, exists, isdir, join, realpath
 from shutil import rmtree
 
 import antlerinator
+import inators
 import picire
 import pkg_resources
 
 from antlr4 import InputStream
-from picire import logging
+from inators import log as logging
 
 from . import filter, hdd, hddr, hoist, info, prune, transform
 
 logger = logging.getLogger('picireny')
 __version__ = pkg_resources.get_distribution(__package__).version
-antlr_default_path = antlerinator.antlr_jar_path
 
 
 args_hdd_choices = {
@@ -46,15 +45,14 @@ args_phase_choices = {
 
 
 def process_antlr4_path(antlr=None):
-    antlr = antlr or antlr_default_path
-    if antlr == antlr_default_path:
-        antlerinator.install(lazy=True)
+    args = Namespace(antlr=antlr)
+    antlerinator.process_antlr_argument(args)
 
-    if not exists(antlr):
-        logger.error('%s does not exist.', antlr)
+    if not exists(args.antlr):
+        logger.error('%s does not exist.', args.antlr)
         return None
 
-    return realpath(antlr)
+    return realpath(args.antlr)
 
 
 def process_antlr4_format(format=None, grammar=None, start=None, replacements=None):
@@ -379,9 +377,8 @@ def execute():
                             help='don\'t hide unremovable nodes from the ddmin algorithm')
     arg_parser.add_argument('--skip-whitespace', dest='skip_whitespace', default=False, action='store_true',
                             help='hide whitespace tokens from the ddmin algorithm')
-    arg_parser.add_argument('--sys-recursion-limit', metavar='NUM', type=int, default=sys.getrecursionlimit(),
-                            help='override maximum depth of the Python interpreter stack (may be needed for `--parser=java`; default: %(default)d)')
-    arg_parser.add_argument('--version', action='version', version='%(prog)s {version}'.format(version=__version__))
+    inators.arg.add_sys_recursion_limit_argument(arg_parser)
+    inators.arg.add_version_argument(arg_parser, __version__)
 
     # ANTLRv4-specific settings.
     antlr4_grp = arg_parser.add_argument_group('ANTLRv4-specific arguments')
@@ -398,8 +395,7 @@ def execute():
                             help='JSON file describing a (possibly complex) input format')
     antlr4_grp.add_argument('--build-hidden-tokens', '--antlr4:build-hidden-tokens', default=False, action='store_true',
                             help='build hidden tokens of the grammar(s) into the HDD tree')
-    antlr4_grp.add_argument('--antlr', '--antlr4:antlr', metavar='FILE', default=antlr_default_path,
-                            help='path where the antlr jar file is installed (default: %(default)s)')
+    antlerinator.add_antlr_argument(antlr4_grp, long_alias='--antlr4:antlr')
     antlr4_grp.add_argument('--parser', '--antlr4:parser', metavar='LANG', default='python', choices=['python', 'java'],
                             help='language of the generated parsers (%(choices)s; default: %(default)s) '
                                  '(using Java might gain performance, but needs JDK)')
@@ -413,10 +409,10 @@ def execute():
     process_args(arg_parser, args)
 
     logging.basicConfig(format='%(message)s')
-    logger.setLevel(args.log_level)
-    logging.getLogger('picire').setLevel(logger.level)
+    inators.arg.process_log_level_argument(args, logger)
+    inators.arg.process_log_level_argument(args, logging.getLogger('picire'))
 
-    sys.setrecursionlimit(args.sys_recursion_limit)
+    inators.arg.process_sys_recursion_limit_argument(args)
 
     if args.builder == 'antlr4':
         hdd_tree = build_with_antlr4(input=args.input, src=args.src, encoding=args.encoding, out=args.out,

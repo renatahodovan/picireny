@@ -51,7 +51,7 @@ class MappingMin(AbstractDD):
 
         AbstractDD.__init__(self, test=test, split=None, cache=cache, id_prefix=id_prefix)
 
-    def ddmin(self, config):
+    def __call__(self, config):
         """
         Compute a mapping of the initial configuration to another (usually
         smaller) but still failing configuration.
@@ -133,7 +133,7 @@ def hoist(hdd_tree, config_nodes, tester_class, tester_config, test_pattern, id_
 
     test = tester_class(test_builder=test_builder, test_pattern=test_pattern, **tester_config)
     mapping_min = MappingMin(test, cache=cache, id_prefix=id_prefix)
-    mapping = mapping_min.ddmin(config_nodes)
+    mapping = mapping_min(config_nodes)
 
     def _apply_mapping(node):
         if node in mapping:

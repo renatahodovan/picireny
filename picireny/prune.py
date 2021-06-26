@@ -63,7 +63,7 @@ class EmptyDD(AbstractDD):
         """
         AbstractDD.__init__(self, test=test, split=None, cache=cache, id_prefix=id_prefix)
 
-    def ddmin(self, config):
+    def __call__(self, config):
         """
         Return a 1-minimal failing subset of the initial configuration, and also
         test the empty configuration while doing so.
@@ -130,10 +130,10 @@ def prune(hdd_tree, config_nodes, reduce_class, reduce_config, tester_class, tes
 
     test = tester_class(test_builder=test_builder, test_pattern=test_pattern, **tester_config)
     dd = reduce_class(test, cache=cache, id_prefix=id_prefix, **reduce_config)
-    c = dd.ddmin(config_ids)
+    c = dd(config_ids)
     if len(c) == 1:
         dd = EmptyDD(test, cache=cache, id_prefix=id_prefix)
-        c = dd.ddmin(c)
+        c = dd(c)
     c = set(c)
 
     def _set_state(node):
