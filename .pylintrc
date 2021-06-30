@@ -1,3 +1,8 @@
+[MASTER]
+
+# Files or directories to be skipped. They should be base names, not paths.
+ignore=parser
+
 [MESSAGES CONTROL]
 
 # Disable the message, report, category or checker with the given id(s). You
@@ -18,7 +23,7 @@ disable=
     redefined-builtin, broad-except, protected-access,
     useless-object-inheritance, unnecessary-pass, duplicate-code,
     attribute-defined-outside-init, import-outside-toplevel, abstract-method,
-    consider-using-with, unused-private-member
+    consider-using-with, unused-private-member, deprecated-module
 
 [REPORTS]
 

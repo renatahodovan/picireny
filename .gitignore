@@ -10,3 +10,6 @@ dist
 .pytest_cache
 .tox
 .coverage*
+*.interp
+*.tokens
+picireny/antlr4/parser/py?/ANTLRv4*.py

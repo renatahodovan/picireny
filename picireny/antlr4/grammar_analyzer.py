@@ -9,9 +9,10 @@ from antlr4 import CommonTokenStream, FileStream
 from antlr4.tree import Tree
 
 from .antlr_tree import *
+from .parser import ANTLRv4Lexer, ANTLRv4Parser
 
 
-def analyze_grammars(antlr_lexer, antlr_parser, grammars, replacements):
+def analyze_grammars(grammars, replacements):
     """
     Determine the minimal parser rule replacements of the input grammar.
 
@@ -272,7 +273,7 @@ def analyze_grammars(antlr_lexer, antlr_parser, grammars, replacements):
     # Fill elements with node representations.
     for grammar in grammars:
         action_positions[grammar] = {}
-        parser = antlr_parser(CommonTokenStream(antlr_lexer(FileStream(grammar, 'utf-8'))))
+        parser = ANTLRv4Parser(CommonTokenStream(ANTLRv4Lexer(FileStream(grammar, 'utf-8'))))
         create_grammar_tree(parser.grammarSpec(), action_positions[grammar], None, False, True)
 
     # Create mapping between references and indices of antlr_tree to be able to plug the

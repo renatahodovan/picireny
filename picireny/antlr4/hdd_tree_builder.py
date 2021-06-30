@@ -116,31 +116,6 @@ def create_hdd_tree(input_stream, input_format, start, antlr, work_dir, hidden_t
         with open(target_file, 'wb') as f:
             f.write(b''.join(lines))
 
-    def build_antlr_grammars():
-        """
-        Build parsers to parse ANTLR4 grammars.
-
-        :return: References to the ANTLR4 lexer and parser classes.
-        """
-        antlr4_workdir = join(work_dir, 'antlr4')
-        if not isdir(antlr4_workdir):
-            makedirs(antlr4_workdir)
-        if antlr4_workdir not in sys.path:
-            sys.path.append(antlr4_workdir)
-
-        # Copy the resources needed to interpret the input grammars.
-        for resource in ['LexerAdaptor.py', 'ANTLRv4Lexer.g4', 'ANTLRv4Parser.g4', 'LexBasic.g4']:
-            with open(join(antlr4_workdir, resource), 'wb') as f:
-                f.write(get_data(__package__, join('resources', resource)))
-
-        antlr_lexer_class, antlr_parser_class, _ = build_grammars((join(antlr4_workdir, 'ANTLRv4Lexer.g4'),
-                                                                   join(antlr4_workdir, 'ANTLRv4Parser.g4'),
-                                                                   join(antlr4_workdir, 'LexBasic.g4')),
-                                                                  antlr4_workdir,
-                                                                  antlr)
-        logger.debug('ANTLR4 grammars processed...')
-        return antlr_lexer_class, antlr_parser_class
-
     def java_classpath(current_workdir):
         return pathsep.join([antlr, current_workdir])
 
@@ -164,13 +139,11 @@ def create_hdd_tree(input_stream, input_format, start, antlr, work_dir, hidden_t
 
         :param grammar_name: Name of the grammar to use for parsing.
         """
-        antlr_lexer_class, antlr_parser_class = build_antlr_grammars()
-
         grammar = input_format[grammar_name]
         resources = [fn for fn in grammar['files'] if not fn.endswith('.g4')]
         grammar['files'] = [fn for fn in grammar['files'] if fn.endswith('.g4')]
 
-        replacements, action_positions = analyze_grammars(antlr_lexer_class, antlr_parser_class, grammar['files'], grammar['replacements'])
+        replacements, action_positions = analyze_grammars(grammar['files'], grammar['replacements'])
         logger.debug('Replacements are calculated...')
 
         current_workdir = join(grammar_workdir, grammar_name) if grammar_name else grammar_workdir

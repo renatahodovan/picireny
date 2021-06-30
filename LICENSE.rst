@@ -36,5 +36,5 @@ Copyright (c) 2007 Ghassan Misherghi.
 -----
 
 This software includes components from the "Grammars written for ANTLR v4"
-project under picireny/antlr4/resources, which files carry a compatible
-"BSD license" and their own copyright notices.
+project under picireny/antlr4/resources and picireny/antlr4/parser, which files
+carry a compatible "BSD license" and their own copyright notices.
