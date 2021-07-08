@@ -144,40 +144,6 @@ def process_args(arg_parser, args):
     picire.cli.process_args(arg_parser, args)
 
 
-def log_args(title, args):
-    def _log_args(args):
-        if not args:
-            return repr(args)
-        if isinstance(args, dict):
-            log = []
-            for k, v in sorted(args.items()):
-                k_log = _log_args(k)
-                v_log = _log_args(v)
-                if isinstance(v_log, list):
-                    log += ['%s:' % k_log]
-                    for line in v_log:
-                        log += ['\t' + line]
-                else:
-                    log += ['%s: %s' % (k_log, v_log)]
-            return log if len(log) > 1 else log[0]
-        if isinstance(args, list):
-            v_logs = [_log_args(v) for v in args]
-            if any(isinstance(v_log, list) for v_log in v_logs):
-                log = []
-                for v_log in v_logs:
-                    if not isinstance(v_log, list):
-                        v_log = [v_log]
-                    for i, line in enumerate(v_log):
-                        log += ['%s %s' % ('-' if i == 0 else ' ', line)]
-            else:
-                log = ', '.join(v_log for v_log in v_logs)
-            return log
-        if hasattr(args, '__name__'):
-            return '.'.join(([args.__module__] if hasattr(args, '__module__') else []) + [args.__name__])
-        return str(args)
-    logger.info('%s\n\t%s\n', title, '\n\t'.join(_log_args(args)))
-
-
 def log_tree(title, hdd_tree):
     logger.debug('%s\n\theight: %s\n\tshape: %s\n\tnodes: %s\n',
                  title,
@@ -214,7 +180,7 @@ def build_with_antlr4(input, src, encoding, out,
     # Get the parameters in a dictionary so that they can be pretty-printed
     args = locals().copy()
     del args['src']
-    log_args('Building tree with ANTLRv4 for %s' % input, args)
+    picire.cli.log_args('Building tree with ANTLRv4 for %s' % input, args)
 
     grammar_workdir = join(out, 'grammar')
     if not isdir(grammar_workdir):
@@ -244,7 +210,7 @@ def build_with_srcml(input, src, language):
     # Get the parameters in a dictionary so that they can be pretty-printed
     args = locals().copy()
     del args['src']
-    log_args('Building tree with srcML for %s' % input, args)
+    picire.cli.log_args('Building tree with srcML for %s' % input, args)
 
     from .srcml import create_hdd_tree
     return create_hdd_tree(src, language)
@@ -296,7 +262,7 @@ def reduce(hdd_tree, hddmin,
     # Get the parameters in a dictionary so that they can be pretty-printed
     args = locals().copy()
     del args['hdd_tree']
-    log_args('Reduce session starts for %s' % test_name, args)
+    picire.cli.log_args('Reduce session starts for %s' % test_name, args)
 
     log_tree('Initial tree', hdd_tree)
 
