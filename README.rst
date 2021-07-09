@@ -109,8 +109,8 @@ Compatibility
 
 *Picireny* was tested on:
 
-* Linux (Ubuntu 14.04 / 16.04 / 18.04)
-* Mac OS X (El Capitan 10.11 / Sierra 10.12 / High Sierra 10.13 / Mojave 10.14 / Catalina 10.15)
+* Linux (Ubuntu 14.04 / 16.04 / 18.04 / 20.04)
+* OS X / macOS (10.11 / 10.12 / 10.13 / 10.14 / 10.15 / 11)
 * Windows (Server 2012 R2 / Server version 1809 / Windows 10)
 
 
@@ -150,6 +150,12 @@ published in:
   Test Case Design, Selection, and Evaluation (A-TEST 2018), pages 16-22, Lake
   Buena Vista, Florida, USA, November 2018. ACM.
   https://doi.org/10.1145/3278186.3278189
+* Daniel Vince, Renata Hodovan, Daniella Barsony, and Akos Kiss. Extending
+  Hierarchical Delta Debugging with Hoisting.
+  In Proceedings of the 2nd ACM/IEEE International Conference on Automation of
+  Software Test (AST 2021), pages 60-69, Madrid, Spain (Virtual), May 2021.
+  IEEE.
+  https://doi.org/10.1109/AST52587.2021.00015
 
 
 Copyright and Licensing
