@@ -7,6 +7,7 @@
 # according to those terms.
 
 from itertools import count
+from os import linesep
 
 
 class Position(object):
@@ -86,7 +87,7 @@ class HDDTree:
                     continue
                 if with_whitespace:
                     if node.children[i].start.line > node.children[i - 1].end.line:
-                        node_str += '\n'
+                        node_str += linesep
                     elif node.children[i].start.idx > node.children[i - 1].end.idx:
                         node_str += ' '
                 node_str += child_strs[i]

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Renata Hodovan, Akos Kiss.
+ * Copyright (c) 2017-2021 Renata Hodovan, Akos Kiss.
  *
  * Licensed under the BSD 3-Clause License
  * <LICENSE.rst or https://opensource.org/licenses/BSD-3-Clause>.
@@ -44,7 +44,9 @@ WS
    ;
 
 EOL
-   : [\r\n]
+   : '\r\n'
+   | '\r'
+   | '\n'
    ;
 
 COMMENT

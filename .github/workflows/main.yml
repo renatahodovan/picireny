@@ -5,11 +5,7 @@ jobs:
   test:
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest]
-        # FIXME: windows-latest fails in picire.cli.process_args
-        # relpath(args.out) cannot handle when args.out is on a different drive
-        # than current directory
-        # "ValueError: path is on drive c:, start on drive D:"
+        os: [ubuntu-latest, macos-latest, windows-latest]
         python-version: [2.7, 3.5, 3.6, 3.7, 3.8, 3.9]
     runs-on: ${{ matrix.os }}
     steps:

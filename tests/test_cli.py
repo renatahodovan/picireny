@@ -24,7 +24,7 @@ antlr = os.getenv('ANTLR')
     ('test-json-obj-arr-bar', 'inp-obj-arr.json', 'exp-obj-arr-bar.json', 'JSON.g4', 'json', None),
     ('test-json-obj-arr-baz', 'inp-obj-arr.json', 'exp-obj-arr-baz.json', 'JSON.g4', 'json', None),
     ('test-json-obj-arr-87', 'inp-obj-arr.json', 'exp-obj-arr-87.json', 'JSON.g4', 'json', None),
-    ('test-inijson-str-arr-87', 'inp-str-arr.ini', 'exp-str-arr-87.ini', None, None, 'inijson.json'),
+    ('test-inijson-str-arr-87', 'inp-str-arr.ini', 'exp-str-arr-87.ini', None, None, 'inijson-crlf.json' if is_windows else 'inijson.json'),
 ])
 @pytest.mark.parametrize('args', [
     ('--cache=config', ),
