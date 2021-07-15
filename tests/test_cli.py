@@ -5,7 +5,6 @@
 # This file may not be copied, modified, or distributed except
 # according to those terms.
 
-import filecmp
 import os
 import pytest
 import subprocess
@@ -55,4 +54,9 @@ def test_cli(test, inp, exp, grammar, rule, input_format, args, tmpdir):
     proc = subprocess.Popen(cmd, cwd=resources_dir)
     proc.communicate()
     assert proc.returncode == 0
-    assert filecmp.cmp(os.path.join(out_dir, inp), os.path.join(resources_dir, exp))
+
+    with open(os.path.join(out_dir, inp), 'rb') as outf:
+        outb = outf.read()
+    with open(os.path.join(resources_dir, exp), 'rb') as expf:
+        expb = expf.read()
+    assert outb == expb

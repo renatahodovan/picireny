@@ -1,2 +1,2 @@
 #! /bin/bash
-$(dirname $0)/sut-json-load.py $1 2>&1 | grep -q "87"
+python $(dirname $0)/sut-json-load.py $1 | grep -q "87"

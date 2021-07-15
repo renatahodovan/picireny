@@ -6,7 +6,8 @@ import sys
 
 
 c = configparser.ConfigParser(allow_no_value=True)
-c.read_file(open(sys.argv[1], 'r'))
+with open(sys.argv[1], 'r') as f:
+    c.read_file(f)
 
 for s in c.sections():
     for o in c.options(s):
