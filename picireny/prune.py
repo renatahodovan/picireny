@@ -78,20 +78,19 @@ class EmptyDD(AbstractDD):
         assert len(config) == 1
         # assert self._test_config(config, ('assert',)) == self.FAIL
 
-        emptyset = []
+        empty = []
         config_id = ('empty',)
 
-        logger.info('Run: trying 0.')
+        logger.info('Run #empty')
+        logger.info('\tConfig size: %d', len(config))
+        logger.debug('\tConfig: %r', config)
 
-        outcome = self._lookup_cache(emptyset, config_id) or self._test_config(emptyset, config_id)
+        outcome = self._lookup_cache(empty, config_id) or self._test_config(empty, config_id)
         if outcome == self.FAIL:
-            logger.info('Reduced to 0 units.')
-            logger.debug('New config: %r.', emptyset)
+            config = empty
+            logger.info('\tReduced')
 
-            logger.info('Done.')
-            return emptyset
-
-        logger.info('Done.')
+        logger.info('\tDone')
         return config
 
 
