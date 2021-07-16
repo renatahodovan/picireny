@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2020 Renata Hodovan, Akos Kiss.
+ * Copyright (c) 2016-2021 Renata Hodovan, Akos Kiss.
  *
  * Licensed under the BSD 3-Clause License
  * <LICENSE.rst or https://opensource.org/licenses/BSD-3-Clause>.
@@ -109,10 +109,28 @@ public class Extended$parser_class extends $parser_class {
                 column = _column;
             }
 
+            public Position after(String text) {
+                int line_breaks = countLineBreaks(text);
+                return new Position(line + line_breaks,
+                                    line_breaks == 0 ? column + text.length() : text.length() - text.lastIndexOf('\n') - 1);
+            }
+
+            private static int countLineBreaks(String text) {
+                int count = 0;
+                int fromIndex = 0;
+                while (true) {
+                    int index = text.indexOf('\n', fromIndex);
+                    if (index < 0)
+                        return count;
+                    count++;
+                    fromIndex = index + 1;
+                }
+            }
+
             public JsonObjectBuilder createJsonObjectBuilder() {
                 return Json.createObjectBuilder()
                     .add("line", line)
-                    .add("idx", column);
+                    .add("column", column);
             }
         }
 
@@ -262,11 +280,8 @@ public class Extended$parser_class extends $parser_class {
         }
 
         private Position[] tokenBoundaries(Token token) {
-            String text = token.getText();
-            int line_breaks = text.length() - text.replace("\n", "").length();
-            return new Position[] {new Position(token.getLine(), token.getCharPositionInLine()),
-                                   new Position(token.getLine() + line_breaks,
-                                                line_breaks == 0 ? token.getCharPositionInLine() + text.length() : text.length() - text.lastIndexOf("\n"))};
+            Position start = new Position(token.getLine(), token.getCharPositionInLine());
+            return new Position[] {start, start.after(token.getText())};
         }
 
         private void addToken(TerminalNode node, HDDToken child) {

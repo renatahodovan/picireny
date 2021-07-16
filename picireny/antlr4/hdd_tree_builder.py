@@ -308,10 +308,8 @@ def create_hdd_tree(input_stream, input_format, start, antlr, work_dir, hidden_t
                     self.current_node = self.current_node.parent
 
             def tokenBoundaries(self, token):
-                line_breaks = token.text.count('\n')
-                return Position(token.line, token.column), \
-                    Position(token.line + line_breaks,
-                             token.column + len(token.text) if not line_breaks else len(token.text) - token.text.rfind('\n'))
+                start = Position(token.line, token.column)
+                return start, start.after(token.text)
 
             def addToken(self, node, child):
                 if not self.seen_terminal:
@@ -485,36 +483,46 @@ def create_hdd_tree(input_stream, input_format, start, antlr, work_dir, hidden_t
             intervals.extend((g, m.start(g), m.end(g)) for g in list(pattern.groupindex.keys()) if m.start(g) != m.end(g))
         intervals.sort(key=lambda x: (x[1], x[2]))
 
+        def shift_positions(node, start):
+            if node.start:
+                node.start.shift(start)
+            if node.end:
+                node.end.shift(start)
+
+            if isinstance(node, HDDRule):
+                for child in node.children:
+                    shift_positions(child, start)
+
         for interval in intervals:
             # Create simple HDDToken of the substring proceeding a subgroup.
             if last_processed < interval[1]:
-                next_token_text = content[last_processed:interval[1]]
-                prefix = content[0:last_processed]
+                token_start = node.start.after(content[0:last_processed])
+                token_text = content[last_processed:interval[1]]
                 children.append(HDDToken(name='',
-                                         text=next_token_text,
-                                         start=Position(node.start.line + content[0:last_processed].count('\n'),
-                                                        len(prefix) - prefix.rfind('\n')),
-                                         end=Position(node.start.line + next_token_text.count('\n'),
-                                                      len(next_token_text) - next_token_text.rfind('\n')),
-                                         replace=next_token_text))
+                                         text=token_text,
+                                         start=token_start,
+                                         end=token_start.after(token_text),
+                                         replace=token_text))
 
             # Process an island and save its subtree.
-            children.append(build_hdd_tree(input_stream=InputStream(content[interval[1]:interval[2]]),
-                                           grammar_name=mapping[interval[0]][0],
-                                           start_rule=mapping[interval[0]][1]))
+            island_start = node.start.after(content[0:interval[1]])
+            island_root = build_hdd_tree(input_stream=InputStream(content[interval[1]:interval[2]]),
+                                         grammar_name=mapping[interval[0]][0],
+                                         start_rule=mapping[interval[0]][1])
+            shift_positions(island_root, island_start)
+            children.append(island_root)
+
             last_processed = interval[2]
 
         # Create simple HDDToken of the substring following the last subgroup if any.
         if last_processed < len(content):
-            next_token_text = content[last_processed:]
-            prefix = content[0:last_processed]
+            token_start = node.start.after(content[0:last_processed])
+            token_text = content[last_processed:]
             children.append(HDDToken(name='',
-                                     text=next_token_text,
-                                     start=Position(node.start.line + content[0:last_processed].count('\n'),
-                                                    len(prefix) - prefix.rfind('\n')),
-                                     end=Position(node.start.line + next_token_text.count('\n'),
-                                                  len(next_token_text) - next_token_text.rfind('\n')),
-                                     replace=next_token_text))
+                                     text=token_text,
+                                     start=token_start,
+                                     end=token_start.after(token_text),
+                                     replace=token_text))
         return children
 
     def calculate_rule_boundaries(node):

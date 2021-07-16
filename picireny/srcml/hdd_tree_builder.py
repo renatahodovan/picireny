@@ -1,4 +1,4 @@
-# Copyright (c) 2018-2019 Renata Hodovan, Akos Kiss.
+# Copyright (c) 2018-2021 Renata Hodovan, Akos Kiss.
 #
 # Licensed under the BSD 3-Clause License
 # <LICENSE.rst or https://opensource.org/licenses/BSD-3-Clause>.
@@ -17,10 +17,6 @@ from ..transform import remove_empty_nodes
 logger = logging.getLogger(__name__)
 
 
-def calculate_end_position(text, start):
-    return Position(start.line + len(text.splitlines()) - 1, start.idx + len(text))
-
-
 def build_hdd_tree(element, start):
     name = element.tag
     name = name.replace('{http://www.srcML.org/srcML/src}', 'src:')
@@ -31,7 +27,7 @@ def build_hdd_tree(element, start):
     result = [rule]
 
     if element.text:
-        end = calculate_end_position(element.text, start)
+        end = start.after(element.text)
         rule.add_child(HDDToken('{name}@text'.format(name=name), element.text, start=start, end=end, replace=element.text))
         rule.end = end
 
@@ -43,7 +39,7 @@ def build_hdd_tree(element, start):
             rule.end = rule.children[-1].end
 
     if element.tail:
-        result += [HDDToken('{name}@tail'.format(name=name), element.tail, start=rule.end, end=calculate_end_position(element.tail, rule.end), replace=element.tail)]
+        result += [HDDToken('{name}@tail'.format(name=name), element.tail, start=rule.end, end=rule.end.after(element.tail), replace=element.tail)]
 
     return result
 
@@ -66,7 +62,7 @@ def create_hdd_tree(src, language):
 
     root = ET.fromstring(stdout)
 
-    tree_result = build_hdd_tree(root, Position(1, 1))
+    tree_result = build_hdd_tree(root, Position())
     assert len(tree_result) == 1
     tree = tree_result[0]
 

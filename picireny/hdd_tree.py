@@ -15,18 +15,40 @@ class Position(object):
     Class defining a position in the input file. Used to recognise line breaks
     between tokens.
     """
-    def __init__(self, line, idx):
+    def __init__(self, line=1, column=0):
         """
         Initialize position object.
 
-        :param line: Line index in the input.
-        :param idx: Absolute character index in the input.
+        :param line: Line number in the input (starts with 1).
+        :param column: Character index relative to the beginning of the line
+            (starts with 0).
+
+        Note: The numbering of lines (1-based) and columns (0-based) follows
+        ANTLR v4.
         """
         self.line = line
-        self.idx = idx
+        self.column = column
+
+    def after(self, text):
+        """
+        Calculate the end position of a text starting at the current position.
+        """
+        line_breaks = text.count('\n')
+        return Position(self.line + line_breaks,
+                        self.column + len(text) if not line_breaks else len(text) - text.rfind('\n') - 1)
+
+    def shift(self, start):
+        """
+        Shift the position by prepending a starting position.
+        """
+        if self.line > 1:
+            self.line += start.line - 1
+        else:
+            self.line = start.line
+            self.column += start.column
 
     def __repr__(self):
-        return '%s(%r, %r)' % (self.__class__.__name__, self.line, self.idx)
+        return '%s(%r, %r)' % (self.__class__.__name__, self.line, self.column)
 
 
 class HDDTree:
@@ -88,7 +110,7 @@ class HDDTree:
                 if with_whitespace:
                     if node.children[i].start.line > node.children[i - 1].end.line:
                         node_str += linesep
-                    elif node.children[i].start.idx > node.children[i - 1].end.idx:
+                    elif node.children[i].start.column > node.children[i - 1].end.column:
                         node_str += ' '
                 node_str += child_strs[i]
 
