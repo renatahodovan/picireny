@@ -40,26 +40,38 @@ Requirements
 ============
 
 * Python_ ~= 2.7 or >= 3.5
-* pip_
 * Java_ SE >= 7 JRE or JDK (the latter is optional, only needed if Java is used
   as the parser language)
 
 .. _Python: https://www.python.org
-.. _pip: https://pip.pypa.io
 .. _Java: https://www.oracle.com/java/
 
 
 Install
 =======
 
-The quick way (to install the latest official release)::
+To use *Picireny* in another project, it can be added to ``setup.cfg`` as an
+install requirement (if using setuptools_ with declarative config):
+
+.. code-block:: ini
+
+    [options]
+    install_requires =
+        picireny
+
+To install *Picireny* manually, e.g., into a virtual environment, use pip_::
 
     pip install picireny
 
-Or clone the project and perform a local install (to install the freshest
-development revision)::
+The above approaches install the latest release of *Picireny* from PyPI_.
+Alternatively, for the development version, clone the project and perform a
+local install::
 
     pip install .
+
+.. _setuptools: https://github.com/pypa/setuptools
+.. _pip: https://pip.pypa.io
+.. _PyPI: https://pypi.org/
 
 
 Usage
