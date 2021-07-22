@@ -48,7 +48,7 @@ public class Extended$parser_class extends $parser_class {
 
     public static void main(String[] args) {
         try {
-            ExtendedTargetLexer lexer = new ExtendedTargetLexer(new ANTLRInputStream(new DataInputStream(System.in)));
+            ExtendedTargetLexer lexer = new ExtendedTargetLexer(CharStreams.fromStream(System.in));
             lexer.addErrorListener(new ExtendedErrorListener());
             CommonTokenStream tokens = new CommonTokenStream(lexer);
             Extended$parser_class parser = new Extended$parser_class(tokens);
