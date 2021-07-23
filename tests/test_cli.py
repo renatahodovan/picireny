@@ -38,7 +38,7 @@ antlr = os.getenv('ANTLR')
     ('--parallel', ),
 ])
 def test_cli(test, inp, exp, grammar, rule, input_format, args, tmpdir):
-    out_dir = '%s' % tmpdir
+    out_dir = str(tmpdir)
     cmd = (sys.executable, '-m', 'picireny') \
           + ('--test=' + test + script_ext, '--input=' + inp, '--out=' + out_dir) \
           + ('--log-level=TRACE', )
