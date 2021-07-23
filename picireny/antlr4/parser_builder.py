@@ -1,4 +1,4 @@
-# Copyright (c) 2016-2019 Renata Hodovan, Akos Kiss.
+# Copyright (c) 2016-2021 Renata Hodovan, Akos Kiss.
 #
 # Licensed under the BSD 3-Clause License
 # <LICENSE.rst or https://opensource.org/licenses/BSD-3-Clause>.
@@ -6,11 +6,10 @@
 # according to those terms.
 
 import logging
-import sys
 
 from os import listdir
 from os.path import basename, commonprefix, split, splitext
-from subprocess import CalledProcessError, PIPE, Popen
+from subprocess import CalledProcessError, PIPE, run, STDOUT
 
 logger = logging.getLogger(__name__)
 grammar_cache = {}
@@ -38,19 +37,16 @@ def build_grammars(grammars, out, antlr, lang='python'):
 
     try:
         languages = {
-            'python': {'antlr_arg': '-Dlanguage=Python{major}'.format(major=sys.version_info.major), 'ext': 'py', 'listener_format': 'Listener'},
-            'java': {'antlr_arg': '', 'ext': 'java', 'listener_format': 'BaseListener'},
+            'python': {'antlr_arg': '-Dlanguage=Python3', 'ext': 'py', 'listener_format': 'Listener'},
+            'java': {'antlr_arg': '-Dlanguage=Java', 'ext': 'java', 'listener_format': 'BaseListener'},
         }
 
-        cmd = 'java -jar {antlr} {lang} -o {out} {grammars}'.format(antlr=antlr,
-                                                                    lang=languages[lang]['antlr_arg'],
-                                                                    out=out,
-                                                                    grammars=' '.join(grammars))
-        proc = Popen(cmd, stdout=PIPE, stderr=PIPE, shell=True, cwd=out)
-        stdout, stderr = proc.communicate()
-        if proc.returncode:
-            logger.error('Building grammars %r failed!\n%s\n%s\n', grammars, stdout, stderr)
-            raise CalledProcessError(returncode=proc.returncode, cmd=cmd, output=stdout + stderr)
+        try:
+            run(('java', '-jar', antlr, languages[lang]['antlr_arg'], '-o', out) + grammars,
+                stdout=PIPE, stderr=STDOUT, cwd=out, check=True)
+        except CalledProcessError as e:
+            logger.error('Building grammars %r failed!\n%s\n', grammars, e.output)
+            raise
 
         files = listdir(out)
         filename = basename(grammars[0])
@@ -75,4 +71,4 @@ def build_grammars(grammars, out, antlr, lang='python'):
         return grammar_cache[lang][grammars]
     except Exception as e:
         logger.error('Exception while loading parser modules', exc_info=e)
-        raise e
+        raise

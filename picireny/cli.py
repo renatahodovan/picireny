@@ -5,14 +5,12 @@
 # This file may not be copied, modified, or distributed except
 # according to those terms.
 
-from __future__ import absolute_import
-
 import codecs
 import json
 
 from argparse import ArgumentParser, Namespace
 from os import makedirs
-from os.path import abspath, basename, dirname, exists, isdir, join, realpath
+from os.path import abspath, basename, dirname, exists, join, realpath
 from shutil import rmtree
 
 import antlerinator
@@ -183,8 +181,7 @@ def build_with_antlr4(input, src, encoding, out,
     picire.cli.log_args('Building tree with ANTLRv4 for %s' % input, args)
 
     grammar_workdir = join(out, 'grammar')
-    if not isdir(grammar_workdir):
-        makedirs(grammar_workdir)
+    makedirs(grammar_workdir, exist_ok=True)
 
     from .antlr4 import create_hdd_tree
     hdd_tree = create_hdd_tree(InputStream(src.decode(encoding)), input_format, start, antlr, grammar_workdir,
@@ -288,8 +285,7 @@ def reduce(hdd_tree, hddmin,
         logger.info('Phase #%d', phase_cnt)
 
         tests_workdir = join(out, 'tests', 'phase_%d' % phase_cnt)
-        if not isdir(tests_workdir):
-            makedirs(tests_workdir)
+        makedirs(tests_workdir, exist_ok=True)
 
         hdd_tree = hddmin(hdd_tree,
                           reduce_class, reduce_config,

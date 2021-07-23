@@ -5,11 +5,5 @@
 # This file may not be copied, modified, or distributed except
 # according to those terms.
 
-import sys
-
-if sys.version_info.major == 2:
-    from .py2 import ANTLRv4Lexer, ANTLRv4Parser
-else:
-    from .py3 import ANTLRv4Lexer, ANTLRv4Parser
-
-del sys
+from .ANTLRv4Lexer import ANTLRv4Lexer
+from .ANTLRv4Parser import ANTLRv4Parser

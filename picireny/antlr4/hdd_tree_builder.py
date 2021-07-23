@@ -11,11 +11,12 @@ import re
 import shutil
 import sys
 
+from glob import glob
 from os import makedirs, pathsep
-from os.path import basename, isdir, join
+from os.path import basename, join
 from pkgutil import get_data
 from string import Template
-from subprocess import CalledProcessError, PIPE, Popen
+from subprocess import CalledProcessError, PIPE, run, STDOUT
 
 from antlr4 import CommonTokenStream, error, InputStream, Token
 from antlr4.Token import CommonToken
@@ -125,12 +126,12 @@ def create_hdd_tree(input_stream, input_format, start, antlr, work_dir, hidden_t
             f.write(executor.substitute(dict(lexer_class=lexer,
                                              parser_class=parser,
                                              listener_class=listener)))
-        cmd = 'javac -classpath {classpath} *.java'.format(classpath=java_classpath(current_workdir))
-        proc = Popen(cmd, shell=True, cwd=current_workdir, stdout=PIPE, stderr=PIPE)
-        stdout, stderr = proc.communicate()
-        if proc.returncode != 0:
-            logger.error('Java compile failed!\n%s\n%s\n', stdout, stderr)
-            raise CalledProcessError(returncode=proc.returncode, cmd=cmd, output=stdout + stderr)
+        try:
+            run(('javac', '-classpath', java_classpath(current_workdir)) + tuple(basename(j) for j in glob(join(current_workdir, '*.java'))),
+                stdout=PIPE, stderr=STDOUT, cwd=current_workdir, check=True)
+        except CalledProcessError as e:
+            logger.error('Java compile failed!\n%s\n', e.output)
+            raise
 
     def prepare_parsing(grammar_name):
         """
@@ -147,8 +148,7 @@ def create_hdd_tree(input_stream, input_format, start, antlr, work_dir, hidden_t
         logger.debug('Replacements are calculated...')
 
         current_workdir = join(grammar_workdir, grammar_name) if grammar_name else grammar_workdir
-        if not isdir(current_workdir):
-            makedirs(current_workdir)
+        makedirs(current_workdir, exist_ok=True)
         if current_workdir not in sys.path:
             sys.path.append(current_workdir)
 
@@ -392,19 +392,17 @@ def create_hdd_tree(input_stream, input_format, start, antlr, work_dir, hidden_t
                         island_nodes.append(node)
                 return node
 
-            current_workdir = join(grammar_workdir, grammar_name) if grammar_name else grammar_workdir
-            cmd = 'java -classpath {classpath} Extended{parser} {start_rule}'.format(classpath=java_classpath(current_workdir),
-                                                                                     parser=grammar['parser'],
-                                                                                     start_rule=start_rule)
-            proc = Popen(cmd, cwd=current_workdir, shell=True, stdin=PIPE, stdout=PIPE, stderr=PIPE, universal_newlines=True)
-            stdout, stderr = proc.communicate(input=input_stream.strdata)
-            if proc.returncode != 0:
-                logger.error('Java parser failed!\n%s\n%s', stdout, stderr)
-                raise CalledProcessError(returncode=proc.returncode, cmd=cmd, output=stdout + stderr)
-            if stderr:
-                logger.debug(stderr)
-            result = json.loads(stdout)
-            tree_root = hdd_tree_from_json(result)
+            try:
+                current_workdir = join(grammar_workdir, grammar_name) if grammar_name else grammar_workdir
+                proc = run(('java', '-classpath', java_classpath(current_workdir), 'Extended{parser}'.format(parser=grammar['parser']), start_rule),
+                           input=input_stream.strdata, stdout=PIPE, stderr=PIPE, universal_newlines=True, cwd=current_workdir, check=True)
+                if proc.stderr:
+                    logger.debug(proc.stderr)
+                result = json.loads(proc.stdout)
+                tree_root = hdd_tree_from_json(result)
+            except CalledProcessError as e:
+                logger.error('Java parser failed!\n%s\n%s', e.stdout, e.stderr)
+                raise
         else:
             lexer = grammar['lexer'](input_stream)
             lexer.addErrorListener(ExtendedErrorListener())

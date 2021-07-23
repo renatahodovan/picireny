@@ -8,7 +8,7 @@
 import logging
 import xml.etree.ElementTree as ET
 
-from subprocess import CalledProcessError, PIPE, Popen
+from subprocess import CalledProcessError, PIPE, run
 
 from ..hdd_tree import HDDRule, HDDToken, Position
 from ..transform import remove_empty_nodes
@@ -53,12 +53,12 @@ def create_hdd_tree(src, language):
     :return: The root of the created HDD tree.
     """
 
-    cmd = 'srcml --language={language}'.format(language=language)
-    proc = Popen(cmd, stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
-    stdout, stderr = proc.communicate(src)
-    if proc.returncode:
-        logger.error('Parsing with srcml failed!\n%s\n%s\n', stdout, stderr)
-        raise CalledProcessError(returncode=proc.returncode, cmd=cmd, output=stdout + stderr)
+    try:
+        stdout = run(('srcml', '--language={language}'.format(language=language)),
+                     input=src, stdout=PIPE, stderr=PIPE, check=True).stdout
+    except CalledProcessError as e:
+        logger.error('Parsing with srcml failed!\n%s\n%s\n', e.stdout, e.stderr)
+        raise
 
     root = ET.fromstring(stdout)
 

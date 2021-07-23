@@ -51,9 +51,7 @@ def test_cli(test, inp, exp, grammar, rule, input_format, args, tmpdir):
     if antlr:
         cmd += ('--antlr=' + antlr, )
     cmd += args
-    proc = subprocess.Popen(cmd, cwd=resources_dir)
-    proc.communicate()
-    assert proc.returncode == 0
+    subprocess.run(cmd, cwd=resources_dir, check=True)
 
     with open(os.path.join(out_dir, inp), 'rb') as outf:
         outb = outf.read()
