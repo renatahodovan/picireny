@@ -63,12 +63,11 @@ class ConsoleListener(error.ErrorListener.ConsoleErrorListener):
 error.ErrorListener.ConsoleErrorListener.INSTANCE = ConsoleListener()
 
 
-def create_hdd_tree(input_stream, input_format, start, antlr, work_dir, hidden_tokens=False, lang='python'):
+def create_hdd_tree(src, input_format, start, antlr, work_dir, hidden_tokens=False, lang='python'):
     """
     Build a tree that the HDD algorithm can work with.
 
-    :param input_stream: ANTLR stream (FileStream or InputStream) representing
-        the input.
+    :param src: Input source.
     :param input_format: Dictionary describing the input format.
     :param start: Name of the start rule in [grammarname:]rulename format.
     :param antlr: Path to the ANTLR4 tool (Java jar binary).
@@ -343,12 +342,11 @@ def create_hdd_tree(input_stream, input_format, start, antlr, work_dir, hidden_t
             recognizer._type = Token.MIN_USER_TOKEN_TYPE
             recognizer.emitToken(t)
 
-    def build_hdd_tree(input_stream, grammar_name, start_rule):
+    def build_hdd_tree(src, grammar_name, start_rule):
         """
         Parse the input with the provided ANTLR classes.
 
-        :param input_stream: ANTLR stream (FileStream or InputStream)
-            representing the input.
+        :param src: Input source.
         :param grammar_name: Name of the grammar to use for parsing.
         :param start_rule: The name of the start rule of the parser.
         :return: The root of the created HDD tree.
@@ -395,7 +393,7 @@ def create_hdd_tree(input_stream, input_format, start, antlr, work_dir, hidden_t
             try:
                 current_workdir = join(grammar_workdir, grammar_name) if grammar_name else grammar_workdir
                 proc = run(('java', '-classpath', java_classpath(current_workdir), 'Extended{parser}'.format(parser=grammar['parser']), start_rule),
-                           input=input_stream.strdata, stdout=PIPE, stderr=PIPE, universal_newlines=True, cwd=current_workdir, check=True)
+                           input=src, stdout=PIPE, stderr=PIPE, universal_newlines=True, cwd=current_workdir, check=True)
                 if proc.stderr:
                     logger.debug(proc.stderr)
                 result = json.loads(proc.stdout)
@@ -404,7 +402,7 @@ def create_hdd_tree(input_stream, input_format, start, antlr, work_dir, hidden_t
                 logger.error('Java parser failed!\n%s\n%s', e.stdout, e.stderr)
                 raise
         else:
-            lexer = grammar['lexer'](input_stream)
+            lexer = grammar['lexer'](InputStream(src))
             lexer.addErrorListener(ExtendedErrorListener())
             target_parser = grammar['parser'](CommonTokenStream(lexer))
             parser_listener = grammar['listener'](target_parser)
@@ -477,7 +475,7 @@ def create_hdd_tree(input_stream, input_format, start, antlr, work_dir, hidden_t
 
             # Process an island and save its subtree.
             island_start = node.start.after(content[0:interval[1]])
-            island_root = build_hdd_tree(input_stream=InputStream(content[interval[1]:interval[2]]),
+            island_root = build_hdd_tree(src=content[interval[1]:interval[2]],
                                          grammar_name=mapping[interval[0]][0],
                                          start_rule=mapping[interval[0]][1])
             shift_positions(island_root, island_start)
@@ -593,7 +591,7 @@ def create_hdd_tree(input_stream, input_format, start, antlr, work_dir, hidden_t
 
     start_grammar, start_rule = split_grammar_rule_name(start)
     prepare_parsing(start_grammar)
-    tree = build_hdd_tree(input_stream=input_stream,
+    tree = build_hdd_tree(src=src,
                           grammar_name=start_grammar,
                           start_rule=start_rule)
     if not hidden_tokens:

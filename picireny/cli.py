@@ -18,7 +18,6 @@ import inators
 import picire
 import pkg_resources
 
-from antlr4 import InputStream
 from inators import log as logging
 
 from . import filter, hdd, hddr, hoist, info, prune, transform
@@ -184,7 +183,7 @@ def build_with_antlr4(input, src, encoding, out,
     makedirs(grammar_workdir, exist_ok=True)
 
     from .antlr4 import create_hdd_tree
-    hdd_tree = create_hdd_tree(InputStream(src.decode(encoding)), input_format, start, antlr, grammar_workdir,
+    hdd_tree = create_hdd_tree(src.decode(encoding), input_format, start, antlr, grammar_workdir,
                                hidden_tokens=build_hidden_tokens, lang=lang)
 
     if cleanup:
