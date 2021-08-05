@@ -78,8 +78,6 @@ def create_hdd_tree(src, input_format, start, antlr, work_dir, hidden_tokens=Fal
     :return: The root of the created HDD tree.
     """
 
-    grammar_workdir = join(work_dir, 'target')
-
     def inject_optional_actions(grammar, positions, target_file):
         """
         Update the original parser grammar by injecting actions to the start and
@@ -146,7 +144,7 @@ def create_hdd_tree(src, input_format, start, antlr, work_dir, hidden_tokens=Fal
         replacements, action_positions = analyze_grammars(grammar['files'], grammar['replacements'])
         logger.debug('Replacements are calculated...')
 
-        current_workdir = join(grammar_workdir, grammar_name) if grammar_name else grammar_workdir
+        current_workdir = join(work_dir, grammar_name) if grammar_name else work_dir
         makedirs(current_workdir, exist_ok=True)
         if current_workdir not in sys.path:
             sys.path.append(current_workdir)
@@ -391,7 +389,7 @@ def create_hdd_tree(src, input_format, start, antlr, work_dir, hidden_tokens=Fal
                 return node
 
             try:
-                current_workdir = join(grammar_workdir, grammar_name) if grammar_name else grammar_workdir
+                current_workdir = join(work_dir, grammar_name) if grammar_name else work_dir
                 proc = run(('java', '-classpath', java_classpath(current_workdir), 'Extended{parser}'.format(parser=grammar['parser']), start_rule),
                            input=src, stdout=PIPE, stderr=PIPE, universal_newlines=True, cwd=current_workdir, check=True)
                 if proc.stderr:
