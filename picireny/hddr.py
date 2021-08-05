@@ -9,8 +9,6 @@
 import itertools
 import logging
 
-from os.path import join
-
 from .prune import prune
 
 logger = logging.getLogger(__name__)
@@ -18,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 def hddrmin(hdd_tree, *,
             reduce_class, reduce_config, tester_class, tester_config,
-            test_name, work_dir, id_prefix=(), cache=None, unparse_with_whitespace=True,
+            id_prefix=(), cache=None, unparse_with_whitespace=True,
             config_filter=None, transformations=(prune,), hdd_star=True,
             pop_first=False, append_reversed=False):
     """
@@ -43,7 +41,7 @@ def hddrmin(hdd_tree, *,
 
     :param hdd_tree: The root of the tree that the reduce will work with (it's
         the output of create_hdd_tree).
-    :param reduce_class: Reference to the reducer class (LightDD, ParallelDD or
+    :param reduce_class: Reference to the reducer class (DD, ParallelDD or
         CombinedParallelDD from the picire module).
     :param reduce_config: Dictionary containing the parameters of the
         reduce_class init function.
@@ -51,8 +49,6 @@ def hddrmin(hdd_tree, *,
         interestingness of a test case.
     :param tester_config: Dictionary containing the parameters of the tester
         class init function (except test_builder).
-    :param test_name: Name of the test case file.
-    :param work_dir: Directory to save temporary test files.
     :param id_prefix: Tuple to prepend to config IDs during tests.
     :param cache: Cache to use.
     :param unparse_with_whitespace: Build test case by adding whitespace between
@@ -95,7 +91,6 @@ def hddrmin(hdd_tree, *,
                     hdd_tree, transformed = transformation(hdd_tree, children,
                                                            reduce_class=reduce_class, reduce_config=reduce_config,
                                                            tester_class=tester_class, tester_config=tester_config,
-                                                           test_pattern=join(work_dir, 'iter_%d' % iter_cnt, 'node_%d' % node_cnt, 'trans_%d' % trans_cnt, '%s', test_name),
                                                            id_prefix=id_prefix + ('i%d' % iter_cnt, 'n%d' % node_cnt, 't%d' % trans_cnt),
                                                            cache=cache,
                                                            unparse_with_whitespace=unparse_with_whitespace)

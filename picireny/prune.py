@@ -9,7 +9,7 @@ import logging
 
 from copy import copy
 
-from picire import AbstractDD
+from picire import AbstractDD, Outcome
 
 logger = logging.getLogger(__name__)
 
@@ -86,7 +86,7 @@ class EmptyDD(AbstractDD):
         logger.debug('\tConfig: %r', config)
 
         outcome = self._lookup_cache(empty, config_id) or self._test_config(empty, config_id)
-        if outcome == self.FAIL:
+        if outcome == Outcome.FAIL:
             config = empty
             logger.info('\tReduced')
 
@@ -96,14 +96,14 @@ class EmptyDD(AbstractDD):
 
 def prune(hdd_tree, config_nodes, *,
           reduce_class, reduce_config, tester_class, tester_config,
-          test_pattern, id_prefix, cache, unparse_with_whitespace):
+          id_prefix, cache, unparse_with_whitespace):
     """
     Pruning-based reduction of a set of nodes (i.e., sub-trees), as used by
     various hierarchical delta debugging algorithm variants.
 
     :param hdd_tree: The root of the tree.
     :param config_nodes: The list of nodes to reduce.
-    :param reduce_class: Reference to the reducer class (LightDD, ParallelDD or
+    :param reduce_class: Reference to the reducer class (DD, ParallelDD or
         CombinedParallelDD from the picire module).
     :param reduce_config: Dictionary containing the parameters of the
         reduce_class init function.
@@ -111,8 +111,6 @@ def prune(hdd_tree, config_nodes, *,
         interestingness of a test case.
     :param tester_config: Dictionary containing the parameters of the tester
         class init function (except test_builder).
-    :param test_pattern: The pattern of the test's path. It contains one %s part
-        that will be replaced with the ID of the certain configurations.
     :param id_prefix: Tuple to prepend to config IDs during tests.
     :param cache: Cache to use.
     :param unparse_with_whitespace: Build test case by adding whitespace between
@@ -128,7 +126,7 @@ def prune(hdd_tree, config_nodes, *,
         cache.clear()
         cache.set_test_builder(test_builder)
 
-    test = tester_class(test_builder=test_builder, test_pattern=test_pattern, **tester_config)
+    test = tester_class(test_builder=test_builder, **tester_config)
     dd = reduce_class(test, cache=cache, id_prefix=id_prefix, **reduce_config)
     c = dd(config_ids)
     if len(c) == 1:

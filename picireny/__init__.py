@@ -8,7 +8,7 @@
 from . import cli
 from . import info
 from . import transform
-from .cli import __version__, build_with_antlr4, build_with_srcml, process_antlr4_format, process_antlr4_path, reduce
+from .cli import __version__, build_with_antlr4, build_with_srcml, reduce
 from .hdd import hddmin
 from .hddr import hddrmin
 from .hdd_tree import HDDRule, HDDToken, HDDTree

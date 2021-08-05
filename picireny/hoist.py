@@ -9,7 +9,7 @@
 import itertools
 import logging
 
-from picire import AbstractDD
+from picire import AbstractDD, Outcome
 
 logger = logging.getLogger(__name__)
 
@@ -90,7 +90,7 @@ class MappingMin(AbstractDD):
 
                 outcome = self._lookup_cache(mapping_config, config_id) or self._test_config(mapping_config, config_id)
 
-                if outcome == self.FAIL:
+                if outcome == Outcome.FAIL:
                     mapping = new_mapping
                     logger.info('\tHoisted')
                     break
@@ -103,7 +103,7 @@ class MappingMin(AbstractDD):
 
 def hoist(hdd_tree, config_nodes, *,
           reduce_class=None, reduce_config=None, tester_class, tester_config,
-          test_pattern, id_prefix, cache, unparse_with_whitespace):
+          id_prefix, cache, unparse_with_whitespace):
     """
     Try hoisting subtrees.
 
@@ -117,7 +117,6 @@ def hoist(hdd_tree, config_nodes, *,
         interestingness of a test case.
     :param tester_config: Dictionary containing the parameters of the tester
         class init function (except test_builder).
-    :param test_pattern: Directory to save temporary test files.
     :param id_prefix: Tuple to prepend to config IDs during tests.
     :param cache: Cache to use.
     :param unparse_with_whitespace: Build test case by adding whitespace between
@@ -132,7 +131,7 @@ def hoist(hdd_tree, config_nodes, *,
     test_builder = HoistingTestBuilder(hdd_tree, with_whitespace=unparse_with_whitespace)
     cache.set_test_builder(test_builder)
 
-    test = tester_class(test_builder=test_builder, test_pattern=test_pattern, **tester_config)
+    test = tester_class(test_builder=test_builder, **tester_config)
     mapping_min = MappingMin(test, cache=cache, id_prefix=id_prefix)
     mapping = mapping_min(config_nodes)
 

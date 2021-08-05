@@ -5,12 +5,10 @@
 # This file may not be copied, modified, or distributed except
 # according to those terms.
 
-import codecs
 import json
 
-from argparse import ArgumentParser, Namespace
-from os import makedirs
-from os.path import abspath, basename, dirname, exists, join, realpath
+from argparse import ArgumentParser
+from os.path import abspath, dirname, exists, join, realpath
 from shutil import rmtree
 
 import antlerinator
@@ -41,104 +39,80 @@ args_phase_choices = {
 }
 
 
-def process_antlr4_path(antlr=None):
-    args = Namespace(antlr=antlr)
+def process_antlr4_args(args):
     antlerinator.process_antlr_argument(args)
+    args.antlr = realpath(args.antlr)
 
-    if not exists(args.antlr):
-        logger.error('%s does not exist.', args.antlr)
-        return None
-
-    return realpath(args.antlr)
-
-
-def process_antlr4_format(format=None, grammar=None, start=None, replacements=None):
     def load_format_config(data):
         # Interpret relative grammar paths compared to the directory of the config file.
         if 'files' in data:
             for i, fn in enumerate(data['files']):
-                path = join(abspath(dirname(format)), fn)
+                path = join(abspath(dirname(args.format)), fn)
                 if not exists(path):
-                    logger.error('%s, defined in the format config, does not exist.', path)
-                    return None, None
+                    raise ValueError('Invalid input format definition: %s, defined in the format config, does not exist.' % path)
                 data['files'][i] = path
             data['islands'] = data.get('islands', {})
             data['replacements'] = data.get('replacements', {})
         return data
 
-    input_format = {}
+    args.input_format = {}
 
-    if format:
-        if not exists(format):
-            logger.error('%s does not exist.', format)
-            return None, None
+    if args.format:
+        if not exists(args.format):
+            raise ValueError('Invalid input format definition: %s does not exist.' % args.format)
 
-        with open(format, 'r') as f:
+        with open(args.format, 'r') as f:
             try:
                 input_description = json.load(f, object_hook=load_format_config)
-                input_format = input_description['grammars']
-                if not start:
-                    start = input_description.get('start', None)
-            except ValueError as err:
-                logger.error('The content of %s is not a valid JSON object.', format, exc_info=err)
-                return None, None
+                args.input_format = input_description['grammars']
+                if not args.start:
+                    args.start = input_description.get('start', None)
+            except ValueError as e:
+                raise ValueError('Invalid input format definition: The content of %s is not a valid JSON object.' % args.format) from e
 
-    if not start:
-        logger.error('No start has been defined.')
-        return None, None
+    if not args.start:
+        raise ValueError('Invalid input format definition: No start has been defined.')
 
-    if grammar or replacements:
+    if args.grammar or args.replacements:
         # Initialize the default grammar that doesn't need to be named.
-        input_format[''] = input_format.get('', {'files': [], 'replacements': {}, 'islands': {}})
+        if '' not in args.input_format:
+            args.input_format[''] = {'files': [], 'replacements': {}, 'islands': {}}
 
-        if grammar:
-            for i, g in enumerate(grammar):
-                input_format['']['files'].append(realpath(g))
-                if not exists(input_format['']['files'][i]):
-                    logger.error('%s does not exist.', input_format['']['files'][i])
-                    return None, None
+        if args.grammar:
+            for i, g in enumerate(args.grammar):
+                args.input_format['']['files'].append(realpath(g))
+                if not exists(args.input_format['']['files'][i]):
+                    raise ValueError('Invalid input format definition: %s does not exist.' % args.input_format['']['files'][i])
 
-        if replacements:
-            if not exists(replacements):
-                logger.error('%s does not exist.', replacements)
-                return None, None
+        if args.replacements:
+            if not exists(args.replacements):
+                raise ValueError('Invalid input format definition: %s does not exist.' % args.replacements)
 
             try:
-                with open(replacements, 'r') as f:
-                    input_format['']['replacements'] = json.load(f)
-            except ValueError as err:
-                logger.error('The content of %s is not a valid JSON object.', replacements, exc_info=err)
-                return None, None
-
-    return input_format, start
+                with open(args.replacements, 'r') as f:
+                    args.input_format['']['replacements'] = json.load(f)
+            except ValueError as e:
+                raise ValueError('Invalid input format definition: The content of %s is not a valid JSON object.' % args.replacements) from e
 
 
-def process_antlr4_args(arg_parser, args):
-    args.antlr = process_antlr4_path(args.antlr)
-    if args.antlr is None:
-        arg_parser.error('Invalid ANTLR definition.')
-
-    args.input_format, args.start = process_antlr4_format(format=args.format, grammar=args.grammar, start=args.start,
-                                                          replacements=args.replacements)
-    if args.input_format is None or args.start is None:
-        arg_parser.error('Invalid input format definition.')
-
-
-def process_srcml_args(arg_parser, args):
+def process_srcml_args(args):
     if not args.srcml_language:
-        arg_parser.error('The following argument is required for srcML: --srcml:language')
+        raise ValueError('The following argument is required for srcML: --srcml:language')
 
 
-def process_args(arg_parser, args):
+def process_args(args):
+    inators.arg.process_log_level_argument(args, logger)
+    inators.arg.process_sys_recursion_limit_argument(args)
+
     args.hddmin = args_hdd_choices[args.hdd]
     args.hdd_phase_configs = [args_phase_choices[phase] for phase in (args.phase or ['prune'])]
 
     if args.builder == 'antlr4':
-        process_antlr4_args(arg_parser, args)
+        process_antlr4_args(args)
     elif args.builder == 'srcml':
-        process_srcml_args(arg_parser, args)
+        process_srcml_args(args)
 
-    picire.cli.process_args(arg_parser, args)
+    picire.cli.process_args(args)
 
 
 def log_tree(title, hdd_tree):
@@ -151,66 +125,52 @@ def log_tree(title, hdd_tree):
 
 
 def build_with_antlr4(src, *,
-                      input, encoding, out,
                       input_format, start,
                       antlr, lang='python',
                       build_hidden_tokens=False,
-                      cleanup=True):
+                      work_dir):
     """
     Execute ANTLRv4-based tree building part of picireny as if invoked from
     command line, however, control its behaviour not via command line arguments
     but function parameters.
 
     :param src: Contents of the test case to reduce.
-    :param input: Path to the test case to reduce (only used for logging).
-    :param encoding: Encoding of the input test case.
-    :param out: Path to the output directory.
     :param input_format: Dictionary describing the input format.
     :param start: Name of the start rule in [grammarname:]rulename format.
     :param antlr: Path to the ANTLR4 tool (Java jar binary).
     :param lang: The target language of the parser.
     :param build_hidden_tokens: Build hidden tokens of the input format into the
         HDD tree.
-    :param cleanup: Binary flag denoting whether removing auxiliary files at the
-        end is enabled.
+    :param work_dir: Path to a working directory.
     :return: The built HDD tree.
     """
     # Get the parameters in a dictionary so that they can be pretty-printed
     args = locals().copy()
     del args['src']
-    picire.cli.log_args('Building tree with ANTLRv4 for %s' % input, args)
-
-    grammar_workdir = join(out, 'grammar')
-    makedirs(grammar_workdir, exist_ok=True)
+    picire.cli.log_args('Building tree with ANTLRv4', args)
 
     from .antlr4 import create_hdd_tree
-    hdd_tree = create_hdd_tree(src.decode(encoding),
-                               input_format=input_format, start=start,
-                               antlr=antlr, lang=lang,
-                               hidden_tokens=build_hidden_tokens,
-                               work_dir=grammar_workdir)
-
-    if cleanup:
-        rmtree(grammar_workdir)
-
-    return hdd_tree
+    return create_hdd_tree(src,
+                           input_format=input_format, start=start,
+                           antlr=antlr, lang=lang,
+                           hidden_tokens=build_hidden_tokens,
+                           work_dir=work_dir)
 
 
-def build_with_srcml(src, *, input, language):
+def build_with_srcml(src, *, language):
     """
     Execute srcML-based tree building part of picireny as if invoked from
     command line, however, control its behaviour not via command line arguments
     but function parameters.
 
     :param src: Contents of the test case to reduce.
-    :param input: Path to the test case to reduce (only used for logging).
     :param language: Language of the input source (C, C++, C#, or Java).
     :return: The built HDD tree.
     """
     # Get the parameters in a dictionary so that they can be pretty-printed
     args = locals().copy()
     del args['src']
-    picire.cli.log_args('Building tree with srcML for %s' % input, args)
+    picire.cli.log_args('Building tree with srcML', args)
 
     from .srcml import create_hdd_tree
     return create_hdd_tree(src, language=language)
@@ -218,10 +178,9 @@ def build_with_srcml(src, *, input, language):
 
 def reduce(hdd_tree, *,
            hddmin, reduce_class, reduce_config, tester_class, tester_config,
-           test_name, out, cache_class=None, unparse_with_whitespace=True,
+           cache_class=None, unparse_with_whitespace=True,
            hdd_phase_configs=({},), hdd_star=True,
-           flatten_recursion=False, squeeze_tree=True, skip_unremovable=True, skip_whitespace=False,
-           cleanup=True):
+           flatten_recursion=False, squeeze_tree=True, skip_unremovable=True, skip_whitespace=False):
     """
     Execute tree reduction part of picireny as if invoked from command line,
     however, control its behaviour not via command line arguments but function
@@ -236,8 +195,6 @@ def reduce(hdd_tree, *,
         interestingness of a test case.
     :param tester_config: Dictionary containing information to initialize the
         tester_class.
-    :param test_name: Name of the output test file with extension.
-    :param out: Path to the output directory.
     :param cache_class: Reference to the cache class to use.
     :param unparse_with_whitespace: Unparse by adding whitespace between
         nonadjacent nodes.
@@ -251,14 +208,12 @@ def reduce(hdd_tree, *,
         ddmin.
     :param skip_whitespace: Boolean to enable hiding whitespace-only tokens from
         ddmin.
-    :param cleanup: Binary flag denoting whether removing auxiliary files at the
-        end is enabled.
     :return: The reduced HDD tree.
     """
     # Get the parameters in a dictionary so that they can be pretty-printed
     args = locals().copy()
     del args['hdd_tree']
-    picire.cli.log_args('Reduce session starts for %s' % test_name, args)
+    picire.cli.log_args('Reduce session starts', args)
 
     log_tree('Initial tree', hdd_tree)
 
@@ -282,24 +237,15 @@ def reduce(hdd_tree, *,
     # Perform reduction.
     for phase_cnt, phase_config in enumerate(hdd_phase_configs):
         logger.info('Phase #%d', phase_cnt)
-
-        tests_workdir = join(out, 'tests', 'phase_%d' % phase_cnt)
-        makedirs(tests_workdir, exist_ok=True)
-
         hdd_tree = hddmin(hdd_tree,
                           reduce_class=reduce_class, reduce_config=reduce_config,
                           tester_class=tester_class, tester_config=tester_config,
-                          test_name=test_name,
-                          work_dir=tests_workdir,
                           id_prefix=('p%d' % phase_cnt,),
                           cache=cache_class() if cache_class else None,
                           unparse_with_whitespace=unparse_with_whitespace,
                           hdd_star=hdd_star,
                           **phase_config)
         log_tree('Tree after reduction phase #%d' % phase_cnt, hdd_tree)
-
-        if cleanup:
-            rmtree(tests_workdir)
 
     return hdd_tree
 
@@ -308,6 +254,7 @@ def execute():
     """
     The main entry point of picireny.
     """
+    logging.basicConfig(format='%(message)s')
 
     arg_parser = ArgumentParser(description='CLI for the Picireny Hierarchical Delta Debugging Framework',
                                 parents=[picire.cli.create_parser()], add_help=False)
@@ -359,43 +306,36 @@ def execute():
                            help='language of the input (%(choices)s; default: %(default)s)')
 
     args = arg_parser.parse_args()
-    process_args(arg_parser, args)
 
-    logging.basicConfig(format='%(message)s')
-    inators.arg.process_log_level_argument(args, logger)
-    inators.arg.process_log_level_argument(args, logging.getLogger('picire'))
-
-    inators.arg.process_sys_recursion_limit_argument(args)
+    try:
+        process_args(args)
+    except ValueError as e:
+        arg_parser.error(e)
 
     if args.builder == 'antlr4':
+        work_dir = join(args.out, 'grammar')
         hdd_tree = build_with_antlr4(args.src,
-                                     input=args.input, encoding=args.encoding, out=args.out,
                                      input_format=args.input_format, start=args.start,
                                      antlr=args.antlr, lang=args.parser,
                                      build_hidden_tokens=args.build_hidden_tokens,
-                                     cleanup=args.cleanup)
+                                     work_dir=work_dir)
         unparse_with_whitespace = not args.build_hidden_tokens
+        if args.cleanup:
+            rmtree(work_dir)
     elif args.builder == 'srcml':
-        hdd_tree = build_with_srcml(args.src, input=args.input, language=args.srcml_language)
+        hdd_tree = build_with_srcml(args.src, language=args.srcml_language)
         unparse_with_whitespace = False
 
-    test_name = basename(args.input)
     hdd_tree = reduce(hdd_tree,
                       hddmin=args.hddmin,
                       reduce_class=args.reduce_class, reduce_config=args.reduce_config,
                       tester_class=args.tester_class, tester_config=args.tester_config,
-                      test_name=test_name, out=args.out,
                       cache_class=args.cache, unparse_with_whitespace=unparse_with_whitespace,
                       hdd_phase_configs=args.hdd_phase_configs, hdd_star=args.hdd_star,
                       flatten_recursion=args.flatten_recursion,
                       squeeze_tree=args.squeeze_tree,
                       skip_unremovable=args.skip_unremovable,
-                      skip_whitespace=args.skip_whitespace,
-                      cleanup=args.cleanup)
+                      skip_whitespace=args.skip_whitespace)
     out_src = hdd_tree.unparse(with_whitespace=unparse_with_whitespace)
 
-    # Save result to a file named the same like the original.
-    out_file = join(args.out, test_name)
-    with codecs.open(out_file, 'w', encoding=args.encoding, errors='ignore') as f:
-        f.write(out_src)
-    logger.info('Result is saved to %s.', out_file)
+    picire.cli.postprocess(args, out_src)
