@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 # Paser Elements
 
 class ANTLRElement(object):
-    def __init__(self, optional=False, repl=None, sep=''):
+    def __init__(self, *, optional=False, repl=None, sep=''):
         """
         Constructor of the base tree node type.
 
@@ -65,26 +65,26 @@ class ANTLRRule(ANTLRElement):
     generated automatically. If it's set by the user then it won't be changed
     ever (even if it isn't minimal).
     """
-    def __init__(self, name, repl):
-        ANTLRElement.__init__(self, repl=repl)
+    def __init__(self, name, *, repl=None):
+        super().__init__(repl=repl)
         self.name = name
         self.const_replacement = repl is not None
 
     def calc_replacement(self):
         if self.const_replacement:
             return False
-        return ANTLRElement.calc_replacement(self)
+        return super().calc_replacement()
 
 
 class ANTLRRef(ANTLRElement):
-    def __init__(self, ref, optional=False):
-        ANTLRElement.__init__(self, optional=optional)
+    def __init__(self, ref, *, optional=False):
+        super().__init__(optional=optional)
         self.ref = ref
 
 
 class ANTLRAlternative(ANTLRElement):
-    def __init__(self, repl=None):
-        ANTLRElement.__init__(self, repl=repl, sep=' ')
+    def __init__(self, *, repl=None):
+        super().__init__(repl=repl, sep=' ')
 
 
 class ANTLRAlternation(ANTLRElement):
@@ -105,8 +105,8 @@ class ANTLRAlternation(ANTLRElement):
 # Lexer Elements
 
 class ANTLRLexerElement(ANTLRElement):
-    def __init__(self, optional=False, repl=None):
-        ANTLRElement.__init__(self, optional=optional, repl=repl)
+    def __init__(self, *, optional=False, repl=None):
+        super().__init__(optional=optional, repl=repl)
         self.start_intervals = None
 
     def starters_defined(self):
@@ -138,15 +138,15 @@ class ANTLRLexerRule(ANTLRLexerElement):
     generated automatically. If it's set by the user then it won't be changed
     ever (even if it's not minimal).
     """
-    def __init__(self, name, repl):
-        ANTLRLexerElement.__init__(self, repl=repl)
+    def __init__(self, name, *, repl=None):
+        super().__init__(repl=repl)
         self.name = name
         self.const_replacement = repl is not None
 
     def calc_replacement(self):
         if self.const_replacement:
             return False
-        return ANTLRElement.calc_replacement(self)
+        return super().calc_replacement()
 
 
 class ANTLRLexerElements(ANTLRLexerElement):
@@ -170,13 +170,13 @@ class ANTLRLexerAlternation(ANTLRLexerElement):
 
 class ANTLRTokenRef(ANTLRLexerElement):
     def __init__(self, ref):
-        ANTLRLexerElement.__init__(self)
+        super().__init__()
         self.ref = ref
 
 
 class ANTLRCharacterRange(ANTLRLexerElement):
     def __init__(self, start, end):
-        ANTLRLexerElement.__init__(self)
+        super().__init__()
         # Converting unicode code points to integers.
         start = int(start.split('\\u')[1], 16) if start.startswith('\\u') else ord(start)
         end = int(end.split('\\u')[1], 16) if end.startswith('\\u') else ord(end)
@@ -185,8 +185,8 @@ class ANTLRCharacterRange(ANTLRLexerElement):
 
 
 class ANTLRDotElement(ANTLRLexerElement):
-    def __init__(self, optional=False):
-        ANTLRLexerElement.__init__(self, optional=optional)
+    def __init__(self, *, optional=False):
+        super().__init__(optional=optional)
         # Hard-wiring ASCII character range here does not have any limitation (neither effect).
         # Basically it should not be used anyway, since the replacement is
         # constantly set to 'a' and negating 'any character' would not make sense.
@@ -197,15 +197,15 @@ class ANTLRDotElement(ANTLRLexerElement):
 
 class ANTLRString(ANTLRLexerElement):
     def __init__(self, src):
-        ANTLRLexerElement.__init__(self)
+        super().__init__()
         src = self.resolve_escapes(src)
         self.start_intervals = [(ord(src[0]), ord(src[0]))]
         self.replacement = src
 
 
 class ANTLRSetElement(ANTLRLexerElement):
-    def __init__(self, content=None, optional=False):
-        ANTLRLexerElement.__init__(self, optional=optional)
+    def __init__(self, content=None, *, optional=False):
+        super().__init__(optional=optional)
         if content and self.replacement is None:
             if content.startswith(('"', '\'')):
                 self.start_intervals = [(ord(content[1]), ord(content[1]))] if len(content) > 2 else []

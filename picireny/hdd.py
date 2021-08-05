@@ -18,9 +18,10 @@ from .prune import prune
 logger = logging.getLogger(__name__)
 
 
-def hddmin(hdd_tree, reduce_class, reduce_config, tester_class, tester_config, test_name, work_dir,
-           hdd_star=True, id_prefix=(), cache=None, config_filter=None, unparse_with_whitespace=True,
-           transformations=(prune,)):
+def hddmin(hdd_tree, *,
+           reduce_class, reduce_config, tester_class, tester_config,
+           test_name, work_dir, id_prefix=(), cache=None, unparse_with_whitespace=True,
+           config_filter=None, transformations=(prune,), hdd_star=True):
     """
     Run the hierarchical delta debugging reduce algorithm.
 
@@ -36,15 +37,15 @@ def hddmin(hdd_tree, reduce_class, reduce_config, tester_class, tester_config, t
         class init function (except test_builder).
     :param test_name: Name of the test case file.
     :param work_dir: Directory to save temporary test files.
-    :param hdd_star: Boolean to enable the HDD star algorithm.
     :param id_prefix: Tuple to prepend to config IDs during tests.
     :param cache: Cache to use.
-    :param config_filter: Filter function from node to boolean, to allow running
-        hddmin selectively.
     :param unparse_with_whitespace: Build test case by adding whitespace between
         nonadjacent tree nodes during unparsing.
+    :param config_filter: Filter function from node to boolean, to allow running
+        hddmin selectively.
     :param transformations: Iterable of transformations that reduce a
         configuration of nodes.
+    :param hdd_star: Boolean to enable the HDD star algorithm.
     :return: The reduced test case (1-tree-minimal if hdd_star is True and
         config_filter is None).
     """
@@ -79,12 +80,13 @@ def hddmin(hdd_tree, reduce_class, reduce_config, tester_class, tester_config, t
             logger.info('Checking level %d / %d ...', level, height(hdd_tree))
 
             for trans_cnt, transformation in enumerate(transformations):
-                hdd_tree, transformed = transformation(hdd_tree=hdd_tree, config_nodes=level_nodes,
+                hdd_tree, transformed = transformation(hdd_tree, level_nodes,
                                                        reduce_class=reduce_class, reduce_config=reduce_config,
                                                        tester_class=tester_class, tester_config=tester_config,
                                                        test_pattern=join(work_dir, 'iter_%d' % iter_cnt, 'level_%d' % level, 'trans_%d' % trans_cnt, '%s', test_name),
                                                        id_prefix=id_prefix + ('i%d' % iter_cnt, 'l%d' % level, 't%d' % trans_cnt),
-                                                       cache=cache, unparse_with_whitespace=unparse_with_whitespace)
+                                                       cache=cache,
+                                                       unparse_with_whitespace=unparse_with_whitespace)
 
                 changed = changed or transformed
 

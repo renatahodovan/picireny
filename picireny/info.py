@@ -8,7 +8,7 @@
 from .hdd_tree import HDDRule
 
 
-def count(node, removed=False):
+def count(node, *, removed=False):
     """
     Count nodes in the tree by type.
 
@@ -36,7 +36,7 @@ def count(node, removed=False):
     return stats
 
 
-def height(node, removed=False):
+def height(node, *, removed=False):
     """
     Calculate the height of the tree.
 
@@ -53,7 +53,7 @@ def height(node, removed=False):
                 if isinstance(node, HDDRule) and node.state == node.KEEP else 0)
 
 
-def shape(node, removed=False):
+def shape(node, *, removed=False):
     """
     Calculate the shape of the tree, i.e., the number of nodes on each tree
     level.

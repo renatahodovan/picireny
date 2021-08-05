@@ -34,8 +34,8 @@ class HDDQuantifier(HDDRule):
     """
     Special rule type in the HDD tree to support optional quantifiers.
     """
-    def __init__(self, start=None, end=None):
-        HDDRule.__init__(self, '', start=start, end=end)
+    def __init__(self, *, start=None, end=None):
+        super().__init__('', start=start, end=end)
 
 
 class HDDHiddenToken(HDDToken):
@@ -50,8 +50,8 @@ class HDDErrorToken(HDDToken):
     Special token type that represents unmatched tokens. The minimal replacement
     of such nodes is an empty string.
     """
-    def __init__(self, text, start, end):
-        HDDToken.__init__(self, '', text, start=start, end=end)
+    def __init__(self, text, *, start=None, end=None):
+        super().__init__('', text, start=start, end=end)
 
 
 # Override ConsoleErrorListener to suppress parse issues in non-verbose mode.
@@ -63,7 +63,11 @@ class ConsoleListener(error.ErrorListener.ConsoleErrorListener):
 error.ErrorListener.ConsoleErrorListener.INSTANCE = ConsoleListener()
 
 
-def create_hdd_tree(src, input_format, start, antlr, work_dir, hidden_tokens=False, lang='python'):
+def create_hdd_tree(src, *,
+                    input_format, start,
+                    antlr, lang='python',
+                    hidden_tokens=False,
+                    work_dir):
     """
     Build a tree that the HDD algorithm can work with.
 
@@ -71,10 +75,10 @@ def create_hdd_tree(src, input_format, start, antlr, work_dir, hidden_tokens=Fal
     :param input_format: Dictionary describing the input format.
     :param start: Name of the start rule in [grammarname:]rulename format.
     :param antlr: Path to the ANTLR4 tool (Java jar binary).
-    :param work_dir: Working directory.
+    :param lang: The target language of the parser.
     :param hidden_tokens: Build hidden tokens of the input format into the HDD
         tree.
-    :param lang: The target language of the parser.
+    :param work_dir: Working directory.
     :return: The root of the created HDD tree.
     """
 
@@ -195,15 +199,15 @@ def create_hdd_tree(src, input_format, start, antlr, work_dir, hidden_tokens=Fal
                 self.trigger_listener('exit_optional')
 
             def enterRecursionRule(self, localctx, state, ruleIndex, precedence):
-                target_parser_class.enterRecursionRule(self, localctx, state, ruleIndex, precedence)
+                super().enterRecursionRule(localctx, state, ruleIndex, precedence)
                 self.trigger_listener('recursion_enter')
 
             def pushNewRecursionContext(self, localctx, state, ruleIndex):
-                target_parser_class.pushNewRecursionContext(self, localctx, state, ruleIndex)
+                super().pushNewRecursionContext(localctx, state, ruleIndex)
                 self.trigger_listener('recursion_push')
 
             def unrollRecursionContexts(self, parentCtx):
-                target_parser_class.unrollRecursionContexts(self, parentCtx)
+                super().unrollRecursionContexts(parentCtx)
                 self.trigger_listener('recursion_unroll')
 
             def trigger_listener(self, event):
@@ -465,8 +469,7 @@ def create_hdd_tree(src, input_format, start, antlr, work_dir, hidden_tokens=Fal
             if last_processed < interval[1]:
                 token_start = node.start.after(content[0:last_processed])
                 token_text = content[last_processed:interval[1]]
-                children.append(HDDToken(name='',
-                                         text=token_text,
+                children.append(HDDToken('', token_text,
                                          start=token_start,
                                          end=token_start.after(token_text),
                                          replace=token_text))
@@ -485,8 +488,7 @@ def create_hdd_tree(src, input_format, start, antlr, work_dir, hidden_tokens=Fal
         if last_processed < len(content):
             token_start = node.start.after(content[0:last_processed])
             token_text = content[last_processed:]
-            children.append(HDDToken(name='',
-                                     text=token_text,
+            children.append(HDDToken('', token_text,
                                      start=token_start,
                                      end=token_start.after(token_text),
                                      replace=token_text))

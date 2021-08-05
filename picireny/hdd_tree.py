@@ -51,7 +51,7 @@ class Position(object):
         return '%s(%r, %r)' % (self.__class__.__name__, self.line, self.column)
 
 
-class HDDTree:
+class HDDTree(object):
     # Node states for unparsing.
     REMOVED = 0
     KEEP = 1
@@ -59,7 +59,7 @@ class HDDTree:
     # ID generator
     __id = count()
 
-    def __init__(self, name, start=None, end=None, replace=None):
+    def __init__(self, name, *, start=None, end=None, replace=None):
         """
         Initialize a HDD tree/node.
 
@@ -76,7 +76,7 @@ class HDDTree:
         self.state = self.KEEP
         self.id = next(self.__id)
 
-    def unparse(self, with_whitespace=True, transform=None):
+    def unparse(self, *, with_whitespace=True, transform=None):
         """
         Build test case from a HDD tree.
 
@@ -129,8 +129,8 @@ class HDDTree:
 
 
 class HDDToken(HDDTree):
-    def __init__(self, name, text, start, end, replace=None):
-        HDDTree.__init__(self, name, start=start, end=end, replace=replace)
+    def __init__(self, name, text, *, start=None, end=None, replace=None):
+        super().__init__(name, start=start, end=end, replace=replace)
         self.text = text
 
     def __repr__(self):
@@ -152,8 +152,8 @@ class HDDToken(HDDTree):
 
 
 class HDDRule(HDDTree):
-    def __init__(self, name, start=None, end=None, replace=None):
-        HDDTree.__init__(self, name, start=start, end=end, replace=replace)
+    def __init__(self, name, *, start=None, end=None, replace=None):
+        super().__init__(name, start=start, end=end, replace=replace)
         self.children = []
 
     def add_child(self, child):

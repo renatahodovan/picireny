@@ -44,7 +44,7 @@ def build_hdd_tree(element, start):
     return result
 
 
-def create_hdd_tree(src, language):
+def create_hdd_tree(src, *, language):
     """
     Build a tree that the HDD algorithm can work with.
 

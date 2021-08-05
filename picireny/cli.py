@@ -150,7 +150,8 @@ def log_tree(title, hdd_tree):
     logger.trace('%r', hdd_tree)
 
 
-def build_with_antlr4(input, src, encoding, out,
+def build_with_antlr4(src, *,
+                      input, encoding, out,
                       input_format, start,
                       antlr, lang='python',
                       build_hidden_tokens=False,
@@ -160,8 +161,8 @@ def build_with_antlr4(input, src, encoding, out,
     command line, however, control its behaviour not via command line arguments
     but function parameters.
 
-    :param input: Path to the test case to reduce (only used for logging).
     :param src: Contents of the test case to reduce.
+    :param input: Path to the test case to reduce (only used for logging).
     :param encoding: Encoding of the input test case.
     :param out: Path to the output directory.
     :param input_format: Dictionary describing the input format.
@@ -183,8 +184,11 @@ def build_with_antlr4(input, src, encoding, out,
     makedirs(grammar_workdir, exist_ok=True)
 
     from .antlr4 import create_hdd_tree
-    hdd_tree = create_hdd_tree(src.decode(encoding), input_format, start, antlr, grammar_workdir,
-                               hidden_tokens=build_hidden_tokens, lang=lang)
+    hdd_tree = create_hdd_tree(src.decode(encoding),
+                               input_format=input_format, start=start,
+                               antlr=antlr, lang=lang,
+                               hidden_tokens=build_hidden_tokens,
+                               work_dir=grammar_workdir)
 
     if cleanup:
         rmtree(grammar_workdir)
@@ -192,14 +196,14 @@ def build_with_antlr4(input, src, encoding, out,
     return hdd_tree
 
 
-def build_with_srcml(input, src, language):
+def build_with_srcml(src, *, input, language):
     """
     Execute srcML-based tree building part of picireny as if invoked from
     command line, however, control its behaviour not via command line arguments
     but function parameters.
 
-    :param input: Path to the test case to reduce (only used for logging).
     :param src: Contents of the test case to reduce.
+    :param input: Path to the test case to reduce (only used for logging).
     :param language: Language of the input source (C, C++, C#, or Java).
     :return: The built HDD tree.
     """
@@ -209,18 +213,15 @@ def build_with_srcml(input, src, language):
     picire.cli.log_args('Building tree with srcML for %s' % input, args)
 
     from .srcml import create_hdd_tree
-    return create_hdd_tree(src, language)
+    return create_hdd_tree(src, language=language)
 
 
-def reduce(hdd_tree, hddmin,
-           reduce_class, reduce_config,
-           tester_class, tester_config,
-           test_name, out,
-           hdd_star=True, hdd_phase_configs=({},),
-           flatten_recursion=False, squeeze_tree=True,
-           skip_unremovable=True, skip_whitespace=False,
-           unparse_with_whitespace=True,
-           cache_class=None, cleanup=True):
+def reduce(hdd_tree, *,
+           hddmin, reduce_class, reduce_config, tester_class, tester_config,
+           test_name, out, cache_class=None, unparse_with_whitespace=True,
+           hdd_phase_configs=({},), hdd_star=True,
+           flatten_recursion=False, squeeze_tree=True, skip_unremovable=True, skip_whitespace=False,
+           cleanup=True):
     """
     Execute tree reduction part of picireny as if invoked from command line,
     however, control its behaviour not via command line arguments but function
@@ -237,9 +238,12 @@ def reduce(hdd_tree, hddmin,
         tester_class.
     :param test_name: Name of the output test file with extension.
     :param out: Path to the output directory.
-    :param hdd_star: Boolean to enable the HDD star algorithm.
+    :param cache_class: Reference to the cache class to use.
+    :param unparse_with_whitespace: Unparse by adding whitespace between
+        nonadjacent nodes.
     :param hdd_phase_configs: Sequence of dictionaries containing information to
         parametrize the hddmin function.
+    :param hdd_star: Boolean to enable the HDD star algorithm.
     :param flatten_recursion: Boolean to enable flattening left/right-recursive
         trees.
     :param squeeze_tree: Boolean to enable the tree squeezing optimization.
@@ -247,9 +251,6 @@ def reduce(hdd_tree, hddmin,
         ddmin.
     :param skip_whitespace: Boolean to enable hiding whitespace-only tokens from
         ddmin.
-    :param unparse_with_whitespace: Unparse by adding whitespace between
-        nonadjacent nodes.
-    :param cache_class: Reference to the cache class to use.
     :param cleanup: Binary flag denoting whether removing auxiliary files at the
         end is enabled.
     :return: The reduced HDD tree.
@@ -286,14 +287,14 @@ def reduce(hdd_tree, hddmin,
         makedirs(tests_workdir, exist_ok=True)
 
         hdd_tree = hddmin(hdd_tree,
-                          reduce_class, reduce_config,
-                          tester_class, tester_config,
+                          reduce_class=reduce_class, reduce_config=reduce_config,
+                          tester_class=tester_class, tester_config=tester_config,
                           test_name=test_name,
                           work_dir=tests_workdir,
                           id_prefix=('p%d' % phase_cnt,),
-                          hdd_star=hdd_star,
                           cache=cache_class() if cache_class else None,
                           unparse_with_whitespace=unparse_with_whitespace,
+                          hdd_star=hdd_star,
                           **phase_config)
         log_tree('Tree after reduction phase #%d' % phase_cnt, hdd_tree)
 
@@ -367,26 +368,30 @@ def execute():
     inators.arg.process_sys_recursion_limit_argument(args)
 
     if args.builder == 'antlr4':
-        hdd_tree = build_with_antlr4(input=args.input, src=args.src, encoding=args.encoding, out=args.out,
+        hdd_tree = build_with_antlr4(args.src,
+                                     input=args.input, encoding=args.encoding, out=args.out,
                                      input_format=args.input_format, start=args.start,
                                      antlr=args.antlr, lang=args.parser,
                                      build_hidden_tokens=args.build_hidden_tokens,
                                      cleanup=args.cleanup)
         unparse_with_whitespace = not args.build_hidden_tokens
     elif args.builder == 'srcml':
-        hdd_tree = build_with_srcml(input=args.input, src=args.src, language=args.srcml_language)
+        hdd_tree = build_with_srcml(args.src, input=args.input, language=args.srcml_language)
         unparse_with_whitespace = False
 
     test_name = basename(args.input)
-    hdd_tree = reduce(hdd_tree=hdd_tree, hddmin=args.hddmin,
+    hdd_tree = reduce(hdd_tree,
+                      hddmin=args.hddmin,
                       reduce_class=args.reduce_class, reduce_config=args.reduce_config,
                       tester_class=args.tester_class, tester_config=args.tester_config,
                       test_name=test_name, out=args.out,
-                      hdd_star=args.hdd_star, hdd_phase_configs=args.hdd_phase_configs,
-                      flatten_recursion=args.flatten_recursion, squeeze_tree=args.squeeze_tree,
-                      skip_unremovable=args.skip_unremovable, skip_whitespace=args.skip_whitespace,
-                      unparse_with_whitespace=unparse_with_whitespace,
-                      cache_class=args.cache, cleanup=args.cleanup)
+                      cache_class=args.cache, unparse_with_whitespace=unparse_with_whitespace,
+                      hdd_phase_configs=args.hdd_phase_configs, hdd_star=args.hdd_star,
+                      flatten_recursion=args.flatten_recursion,
+                      squeeze_tree=args.squeeze_tree,
+                      skip_unremovable=args.skip_unremovable,
+                      skip_whitespace=args.skip_whitespace,
+                      cleanup=args.cleanup)
     out_src = hdd_tree.unparse(with_whitespace=unparse_with_whitespace)
 
     # Save result to a file named the same like the original.

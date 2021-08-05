@@ -140,7 +140,7 @@ def analyze_grammars(grammars, replacements):
                 if content == '.':
                     return ANTLRDotElement(optional=optional)
                 if content.startswith('['):
-                    return ANTLRSetElement(content=content, optional=optional)
+                    return ANTLRSetElement(content, optional=optional)
                 assert False
             # Create a base ANTLRLexerElement anyway to make possible applying the
             # quantifier to the subtree.
@@ -167,7 +167,7 @@ def analyze_grammars(grammars, replacements):
             if isinstance(ctx.children[0], Tree.TerminalNodeImpl):
                 if ctx.children[0].symbol.text.isupper():
                     return ANTLRTokenRef(ctx.children[0].symbol.text)
-                return ANTLRSetElement(content=ctx.children[0].symbol.text)
+                return ANTLRSetElement(ctx.children[0].symbol.text)
             # In this case we have a character range.
             return ANTLRSetElement()
 

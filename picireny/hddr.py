@@ -16,9 +16,11 @@ from .prune import prune
 logger = logging.getLogger(__name__)
 
 
-def hddrmin(hdd_tree, reduce_class, reduce_config, tester_class, tester_config, test_name, work_dir,
-            hdd_star=True, id_prefix=(), cache=None, config_filter=None, unparse_with_whitespace=True,
-            pop_first=False, append_reversed=False, transformations=(prune,)):
+def hddrmin(hdd_tree, *,
+            reduce_class, reduce_config, tester_class, tester_config,
+            test_name, work_dir, id_prefix=(), cache=None, unparse_with_whitespace=True,
+            config_filter=None, transformations=(prune,), hdd_star=True,
+            pop_first=False, append_reversed=False):
     """
     Run the recursive variant of the hierarchical delta debugging reduce
     algorithm (a.k.a. HDDr).
@@ -51,18 +53,18 @@ def hddrmin(hdd_tree, reduce_class, reduce_config, tester_class, tester_config, 
         class init function (except test_builder).
     :param test_name: Name of the test case file.
     :param work_dir: Directory to save temporary test files.
-    :param hdd_star: Boolean to enable the HDD star algorithm.
     :param id_prefix: Tuple to prepend to config IDs during tests.
     :param cache: Cache to use.
-    :param config_filter: Filter function from node to boolean, to allow running
-        hddmin selectively.
     :param unparse_with_whitespace: Build test case by adding whitespace between
         nonadjacent tree nodes during unparsing.
+    :param config_filter: Filter function from node to boolean, to allow running
+        hddmin selectively.
+    :param transformations: Iterable of transformations that reduce a
+        configuration of nodes.
+    :param hdd_star: Boolean to enable the HDD star algorithm.
     :param pop_first: Boolean to control tree traversal (see above for details).
     :param append_reverse: Boolean to control tree traversal (see above for
         details).
-    :param transformations: Iterable of transformations that reduce a
-        configuration of nodes.
     :return: The reduced test case (1-tree-minimal if hdd_star is True and
         config_filter is None).
     """
@@ -90,12 +92,13 @@ def hddrmin(hdd_tree, reduce_class, reduce_config, tester_class, tester_config, 
                 logger.info('Checking node #%d ...', node_cnt)
 
                 for trans_cnt, transformation in enumerate(transformations):
-                    hdd_tree, transformed = transformation(hdd_tree=hdd_tree, config_nodes=children,
+                    hdd_tree, transformed = transformation(hdd_tree, children,
                                                            reduce_class=reduce_class, reduce_config=reduce_config,
                                                            tester_class=tester_class, tester_config=tester_config,
                                                            test_pattern=join(work_dir, 'iter_%d' % iter_cnt, 'node_%d' % node_cnt, 'trans_%d' % trans_cnt, '%s', test_name),
                                                            id_prefix=id_prefix + ('i%d' % iter_cnt, 'n%d' % node_cnt, 't%d' % trans_cnt),
-                                                           cache=cache, unparse_with_whitespace=unparse_with_whitespace)
+                                                           cache=cache,
+                                                           unparse_with_whitespace=unparse_with_whitespace)
 
                     changed = changed or transformed
 

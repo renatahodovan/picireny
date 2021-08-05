@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 class PruningTestBuilder(object):
 
-    def __init__(self, tree, ids, with_whitespace=True):
+    def __init__(self, tree, ids, *, with_whitespace=True):
         """
         Initialize the test builder.
 
@@ -53,7 +53,7 @@ class EmptyDD(AbstractDD):
     else).
     """
 
-    def __init__(self, test, cache=None, id_prefix=()):
+    def __init__(self, test, *, cache=None, id_prefix=()):
         """
         Initialize an EmptyDD object.
 
@@ -61,7 +61,7 @@ class EmptyDD(AbstractDD):
         :param cache: Cache object to use.
         :param id_prefix: Tuple to prepend to config IDs during tests.
         """
-        AbstractDD.__init__(self, test=test, split=None, cache=cache, id_prefix=id_prefix)
+        super().__init__(test=test, split=None, cache=cache, id_prefix=id_prefix)
 
     def __call__(self, config):
         """
@@ -94,8 +94,9 @@ class EmptyDD(AbstractDD):
         return config
 
 
-def prune(hdd_tree, config_nodes, reduce_class, reduce_config, tester_class, tester_config, test_pattern, id_prefix,
-          cache, unparse_with_whitespace):
+def prune(hdd_tree, config_nodes, *,
+          reduce_class, reduce_config, tester_class, tester_config,
+          test_pattern, id_prefix, cache, unparse_with_whitespace):
     """
     Pruning-based reduction of a set of nodes (i.e., sub-trees), as used by
     various hierarchical delta debugging algorithm variants.

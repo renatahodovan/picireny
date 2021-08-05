@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 class HoistingTestBuilder(object):
 
-    def __init__(self, tree, with_whitespace=True):
+    def __init__(self, tree, *, with_whitespace=True):
         """
         Initialize the test builder.
 
@@ -42,14 +42,14 @@ class HoistingTestBuilder(object):
 
 class MappingMin(AbstractDD):
 
-    def __init__(self, test, cache=None, id_prefix=()):
+    def __init__(self, test, *, cache=None, id_prefix=()):
         """
         :param test: A callable tester object.
         :param cache: Cache object to use.
         :param id_prefix: Tuple to prepend to config IDs during tests.
         """
 
-        AbstractDD.__init__(self, test=test, split=None, cache=cache, id_prefix=id_prefix)
+        super().__init__(test=test, split=None, cache=cache, id_prefix=id_prefix)
 
     def __call__(self, config):
         """
@@ -101,13 +101,18 @@ class MappingMin(AbstractDD):
         return mapping
 
 
-def hoist(hdd_tree, config_nodes, tester_class, tester_config, test_pattern, id_prefix,
-          cache, unparse_with_whitespace, reduce_class=None, reduce_config=None):
+def hoist(hdd_tree, config_nodes, *,
+          reduce_class=None, reduce_config=None, tester_class, tester_config,
+          test_pattern, id_prefix, cache, unparse_with_whitespace):
     """
     Try hoisting subtrees.
 
     :param hdd_tree: The root of the tree that the reduce will work with.
     :param config_nodes: Nodes from one level collected by the HDD algorithm.
+    :param reduce_class: Unused, present for being compatible with 'prune'
+        transformation.
+    :param reduce_config: Unused, present for being compatible with 'prune'
+        transformation.
     :param tester_class: Reference to a callable class that can decide about the
         interestingness of a test case.
     :param tester_config: Dictionary containing the parameters of the tester
@@ -117,10 +122,6 @@ def hoist(hdd_tree, config_nodes, tester_class, tester_config, test_pattern, id_
     :param cache: Cache to use.
     :param unparse_with_whitespace: Build test case by adding whitespace between
         nonadjacent tree nodes during unparsing.
-    :param reduce_class: Unused, present for being compatible with 'prune'
-        transformation.
-    :param reduce_config: Unused, present for being compatible with 'prune'
-        transformation.
     :return: The reduced tree and a boolean value that shows whether the tree
         has changed during hoisting.
     """
