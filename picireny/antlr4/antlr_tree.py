@@ -118,6 +118,18 @@ class ANTLRLexerElement(ANTLRElement):
             return True
         return False
 
+    @staticmethod
+    def resolve_escapes(src):
+        """
+        Remove escaping from escape sequences in src. E.g., lexer rules may
+        contain such expressions like: [\t] where \t is evaluated as '\' + 't'
+        instead of a tabulator. This function executes the reversed
+        transformation.
+
+        :param src: The string that may have escaped escape sequences.
+        """
+        return src.encode('utf-8').decode('unicode_escape')
+
 
 class ANTLRLexerRule(ANTLRLexerElement):
     """
@@ -186,7 +198,7 @@ class ANTLRDotElement(ANTLRLexerElement):
 class ANTLRString(ANTLRLexerElement):
     def __init__(self, src):
         ANTLRLexerElement.__init__(self)
-        src = ANTLRSetElement.resolve_escapes(src)
+        src = self.resolve_escapes(src)
         self.start_intervals = [(ord(src[0]), ord(src[0]))]
         self.replacement = src
 
@@ -199,11 +211,11 @@ class ANTLRSetElement(ANTLRLexerElement):
                 self.start_intervals = [(ord(content[1]), ord(content[1]))] if len(content) > 2 else []
                 self.replacement = chr(self.start_intervals[0][0])
             elif content.startswith('['):
-                self.start_intervals = ANTLRSetElement.process_charset(content[1:-1])
+                self.start_intervals = self.process_charset(content[1:-1])
                 self.replacement = chr(self.start_intervals[0][0])
 
-    @staticmethod
-    def process_charset(src):
+    @classmethod
+    def process_charset(cls, src):
         """
         Extract represented character intervals from character sets.
 
@@ -212,48 +224,28 @@ class ANTLRSetElement(ANTLRLexerElement):
         """
         intervals = [(ord(m.group(1)), ord(m.group(2))) for m in re.finditer(r'(\w)\-(\w)', src)]
         positions = [(m.start(1), m.end(2)) for m in re.finditer(r'(\w)\-(\w)', src)]
-        return intervals + ANTLRSetElement.extract_single_chars(src, positions)
 
-    @staticmethod
-    def extract_single_chars(src, positions):
-        """
-        Character sets can contain multiple sets and single characters (e.g.,
-        [-ab-defg-ijkl]). This function selects the single characters based on
-        the position of sets.
-
-        :param src: The string representation of the character set (w/o
-            brackets).
-        :param positions: Position intervals in src where character intervals
-            are placed.
-        """
+        # Character sets can contain multiple sets and single characters (e.g., [-ab-defg-ijkl]).
+        # Select the single characters based on the position of sets.
         if not positions:
-            return [(ord(x), ord(x)) for x in list(ANTLRSetElement.resolve_escapes(src))]
-        characters = []
-        for i, pos in enumerate(positions):
-            # Characters before the first range.
-            if i == 0 and pos[0] > 0:
-                characters.extend(list(ANTLRSetElement.resolve_escapes(src[0: pos[0]])))
-            # Characters between ranges.
-            if i < len(positions) - 1:
-                if positions[i][1] + 1 < positions[i + 1][0]:
-                    characters.extend(list(ANTLRSetElement.resolve_escapes(src[positions[i][1] + 1: positions[i + 1][0]])))
-            # Characters after ranges.
-            else:
-                if pos[1] < len(src) - 1:
-                    characters.extend(list(ANTLRSetElement.resolve_escapes(src[pos[1] + 1:])))
-        return [(ord(x), ord(x)) for x in characters]
+            intervals.extend((ord(x), ord(x)) for x in cls.resolve_escapes(src))
+        else:
+            characters = []
+            for i, pos in enumerate(positions):
+                # Characters before the first range.
+                if i == 0 and pos[0] > 0:
+                    characters.extend(cls.resolve_escapes(src[0: pos[0]]))
+                # Characters between ranges.
+                if i < len(positions) - 1:
+                    if positions[i][1] + 1 < positions[i + 1][0]:
+                        characters.extend(cls.resolve_escapes(src[positions[i][1] + 1: positions[i + 1][0]]))
+                # Characters after ranges.
+                else:
+                    if pos[1] < len(src) - 1:
+                        characters.extend(cls.resolve_escapes(src[pos[1] + 1:]))
+            intervals.extend((ord(x), ord(x)) for x in characters)
 
-    @staticmethod
-    def resolve_escapes(src):
-        """
-        Remove escaping from escape sequences in src. E.g., lexer rules may
-        contain such expressions like: [\t] where \t is evaluated as '\' + 't'
-        instead of a tabulator. This function executes the reversed
-        transformation.
-
-        :param src: The string that may have escaped escape sequences.
-        """
-        return src.encode('utf-8').decode('unicode_escape')
+        return intervals
 
     def calc_starters(self):
         if self.start_intervals is None and self.children and self.children[0].start_intervals:
