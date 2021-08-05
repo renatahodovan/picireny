@@ -215,7 +215,7 @@ def build_with_srcml(input, src, language):
 def reduce(hdd_tree, hddmin,
            reduce_class, reduce_config,
            tester_class, tester_config,
-           test_name, encoding, out,
+           test_name, out,
            hdd_star=True, hdd_phase_configs=({},),
            flatten_recursion=False, squeeze_tree=True,
            skip_unremovable=True, skip_whitespace=False,
@@ -236,7 +236,6 @@ def reduce(hdd_tree, hddmin,
     :param tester_config: Dictionary containing information to initialize the
         tester_class.
     :param test_name: Name of the output test file with extension.
-    :param encoding: Encoding of the input test case.
     :param out: Path to the output directory.
     :param hdd_star: Boolean to enable the HDD star algorithm.
     :param hdd_phase_configs: Sequence of dictionaries containing information to
@@ -382,7 +381,7 @@ def execute():
     hdd_tree = reduce(hdd_tree=hdd_tree, hddmin=args.hddmin,
                       reduce_class=args.reduce_class, reduce_config=args.reduce_config,
                       tester_class=args.tester_class, tester_config=args.tester_config,
-                      test_name=test_name, encoding=args.encoding, out=args.out,
+                      test_name=test_name, out=args.out,
                       hdd_star=args.hdd_star, hdd_phase_configs=args.hdd_phase_configs,
                       flatten_recursion=args.flatten_recursion, squeeze_tree=args.squeeze_tree,
                       skip_unremovable=args.skip_unremovable, skip_whitespace=args.skip_whitespace,
