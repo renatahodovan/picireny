@@ -2,6 +2,38 @@
 *Picireny* Release Notes
 ========================
 
+21.8
+====
+
+Summary of changes:
+
+* Dropped support for Python 2.
+* Upgraded dependency to *Picire* 21.8 to use new/improved argument logging, CLI
+  argument processing; and adapted code to the updated API.
+* Heavily simplified the signatures of picireny.build_with_antlr4 and
+  picireny.reduce.
+* Changed the API of several functions and methods, made numerous arguments
+  keyword-only.
+* Added a new phase that applies the coarse filter to tree nodes and runs both
+  pruning and hoisting on them.
+* Fixed HDDr to correctly traverse the tree in case of filtered nodes.
+* Fixed line-column calculations for tree nodes.
+* Fixed "skip unremovable" transformation to correctly determine the unparsed
+  representation of nodes for all parametrizations.
+* Upgraded dependency *ANTLeRinator* to Epoch 1 (breaking away from ANTLR
+  version numbering) and made use of its new feature to generate the lexer and
+  parser from the ANTLRv4 grammar at build-time.
+* Added direct dependency on ANTLR and upgraded it to v4.9.2.
+* Made use of the *inators* package to unify CLI argument handling and logging.
+* Dropped runtime dependency on setuptools.
+* Moved to pyproject.toml & setup.cfg-based packaging.
+* Improved log output.
+* Improved documentation.
+* Improved the testing infrastructure (stabilized tests, improved resource
+  handling, better output on failure, testing Windows & PyPy).
+* Various internal refactorings.
+
+
 21.3
 ====
 
