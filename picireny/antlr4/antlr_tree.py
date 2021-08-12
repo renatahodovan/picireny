@@ -13,7 +13,7 @@ from sys import maxunicode
 logger = logging.getLogger(__name__)
 
 
-# Paser Elements
+# Parser Elements
 
 class ANTLRElement(object):
     def __init__(self, *, optional=False, repl=None, sep=''):
@@ -151,7 +151,7 @@ class ANTLRLexerRule(ANTLRLexerElement):
 
 class ANTLRLexerElements(ANTLRLexerElement):
     def calc_starters(self):
-        if self.children[0].start_intervals and self.start_intervals is None:
+        if self.children and self.children[0].start_intervals and self.start_intervals is None:
             self.start_intervals = self.children[0].start_intervals
             return True
         return False
