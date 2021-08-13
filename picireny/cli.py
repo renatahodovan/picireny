@@ -331,7 +331,7 @@ def execute():
     arg_parser.add_argument('--skip-whitespace', dest='skip_whitespace', default=False, action='store_true',
                             help='hide whitespace tokens from the ddmin algorithm')
     inators.arg.add_sys_recursion_limit_argument(arg_parser)
-    inators.arg.add_version_argument(arg_parser, __version__)
+    inators.arg.add_version_argument(arg_parser, version=__version__)
 
     # ANTLRv4-specific settings.
     antlr4_grp = arg_parser.add_argument_group('ANTLRv4-specific arguments')
