@@ -127,7 +127,7 @@ def skip_unremovable(node, *, unparse_with_whitespace=True):
     """
     if isinstance(node, HDDRule):
         for child in node.children:
-            skip_unremovable(child)
+            skip_unremovable(child, unparse_with_whitespace=unparse_with_whitespace)
 
     if node.unparse(with_whitespace=unparse_with_whitespace) == node.replace:
         node.state = node.REMOVED
