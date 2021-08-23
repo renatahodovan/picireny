@@ -544,8 +544,8 @@ def create_hdd_tree(src, *,
         """
 
         grp_rewritten = ''
-        mapping = dict()
-        rmapping = dict()
+        mapping = {}
+        rmapping = {}
         cnt = 1
         for item in _NAMED_GRP_PATTERN.split(pattern):
             if _NAMED_GRP_PATTERN.match(item):

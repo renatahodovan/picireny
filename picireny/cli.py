@@ -66,7 +66,7 @@ def process_antlr4_format(format=None, grammar=None, start=None, replacements=No
             data['replacements'] = data.get('replacements', {})
         return data
 
-    input_format = dict()
+    input_format = {}
 
     if format:
         if not exists(format):

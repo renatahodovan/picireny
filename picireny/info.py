@@ -31,7 +31,7 @@ def count(node, *, removed=False):
             for child in node.children:
                 _count(child)
 
-    stats = dict()
+    stats = {}
     _count(node)
     return stats
 
