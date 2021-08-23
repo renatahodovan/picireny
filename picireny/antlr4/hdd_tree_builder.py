@@ -166,7 +166,7 @@ def create_hdd_tree(src, *,
 
         if lang == 'java':
             compile_java_sources(target_lexer_class, target_parser_class, target_listener_class, current_workdir)
-            input_format[grammar_name].update({'lexer': target_lexer_class, 'parser': target_parser_class, 'listener': target_listener_class, 'replacements': replacements})
+            input_format[grammar_name].update(lexer=target_lexer_class, parser=target_parser_class, listener=target_listener_class, replacements=replacements)
             return
 
         class ExtendedTargetLexer(target_lexer_class):
@@ -329,7 +329,7 @@ def create_hdd_tree(src, *,
 
                 self.current_node = self.current_node.parent
 
-        input_format[grammar_name].update({'lexer': ExtendedTargetLexer, 'parser': ExtendedTargetParser, 'listener': ExtendedTargetListener, 'replacements': replacements})
+        input_format[grammar_name].update(lexer=ExtendedTargetLexer, parser=ExtendedTargetParser, listener=ExtendedTargetListener, replacements=replacements)
 
     class ExtendedErrorListener(error.ErrorListener.ErrorListener):
 
