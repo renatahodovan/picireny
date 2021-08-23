@@ -11,17 +11,21 @@ from argparse import ArgumentParser
 from os.path import abspath, dirname, exists, join, realpath
 from shutil import rmtree
 
+try:
+    from importlib import metadata
+except ImportError:
+    import importlib_metadata as metadata
+
 import antlerinator
 import inators
 import picire
-import pkg_resources
 
 from inators import log as logging
 
 from . import filter, hdd, hddr, hoist, info, prune, transform
 
 logger = logging.getLogger('picireny')
-__version__ = pkg_resources.get_distribution(__package__).version
+__version__ = metadata.version(__package__)
 
 
 args_hdd_choices = {
