@@ -122,7 +122,7 @@ def create_hdd_tree(src, *,
         return pathsep.join([antlr, current_workdir])
 
     def compile_java_sources(lexer, parser, listener, current_workdir):
-        executor = Template(get_data(__package__, join('resources', 'ExtendedTargetParser.java')).decode('utf-8'))
+        executor = Template(get_data(__package__, 'resources/ExtendedTargetParser.java').decode('utf-8'))
         with open(join(current_workdir, 'Extended{parser}.java'.format(parser=parser)), 'w') as f:
             f.write(executor.substitute(dict(lexer_class=lexer,
                                              parser_class=parser,
