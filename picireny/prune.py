@@ -53,7 +53,7 @@ class EmptyDD(AbstractDD):
     else).
     """
 
-    def __init__(self, test, *, cache=None, id_prefix=()):
+    def __init__(self, test, *, cache=None, id_prefix=None):
         """
         Initialize an EmptyDD object.
 
@@ -86,7 +86,7 @@ class EmptyDD(AbstractDD):
         logger.debug('\tConfig: %r', config)
 
         outcome = self._lookup_cache(empty, config_id) or self._test_config(empty, config_id)
-        if outcome == Outcome.FAIL:
+        if outcome is Outcome.FAIL:
             config = empty
             logger.info('\tReduced')
 

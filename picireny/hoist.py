@@ -42,7 +42,7 @@ class HoistingTestBuilder(object):
 
 class MappingMin(AbstractDD):
 
-    def __init__(self, test, *, cache=None, id_prefix=()):
+    def __init__(self, test, *, cache=None, id_prefix=None):
         """
         :param test: A callable tester object.
         :param cache: Cache object to use.
@@ -90,7 +90,7 @@ class MappingMin(AbstractDD):
 
                 outcome = self._lookup_cache(mapping_config, config_id) or self._test_config(mapping_config, config_id)
 
-                if outcome == Outcome.FAIL:
+                if outcome is Outcome.FAIL:
                     mapping = new_mapping
                     logger.info('\tHoisted')
                     break
@@ -129,7 +129,9 @@ def hoist(hdd_tree, config_nodes, *,
         return hdd_tree, False
 
     test_builder = HoistingTestBuilder(hdd_tree, with_whitespace=unparse_with_whitespace)
-    cache.set_test_builder(test_builder)
+    if cache:
+        cache.clear()
+        cache.set_test_builder(test_builder)
 
     test = tester_class(test_builder=test_builder, **tester_config)
     mapping_min = MappingMin(test, cache=cache, id_prefix=id_prefix)
@@ -143,8 +145,5 @@ def hoist(hdd_tree, config_nodes, *,
                 node.children[i].replace_with(_apply_mapping(child))
         return node
     hdd_tree = _apply_mapping(hdd_tree)
-
-    if cache:
-        cache.clear()
 
     return hdd_tree, bool(mapping)
