@@ -1,4 +1,4 @@
-# Copyright (c) 2021 Renata Hodovan, Akos Kiss.
+# Copyright (c) 2021-2022 Renata Hodovan, Akos Kiss.
 # Copyright (c) 2021 Daniel Vince.
 #
 # Licensed under the BSD 3-Clause License
@@ -138,8 +138,7 @@ def hoist(hdd_tree, config_nodes, *,
     mapping = mapping_min(config_nodes)
 
     def _apply_mapping(node):
-        if node in mapping:
-            node = mapping[node]
+        node = mapping.get(node, node)
         if hasattr(node, 'children'):
             for i, child in enumerate(node.children):
                 node.children[i].replace_with(_apply_mapping(child))
