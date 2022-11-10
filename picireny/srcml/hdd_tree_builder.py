@@ -1,4 +1,4 @@
-# Copyright (c) 2018-2021 Renata Hodovan, Akos Kiss.
+# Copyright (c) 2018-2022 Renata Hodovan, Akos Kiss.
 #
 # Licensed under the BSD 3-Clause License
 # <LICENSE.rst or https://opensource.org/licenses/BSD-3-Clause>.
@@ -28,7 +28,7 @@ def build_hdd_tree(element, start):
 
     if element.text:
         end = start.after(element.text)
-        rule.add_child(HDDToken('{name}@text'.format(name=name), element.text, start=start, end=end, replace=element.text))
+        rule.add_child(HDDToken(f'{name}@text', element.text, start=start, end=end, replace=element.text))
         rule.end = end
 
     for child in list(element):
@@ -39,7 +39,7 @@ def build_hdd_tree(element, start):
             rule.end = rule.children[-1].end
 
     if element.tail:
-        result += [HDDToken('{name}@tail'.format(name=name), element.tail, start=rule.end, end=rule.end.after(element.tail), replace=element.tail)]
+        result += [HDDToken(f'{name}@tail', element.tail, start=rule.end, end=rule.end.after(element.tail), replace=element.tail)]
 
     return result
 
@@ -54,7 +54,7 @@ def create_hdd_tree(src, *, language):
     """
 
     try:
-        stdout = run(('srcml', '--language={language}'.format(language=language)),
+        stdout = run(('srcml', f'--language={language}'),
                      input=src, stdout=PIPE, stderr=PIPE, check=True).stdout
     except CalledProcessError as e:
         logger.error('Parsing with srcml failed!\n%s\n%s\n', e.stdout, e.stderr)

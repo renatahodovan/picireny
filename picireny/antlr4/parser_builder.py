@@ -1,4 +1,4 @@
-# Copyright (c) 2016-2021 Renata Hodovan, Akos Kiss.
+# Copyright (c) 2016-2022 Renata Hodovan, Akos Kiss.
 #
 # Licensed under the BSD 3-Clause License
 # <LICENSE.rst or https://opensource.org/licenses/BSD-3-Clause>.
@@ -58,10 +58,10 @@ def build_grammars(grammars, out, antlr, lang='python'):
             return f
 
         # Extract the name of lexer and parser from their path.
-        lexer = file_endswith('Lexer.{ext}'.format(ext=languages[lang]['ext']))
-        parser = file_endswith('Parser.{ext}'.format(ext=languages[lang]['ext']))
+        lexer = file_endswith(f'Lexer.{languages[lang]["ext"]}')
+        parser = file_endswith(f'Parser.{languages[lang]["ext"]}')
         # The name of the generated listeners differs if Python or other language target is used.
-        listener = file_endswith('{listener_format}.{ext}'.format(listener_format=languages[lang]['listener_format'], ext=languages[lang]['ext']))
+        listener = file_endswith(f'{languages[lang]["listener_format"]}.{languages[lang]["ext"]}')
 
         if lang == 'python':
             grammar_cache[lang][grammars] = [getattr(__import__(x, globals(), locals(), [x], 0), x) for x in [lexer, parser, listener]]

@@ -1,4 +1,4 @@
-# Copyright (c) 2016-2021 Renata Hodovan, Akos Kiss.
+# Copyright (c) 2016-2022 Renata Hodovan, Akos Kiss.
 #
 # Licensed under the BSD 3-Clause License
 # <LICENSE.rst or https://opensource.org/licenses/BSD-3-Clause>.
@@ -40,16 +40,16 @@ antlr = os.getenv('ANTLR')
 def test_cli(test, inp, exp, grammar, rule, input_format, args, tmpdir):
     out_dir = str(tmpdir)
     cmd = (sys.executable, '-m', 'picireny') \
-          + ('--test=' + test + script_ext, '--input=' + inp, '--out=' + out_dir) \
+          + (f'--test={test}{script_ext}', f'--input={inp}', f'--out={out_dir}') \
           + ('--log-level=TRACE', )
     if grammar:
-        cmd += ('--grammar=' + grammar, )
+        cmd += (f'--grammar={grammar}', )
     if rule:
-        cmd += ('--start=' + rule, )
+        cmd += (f'--start={rule}', )
     if input_format:
-        cmd += ('--format=' + input_format, )
+        cmd += (f'--format={input_format}', )
     if antlr:
-        cmd += ('--antlr=' + antlr, )
+        cmd += (f'--antlr={antlr}', )
     cmd += args
     subprocess.run(cmd, cwd=resources_dir, check=True)
 
