@@ -1,4 +1,4 @@
-# Copyright (c) 2018-2021 Renata Hodovan, Akos Kiss.
+# Copyright (c) 2018-2022 Renata Hodovan, Akos Kiss.
 # Copyright (c) 2021 Daniel Vince
 #
 # Licensed under the BSD 3-Clause License
@@ -91,7 +91,7 @@ def hddrmin(hdd_tree, *,
                     hdd_tree, transformed = transformation(hdd_tree, children,
                                                            reduce_class=reduce_class, reduce_config=reduce_config,
                                                            tester_class=tester_class, tester_config=tester_config,
-                                                           id_prefix=id_prefix + ('i%d' % iter_cnt, 'n%d' % node_cnt, 't%d' % trans_cnt),
+                                                           id_prefix=id_prefix + (f'i{iter_cnt}', f'n{node_cnt}', f't{trans_cnt}'),
                                                            cache=cache,
                                                            unparse_with_whitespace=unparse_with_whitespace)
 

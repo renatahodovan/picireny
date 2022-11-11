@@ -1,5 +1,5 @@
 # Copyright (c) 2007 Ghassan Misherghi.
-# Copyright (c) 2016-2021 Renata Hodovan, Akos Kiss.
+# Copyright (c) 2016-2022 Renata Hodovan, Akos Kiss.
 #
 # Licensed under the BSD 3-Clause License
 # <LICENSE.rst or https://opensource.org/licenses/BSD-3-Clause>.
@@ -48,7 +48,7 @@ class Position(object):
             self.column += start.column
 
     def __repr__(self):
-        return '%s(%r, %r)' % (self.__class__.__name__, self.line, self.column)
+        return f'{self.__class__.__name__}({self.line!r}, {self.column!r})'
 
 
 class HDDTree(object):
@@ -135,20 +135,20 @@ class HDDToken(HDDTree):
 
     def __repr__(self):
         parts = [
-            'name=%r' % self.name,
-            'text=%r' % self.text,
+            f'name={self.name!r}',
+            f'text={self.text!r}',
         ]
         if self.replace is not None:
-            parts.append('replace=%r' % self.replace)
+            parts.append(f'replace={self.replace!r}')
         if self.start is not None:
-            parts.append('start=%r' % self.start)
+            parts.append(f'start={self.start!r}')
         if self.end is not None:
-            parts.append('end=%r' % self.end)
-        parts.append('id=%r' % self.id)
+            parts.append(f'end={self.end!r}')
+        parts.append(f'id={self.id!r}')
         if self.state != self.KEEP:
-            parts.append('state=%r' % self.state)
+            parts.append(f'state={self.state!r}')
 
-        return '%s(%s)' % (self.__class__.__name__, ', '.join(parts))
+        return f'{self.__class__.__name__}({", ".join(parts)})'
 
 
 class HDDRule(HDDTree):
@@ -172,18 +172,18 @@ class HDDRule(HDDTree):
             return ''.join(prefix + line for line in text.splitlines(True))
 
         parts = [
-            'name=%r' % self.name,
+            f'name={self.name!r}',
         ]
         if self.replace is not None:
-            parts.append('replace=%r' % self.replace)
+            parts.append(f'replace={self.replace!r}')
         if self.start is not None:
-            parts.append('start=%r' % self.start)
+            parts.append(f'start={self.start!r}')
         if self.end is not None:
-            parts.append('end=%r' % self.end)
-        parts.append('id=%r' % self.id)
+            parts.append(f'end={self.end!r}')
+        parts.append(f'id={self.id!r}')
         if self.state != self.KEEP:
-            parts.append('state=%r' % self.state)
+            parts.append(f'state={self.state!r}')
         if self.state == self.KEEP and self.children:
             parts.append('children=[\n%s\n]' % _indent(',\n'.join(repr(child) for child in self.children), '  '))
 
-        return '%s(%s)' % (self.__class__.__name__, ', '.join(parts))
+        return f'{self.__class__.__name__}({", ".join(parts)})'

@@ -1,4 +1,4 @@
-# Copyright (c) 2016-2021 Renata Hodovan, Akos Kiss.
+# Copyright (c) 2016-2022 Renata Hodovan, Akos Kiss.
 #
 # Licensed under the BSD 3-Clause License
 # <LICENSE.rst or https://opensource.org/licenses/BSD-3-Clause>.
@@ -123,7 +123,7 @@ def create_hdd_tree(src, *,
 
     def compile_java_sources(lexer, parser, listener, current_workdir):
         executor = Template(get_data(__package__, 'resources/ExtendedTargetParser.java').decode('utf-8'))
-        with open(join(current_workdir, 'Extended{parser}.java'.format(parser=parser)), 'w') as f:
+        with open(join(current_workdir, f'Extended{parser}.java'), 'w') as f:
             f.write(executor.substitute(dict(lexer_class=lexer,
                                              parser_class=parser,
                                              listener_class=listener)))
@@ -276,7 +276,7 @@ def create_hdd_tree(src, *,
                     self.exit_optional()
 
                 assert self.current_node.name == self.parser.ruleNames[ctx.getRuleIndex()], \
-                    '%s (%s) != %s' % (self.current_node.name, repr(self.current_node), self.parser.ruleNames[ctx.getRuleIndex()])
+                    f'{self.current_node.name} ({self.current_node!r}) != {self.parser.ruleNames[ctx.getRuleIndex()]}'
 
                 if self.current_node.parent:
                     self.current_node = self.current_node.parent
@@ -394,7 +394,7 @@ def create_hdd_tree(src, *,
 
             try:
                 current_workdir = join(work_dir, grammar_name) if grammar_name else work_dir
-                proc = run(('java', '-classpath', java_classpath(current_workdir), 'Extended{parser}'.format(parser=grammar['parser']), start_rule),
+                proc = run(('java', '-classpath', java_classpath(current_workdir), f'Extended{grammar["parser"]}', start_rule),
                            input=src, stdout=PIPE, stderr=PIPE, universal_newlines=True, cwd=current_workdir, check=True)
                 if proc.stderr:
                     logger.debug(proc.stderr)

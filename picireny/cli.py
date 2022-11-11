@@ -1,4 +1,4 @@
-# Copyright (c) 2016-2021 Renata Hodovan, Akos Kiss.
+# Copyright (c) 2016-2022 Renata Hodovan, Akos Kiss.
 #
 # Licensed under the BSD 3-Clause License
 # <LICENSE.rst or https://opensource.org/licenses/BSD-3-Clause>.
@@ -53,7 +53,7 @@ def process_antlr4_args(args):
             for i, fn in enumerate(data['files']):
                 path = join(abspath(dirname(args.format)), fn)
                 if not exists(path):
-                    raise ValueError('Invalid input format definition: %s, defined in the format config, does not exist.' % path)
+                    raise ValueError(f'Invalid input format definition: {path}, defined in the format config, does not exist.')
                 data['files'][i] = path
             data['islands'] = data.get('islands', {})
             data['replacements'] = data.get('replacements', {})
@@ -63,7 +63,7 @@ def process_antlr4_args(args):
 
     if args.format:
         if not exists(args.format):
-            raise ValueError('Invalid input format definition: %s does not exist.' % args.format)
+            raise ValueError(f'Invalid input format definition: {args.format} does not exist.')
 
         with open(args.format, 'r') as f:
             try:
@@ -72,7 +72,7 @@ def process_antlr4_args(args):
                 if not args.start:
                     args.start = input_description.get('start', None)
             except ValueError as e:
-                raise ValueError('Invalid input format definition: The content of %s is not a valid JSON object.' % args.format) from e
+                raise ValueError(f'Invalid input format definition: The content of {args.format} is not a valid JSON object.') from e
 
     if not args.start:
         raise ValueError('Invalid input format definition: No start has been defined.')
@@ -86,17 +86,17 @@ def process_antlr4_args(args):
             for i, g in enumerate(args.grammar):
                 args.input_format['']['files'].append(realpath(g))
                 if not exists(args.input_format['']['files'][i]):
-                    raise ValueError('Invalid input format definition: %s does not exist.' % args.input_format['']['files'][i])
+                    raise ValueError(f'Invalid input format definition: {args.input_format[""]["files"][i]} does not exist.')
 
         if args.replacements:
             if not exists(args.replacements):
-                raise ValueError('Invalid input format definition: %s does not exist.' % args.replacements)
+                raise ValueError(f'Invalid input format definition: {args.replacements} does not exist.')
 
             try:
                 with open(args.replacements, 'r') as f:
                     args.input_format['']['replacements'] = json.load(f)
             except ValueError as e:
-                raise ValueError('Invalid input format definition: The content of %s is not a valid JSON object.' % args.replacements) from e
+                raise ValueError(f'Invalid input format definition: The content of {args.replacements} is not a valid JSON object.') from e
 
 
 def process_srcml_args(args):
@@ -123,8 +123,8 @@ def log_tree(title, hdd_tree):
     logger.debug('%s\n\theight: %s\n\tshape: %s\n\tnodes: %s\n',
                  title,
                  info.height(hdd_tree),
-                 ', '.join('%s' % cnt for cnt in info.shape(hdd_tree)),
-                 ', '.join('%d %s' % (cnt, ty) for ty, cnt in sorted(info.count(hdd_tree).items())))
+                 ', '.join(str(cnt) for cnt in info.shape(hdd_tree)),
+                 ', '.join(f'{cnt} {ty}' for ty, cnt in sorted(info.count(hdd_tree).items())))
     logger.trace('%r', hdd_tree)
 
 
@@ -244,12 +244,12 @@ def reduce(hdd_tree, *,
         hdd_tree = hddmin(hdd_tree,
                           reduce_class=reduce_class, reduce_config=reduce_config,
                           tester_class=tester_class, tester_config=tester_config,
-                          id_prefix=('p%d' % phase_cnt,),
+                          id_prefix=(f'p{phase_cnt}',),
                           cache=cache_class() if cache_class else None,
                           unparse_with_whitespace=unparse_with_whitespace,
                           hdd_star=hdd_star,
                           **phase_config)
-        log_tree('Tree after reduction phase #%d' % phase_cnt, hdd_tree)
+        log_tree(f'Tree after reduction phase #{phase_cnt}', hdd_tree)
 
     return hdd_tree
 

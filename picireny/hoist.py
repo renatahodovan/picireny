@@ -86,7 +86,7 @@ class MappingMin(AbstractDD):
                 new_mapping = mapping.copy()
                 new_mapping[c] = m
                 mapping_config = list(new_mapping.items())
-                config_id = ('r%d' % run, 'm%d' % i)
+                config_id = (f'r{run}', f'm{i}')
 
                 outcome = self._lookup_cache(mapping_config, config_id) or self._test_config(mapping_config, config_id)
 

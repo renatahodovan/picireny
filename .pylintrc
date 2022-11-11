@@ -24,7 +24,7 @@ disable=
     useless-object-inheritance, unnecessary-pass, duplicate-code,
     attribute-defined-outside-init, import-outside-toplevel, abstract-method,
     consider-using-with, unused-private-member, deprecated-module,
-    unspecified-encoding, consider-using-f-string
+    unspecified-encoding
 
 [REPORTS]
 
