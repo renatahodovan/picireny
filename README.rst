@@ -7,7 +7,7 @@ Picireny
    :target: https://pypi.org/project/picireny/
 .. image:: https://img.shields.io/pypi/l/picireny?logo=open-source-initiative&logoColor=white
    :target: https://pypi.org/project/picireny/
-.. image:: https://img.shields.io/github/workflow/status/renatahodovan/picireny/main/master?logo=github&logoColor=white
+.. image:: https://img.shields.io/github/actions/workflow/status/renatahodovan/picireny/main.yml?branch=master&logo=github&logoColor=white
    :target: https://github.com/renatahodovan/picireny/actions
 .. image:: https://img.shields.io/coveralls/github/renatahodovan/picireny/master?logo=coveralls&logoColor=white
    :target: https://coveralls.io/github/renatahodovan/picireny
