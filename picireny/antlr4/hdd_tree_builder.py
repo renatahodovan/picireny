@@ -1,4 +1,4 @@
-# Copyright (c) 2016-2022 Renata Hodovan, Akos Kiss.
+# Copyright (c) 2016-2023 Renata Hodovan, Akos Kiss.
 #
 # Licensed under the BSD 3-Clause License
 # <LICENSE.rst or https://opensource.org/licenses/BSD-3-Clause>.
@@ -124,9 +124,9 @@ def create_hdd_tree(src, *,
     def compile_java_sources(lexer, parser, listener, current_workdir):
         executor = Template(get_data(__package__, 'resources/ExtendedTargetParser.java').decode('utf-8'))
         with open(join(current_workdir, f'Extended{parser}.java'), 'w') as f:
-            f.write(executor.substitute(dict(lexer_class=lexer,
-                                             parser_class=parser,
-                                             listener_class=listener)))
+            f.write(executor.substitute({'lexer_class': lexer,
+                                         'parser_class': parser,
+                                         'listener_class': listener}))
         try:
             run(('javac', '-classpath', java_classpath(current_workdir)) + tuple(basename(j) for j in glob(join(current_workdir, '*.java'))),
                 stdout=PIPE, stderr=STDOUT, cwd=current_workdir, check=True)
