@@ -168,6 +168,11 @@ published in:
   Software Test (AST 2021), pages 60-69, Madrid, Spain (Virtual), May 2021.
   IEEE.
   https://doi.org/10.1109/AST52587.2021.00015
+* Daniel Vince, Renata Hodovan, Daniella Barsony, and Akos Kiss. The effect of
+  hoisting on variants of Hierarchical Delta Debugging.
+  Journal of Software: Evolution and Process, 34(11):e2483,1-26, November 2022.
+  Wiley.
+  https://doi.org/10.1002/smr.2483
 
 
 Copyright and Licensing
