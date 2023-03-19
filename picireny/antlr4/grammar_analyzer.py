@@ -132,8 +132,8 @@ def analyze_grammars(grammars, replacements):
         if isinstance(ctx, parser.LexerElementsContext):
             return ANTLRLexerElements()
 
-        # LabeledLexerElement and LexerBlock are created since they can have quantifier.
-        if isinstance(ctx, (parser.LabeledLexerElementContext, parser.LexerBlockContext)):
+        # LexerBlock is created since it can have quantifier.
+        if isinstance(ctx, parser.LexerBlockContext):
             return ANTLRLexerElement(optional=optional)
 
         # LexerAtom can also have quantifier. Furthermore it may have terminal children
