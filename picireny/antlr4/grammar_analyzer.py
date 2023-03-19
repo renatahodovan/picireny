@@ -1,4 +1,4 @@
-# Copyright (c) 2016-2021 Renata Hodovan, Akos Kiss.
+# Copyright (c) 2016-2023 Renata Hodovan, Akos Kiss.
 #
 # Licensed under the BSD 3-Clause License
 # <LICENSE.rst or https://opensource.org/licenses/BSD-3-Clause>.
@@ -8,7 +8,11 @@
 from antlr4 import CommonTokenStream, FileStream
 from antlr4.tree import Tree
 
-from .antlr_tree import *
+from .antlr_tree import (
+    ANTLRAlternation, ANTLRAlternative, ANTLRCharacterRange, ANTLRDotElement, ANTLRElement,
+    ANTLRLexerAlternation, ANTLRLexerElement, ANTLRLexerElements, ANTLRLexerRule,
+    ANTLRNotSet, ANTLRRef, ANTLRRule, ANTLRSetElement, ANTLRString, ANTLRTokenRef
+)
 from .parser import ANTLRv4Lexer, ANTLRv4Parser
 
 
