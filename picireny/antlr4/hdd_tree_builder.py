@@ -5,7 +5,6 @@
 # This file may not be copied, modified, or distributed except
 # according to those terms.
 
-import json
 import logging
 import re
 import shutil
@@ -17,6 +16,8 @@ from os.path import basename, join
 from pkgutil import get_data
 from string import Template
 from subprocess import CalledProcessError, PIPE, run, STDOUT
+
+import xson
 
 from antlr4 import CommonTokenStream, error, InputStream, Token
 from antlr4.Token import CommonToken
@@ -372,7 +373,7 @@ def create_hdd_tree(src, *,
         logger.debug('Parse input with %s rule', start_rule)
         if lang != 'python':
 
-            def hdd_tree_from_json(node_dict):
+            def hdd_tree_from_dict(node_dict):
                 # Convert interval dictionaries to Position objects.
                 if 'start' in node_dict:
                     node_dict['start'] = Position(**node_dict['start'])
@@ -386,7 +387,7 @@ def create_hdd_tree(src, *,
 
                 if children:
                     for child in children:
-                        node.add_child(hdd_tree_from_json(child))
+                        node.add_child(hdd_tree_from_dict(child))
                 elif name:
                     if name in grammar['islands']:
                         island_nodes.append(node)
@@ -398,8 +399,8 @@ def create_hdd_tree(src, *,
                            input=src, stdout=PIPE, stderr=PIPE, universal_newlines=True, cwd=current_workdir, check=True)
                 if proc.stderr:
                     logger.debug(proc.stderr)
-                result = json.loads(proc.stdout)
-                tree_root = hdd_tree_from_json(result)
+                result = xson.loads(proc.stdout)
+                tree_root = hdd_tree_from_dict(result)
             except CalledProcessError as e:
                 logger.error('Java parser failed!\n%s\n%s', e.stdout, e.stderr)
                 raise
