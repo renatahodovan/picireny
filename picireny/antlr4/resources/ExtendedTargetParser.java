@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2021 Renata Hodovan, Akos Kiss.
+ * Copyright (c) 2016-2023 Renata Hodovan, Akos Kiss.
  *
  * Licensed under the BSD 3-Clause License
  * <LICENSE.rst or https://opensource.org/licenses/BSD-3-Clause>.
@@ -9,8 +9,7 @@
 
 import java.io.*;
 import java.util.*;
-
-import javax.json.*;
+import javax.xml.stream.*;
 
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.*;
@@ -57,12 +56,72 @@ public class Extended$parser_class extends $parser_class {
             parser.addParseListener(listener);
             Extended$parser_class.class.getMethod(args[0]).invoke(parser);
             parser.syntaxErrorWarning();
-            try (JsonWriter w = Json.createWriter(System.out)) {
-                w.write(listener.root.createJsonObjectBuilder().build());
+
+            try (XsonStreamWriter w = new XsonStreamWriter(System.out)) {
+                w.write(null, listener.root);
             }
         } catch(Exception e) {
             e.printStackTrace(System.err);
             System.exit(1);
+        }
+    }
+
+    private static interface XsonObject {
+        public void writeXsonMembers(XsonStreamWriter w) throws XMLStreamException;
+    }
+
+    /**
+     * XsonStreamWriter is a partial implementation for writing JSONx documents.
+     * It only implements the minimum required to dump HDDNode objects.
+     */
+    private static class XsonStreamWriter implements AutoCloseable {
+        public static final String JSONX_PREFIX = "json";
+        public static final String JSONX_NS_URI = "http://www.ibm.com/xmlns/prod/2009/jsonx";
+
+        private XMLStreamWriter w;
+
+        public XsonStreamWriter(OutputStream o) throws XMLStreamException {
+            XMLOutputFactory factory = XMLOutputFactory.newInstance();
+            factory.setProperty(XMLOutputFactory.IS_REPAIRING_NAMESPACES, true);
+            w = factory.createXMLStreamWriter(o);
+            w.setPrefix(JSONX_PREFIX, JSONX_NS_URI);
+        }
+
+        public void write(String name, XsonObject value) throws XMLStreamException {
+            w.writeStartElement(JSONX_PREFIX, "object", JSONX_NS_URI);
+            if (name != null)
+                w.writeAttribute("name", name);
+            value.writeXsonMembers(this);
+            w.writeEndElement();
+        }
+
+        public void write(String name, Iterable<? extends XsonObject> value) throws XMLStreamException {
+            w.writeStartElement(JSONX_PREFIX, "array", JSONX_NS_URI);
+            if (name != null)
+                w.writeAttribute("name", name);
+            for (XsonObject o : value)
+                write(null, o);
+            w.writeEndElement();
+        }
+
+        public void write(String name, int value) throws XMLStreamException {
+            w.writeStartElement(JSONX_PREFIX, "number", JSONX_NS_URI);
+            if (name != null)
+                w.writeAttribute("name", name);
+            w.writeCharacters(Integer.toString(value));
+            w.writeEndElement();
+        }
+
+        public void write(String name, String value) throws XMLStreamException {
+            w.writeStartElement(JSONX_PREFIX, "string", JSONX_NS_URI);
+            if (name != null)
+                w.writeAttribute("name", name);
+            w.writeCharacters(value);
+            w.writeEndElement();
+        }
+
+        public void close() throws XMLStreamException {
+            w.close();
         }
     }
 
@@ -100,7 +159,7 @@ public class Extended$parser_class extends $parser_class {
         private HDDRule root;
         private boolean seen_terminal;
 
-        private static class Position {
+        private static class Position implements XsonObject {
             public int line;
             public int column;
 
@@ -127,14 +186,13 @@ public class Extended$parser_class extends $parser_class {
                 }
             }
 
-            public JsonObjectBuilder createJsonObjectBuilder() {
-                return Json.createObjectBuilder()
-                    .add("line", line)
-                    .add("column", column);
+            public void writeXsonMembers(XsonStreamWriter w) throws XMLStreamException {
+                w.write("line", line);
+                w.write("column", column);
             }
         }
 
-        private static abstract class HDDNode {
+        private static abstract class HDDNode implements XsonObject {
             public String name;
             public HDDRule parent;
             public Position start;
@@ -147,17 +205,14 @@ public class Extended$parser_class extends $parser_class {
                 end = null;
             }
 
-            public JsonObjectBuilder createJsonObjectBuilder() {
-                JsonObjectBuilder builder = Json.createObjectBuilder()
-                    .add("type", getClass().getSimpleName());
+            public void writeXsonMembers(XsonStreamWriter w) throws XMLStreamException {
+                w.write("type", getClass().getSimpleName());
                 if (name != null)
-                    builder.add("name", name);
+                    w.write("name", name);
                 if (start != null)
-                    builder.add("start", start.createJsonObjectBuilder());
+                    w.write("start", start);
                 if (end != null)
-                    builder.add("end", end.createJsonObjectBuilder());
-
-                return builder;
+                    w.write("end", end);
             }
         }
 
@@ -176,13 +231,9 @@ public class Extended$parser_class extends $parser_class {
                 node.parent = this;
             }
 
-            public JsonObjectBuilder createJsonObjectBuilder() {
-                JsonArrayBuilder children_array = Json.createArrayBuilder();
-                for (HDDNode child : children)
-                    children_array.add(child.createJsonObjectBuilder());
-
-                return super.createJsonObjectBuilder()
-                    .add("children", children_array);
+            public void writeXsonMembers(XsonStreamWriter w) throws XMLStreamException {
+                super.writeXsonMembers(w);
+                w.write("children", children);
             }
         }
 
@@ -196,9 +247,9 @@ public class Extended$parser_class extends $parser_class {
                 end = _end;
             }
 
-            public JsonObjectBuilder createJsonObjectBuilder() {
-                return super.createJsonObjectBuilder()
-                    .add("text", text);
+            public void writeXsonMembers(XsonStreamWriter w) throws XMLStreamException {
+                super.writeXsonMembers(w);
+                w.write("text", text);
             }
         }
 
