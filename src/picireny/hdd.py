@@ -1,6 +1,6 @@
 # Copyright (c) 2007 Ghassan Misherghi.
-# Copyright (c) 2016-2023 Renata Hodovan, Akos Kiss.
-# Copyright (c) 2021 Daniel Vince
+# Copyright (c) 2016-2026 Renata Hodovan, Akos Kiss.
+# Copyright (c) 2021-2026 Daniel Vince
 #
 # Licensed under the BSD 3-Clause License
 # <LICENSE.rst or https://opensource.org/licenses/BSD-3-Clause>.
@@ -25,14 +25,14 @@ def hddmin(hdd_tree, *,
 
     :param hdd_tree: The root of the tree that the reduce will work with (it's
         the output of create_hdd_tree).
-    :param reduce_class: Reference to the reducer class (DD, ParallelDD or
-        CombinedParallelDD from the picire module).
+    :param reduce_class: Reference to the reducer class (DD or ParallelDD from
+        the picire module).
     :param reduce_config: Dictionary containing the parameters of the
         reduce_class init function.
     :param tester_class: Reference to a callable class that can decide about the
         interestingness of a test case.
     :param tester_config: Dictionary containing the parameters of the tester
-        class init function (except test_builder).
+        class init function.
     :param id_prefix: Tuple to prepend to config IDs during tests.
     :param cache: Cache to use.
     :param unparse_with_whitespace: Build test case by adding whitespace between

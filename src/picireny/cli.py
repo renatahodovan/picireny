@@ -1,4 +1,4 @@
-# Copyright (c) 2016-2024 Renata Hodovan, Akos Kiss.
+# Copyright (c) 2016-2026 Renata Hodovan, Akos Kiss.
 #
 # Licensed under the BSD 3-Clause License
 # <LICENSE.rst or https://opensource.org/licenses/BSD-3-Clause>.
@@ -6,11 +6,13 @@
 # according to those terms.
 
 import json
+import sys
 
 from argparse import ArgumentParser
 from importlib import metadata
 from os.path import abspath, dirname, exists, join, realpath
 from shutil import rmtree
+from textwrap import indent
 
 import antlerinator
 import inators
@@ -148,7 +150,8 @@ def build_with_antlr4(src, *,
     # Get the parameters in a dictionary so that they can be pretty-printed
     args = locals().copy()
     del args['src']
-    picire.cli.log_args('Building tree with ANTLRv4', args)
+    if logger.isEnabledFor(logging.INFO):
+        logger.info('Building tree with ANTLRv4\n%s', indent(picire.cli.pretty_str(args), '\t'))
 
     from .antlr4 import create_hdd_tree
     return create_hdd_tree(src,
@@ -171,7 +174,8 @@ def build_with_srcml(src, *, language):
     # Get the parameters in a dictionary so that they can be pretty-printed
     args = locals().copy()
     del args['src']
-    picire.cli.log_args('Building tree with srcML', args)
+    if logger.isEnabledFor(logging.INFO):
+        logger.info('Building tree with srcML\n%s', indent(picire.cli.pretty_str(args), '\t'))
 
     from .srcml import create_hdd_tree
     return create_hdd_tree(src, language=language)
@@ -179,7 +183,8 @@ def build_with_srcml(src, *, language):
 
 def reduce(hdd_tree, *,
            hddmin, reduce_class, reduce_config, tester_class, tester_config,
-           cache_class=None, unparse_with_whitespace=True,
+           cache_class=None, cache_config=None,
+           unparse_with_whitespace=True,
            hdd_phase_configs=({},), hdd_star=True,
            flatten_recursion=False, squeeze_tree=True, skip_unremovable=True, skip_whitespace=False):
     """
@@ -197,6 +202,8 @@ def reduce(hdd_tree, *,
     :param tester_config: Dictionary containing information to initialize the
         tester_class.
     :param cache_class: Reference to the cache class to use.
+    :param cache_config: Dictionary containing information to initialize the
+        cache_class.
     :param unparse_with_whitespace: Unparse by adding whitespace between
         nonadjacent nodes.
     :param hdd_phase_configs: Sequence of dictionaries containing information to
@@ -210,11 +217,15 @@ def reduce(hdd_tree, *,
     :param skip_whitespace: Boolean to enable hiding whitespace-only tokens from
         ddmin.
     :return: The reduced HDD tree.
+    :raises ReductionException: If reduction could not run until completion. The
+        ``result`` attribute of the exception contains the smallest, potentially
+        non-minimal, but failing tree found during reduction.
     """
     # Get the parameters in a dictionary so that they can be pretty-printed
     args = locals().copy()
     del args['hdd_tree']
-    picire.cli.log_args('Reduce session starts', args)
+    if logger.isEnabledFor(logging.INFO):
+        logger.info('Reduce session starts\n%s', indent(picire.cli.pretty_str(args), '\t'))
 
     log_tree('Initial tree', hdd_tree)
 
@@ -238,15 +249,20 @@ def reduce(hdd_tree, *,
     # Perform reduction.
     for phase_cnt, phase_config in enumerate(hdd_phase_configs):
         logger.info('Phase #%d', phase_cnt)
-        hdd_tree = hddmin(hdd_tree,
-                          reduce_class=reduce_class, reduce_config=reduce_config,
-                          tester_class=tester_class, tester_config=tester_config,
-                          id_prefix=(f'p{phase_cnt}',),
-                          cache=cache_class() if cache_class else None,
-                          unparse_with_whitespace=unparse_with_whitespace,
-                          hdd_star=hdd_star,
-                          **phase_config)
-        log_tree(f'Tree after reduction phase #{phase_cnt}', hdd_tree)
+        try:
+            hdd_tree = hddmin(hdd_tree,
+                              reduce_class=reduce_class, reduce_config=reduce_config,
+                              tester_class=tester_class, tester_config=tester_config,
+                              id_prefix=(f'p{phase_cnt}',),
+                              cache=cache_class(**(cache_config or {})) if cache_class else None,
+                              unparse_with_whitespace=unparse_with_whitespace,
+                              hdd_star=hdd_star,
+                              **phase_config)
+            log_tree(f'Tree after reduction phase #{phase_cnt}', hdd_tree)
+        except picire.ReductionException as e:
+            log_tree(f'Tree after incomplete reduction phase #{phase_cnt}', e.result)
+            logger.warning('Reduction stopped prematurely, the output may not be minimal: %s', e, exc_info=None if isinstance(e, picire.ReductionStopped) else e)
+            raise
 
     return hdd_tree
 
@@ -255,8 +271,6 @@ def execute():
     """
     The main entry point of picireny.
     """
-    logging.basicConfig(format='%(message)s')
-
     arg_parser = ArgumentParser(description='CLI for the Picireny Hierarchical Delta Debugging Framework',
                                 parents=[picire.cli.create_parser()], add_help=False)
 
@@ -308,6 +322,7 @@ def execute():
 
     args = arg_parser.parse_args()
 
+    picire.cli.config_logging(args)
     try:
         process_args(args)
     except ValueError as e:
@@ -329,16 +344,20 @@ def execute():
     else:
         assert False, f'Unknown builder: {args.builder}'
 
-    hdd_tree = reduce(hdd_tree,
-                      hddmin=args.hddmin,
-                      reduce_class=args.reduce_class, reduce_config=args.reduce_config,
-                      tester_class=args.tester_class, tester_config=args.tester_config,
-                      cache_class=args.cache, unparse_with_whitespace=unparse_with_whitespace,
-                      hdd_phase_configs=args.hdd_phase_configs, hdd_star=args.hdd_star,
-                      flatten_recursion=args.flatten_recursion,
-                      squeeze_tree=args.squeeze_tree,
-                      skip_unremovable=args.skip_unremovable,
-                      skip_whitespace=args.skip_whitespace)
-    out_src = hdd_tree.unparse(with_whitespace=unparse_with_whitespace)
-
-    picire.cli.postprocess(args, out_src)
+    try:
+        hdd_tree = reduce(hdd_tree,
+                          hddmin=args.hddmin,
+                          reduce_class=args.reduce_class, reduce_config=args.reduce_config,
+                          tester_class=args.tester_class, tester_config=args.tester_config,
+                          cache_class=args.cache_class, cache_config=args.cache_config,
+                          unparse_with_whitespace=unparse_with_whitespace,
+                          hdd_phase_configs=args.hdd_phase_configs, hdd_star=args.hdd_star,
+                          flatten_recursion=args.flatten_recursion,
+                          squeeze_tree=args.squeeze_tree,
+                          skip_unremovable=args.skip_unremovable,
+                          skip_whitespace=args.skip_whitespace)
+        picire.cli.postprocess(args, hdd_tree.unparse(with_whitespace=unparse_with_whitespace))
+    except picire.ReductionException as e:
+        picire.cli.postprocess(args, e.result.unparse(with_whitespace=unparse_with_whitespace))
+        if not isinstance(e, picire.ReductionStopped):
+            sys.exit(1)
