@@ -40,7 +40,7 @@ Requirements
 ============
 
 * Python_ >= 3.7
-* Java_ SE >= 7 JRE or JDK (the latter is optional, only needed if Java is used
+* Java_ SE >= 11 JRE or JDK (the latter is optional, only needed if Java is used
   as the parser language)
 
 .. _Python: https://www.python.org
