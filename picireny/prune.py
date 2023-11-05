@@ -1,4 +1,4 @@
-# Copyright (c) 2021 Renata Hodovan, Akos Kiss.
+# Copyright (c) 2021-2023 Renata Hodovan, Akos Kiss.
 #
 # Licensed under the BSD 3-Clause License
 # <LICENSE.rst or https://opensource.org/licenses/BSD-3-Clause>.
@@ -14,7 +14,7 @@ from picire import AbstractDD, Outcome
 logger = logging.getLogger(__name__)
 
 
-class PruningTestBuilder(object):
+class PruningTestBuilder:
 
     def __init__(self, tree, ids, *, with_whitespace=True):
         """

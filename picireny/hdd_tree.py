@@ -1,5 +1,5 @@
 # Copyright (c) 2007 Ghassan Misherghi.
-# Copyright (c) 2016-2022 Renata Hodovan, Akos Kiss.
+# Copyright (c) 2016-2023 Renata Hodovan, Akos Kiss.
 #
 # Licensed under the BSD 3-Clause License
 # <LICENSE.rst or https://opensource.org/licenses/BSD-3-Clause>.
@@ -10,7 +10,7 @@ from itertools import count
 from os import linesep
 
 
-class Position(object):
+class Position:
     """
     Class defining a position in the input file. Used to recognise line breaks
     between tokens.
@@ -51,7 +51,7 @@ class Position(object):
         return f'{self.__class__.__name__}({self.line!r}, {self.column!r})'
 
 
-class HDDTree(object):
+class HDDTree:
     # Node states for unparsing.
     REMOVED = 0
     KEEP = 1
