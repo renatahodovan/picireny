@@ -1,4 +1,4 @@
-# Copyright (c) 2016-2021 Renata Hodovan, Akos Kiss.
+# Copyright (c) 2016-2023 Renata Hodovan, Akos Kiss.
 #
 # Licensed under the BSD 3-Clause License
 # <LICENSE.rst or https://opensource.org/licenses/BSD-3-Clause>.
@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 # Parser Elements
 
-class ANTLRElement(object):
+class ANTLRElement:
     def __init__(self, *, optional=False, repl=None, sep=''):
         """
         Constructor of the base tree node type.

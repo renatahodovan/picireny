@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2022 Renata Hodovan, Akos Kiss.
+# Copyright (c) 2021-2023 Renata Hodovan, Akos Kiss.
 # Copyright (c) 2021 Daniel Vince.
 #
 # Licensed under the BSD 3-Clause License
@@ -14,7 +14,7 @@ from picire import AbstractDD, Outcome
 logger = logging.getLogger(__name__)
 
 
-class HoistingTestBuilder(object):
+class HoistingTestBuilder:
 
     def __init__(self, tree, *, with_whitespace=True):
         """

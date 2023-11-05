@@ -43,7 +43,6 @@ class HDDHiddenToken(HDDToken):
     """
     Special token type that represents tokens from hidden channels.
     """
-    pass
 
 
 class HDDErrorToken(HDDToken):
