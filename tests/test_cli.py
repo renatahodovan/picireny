@@ -1,4 +1,4 @@
-# Copyright (c) 2016-2022 Renata Hodovan, Akos Kiss.
+# Copyright (c) 2016-2023 Renata Hodovan, Akos Kiss.
 #
 # Licensed under the BSD 3-Clause License
 # <LICENSE.rst or https://opensource.org/licenses/BSD-3-Clause>.
@@ -6,9 +6,10 @@
 # according to those terms.
 
 import os
-import pytest
 import subprocess
 import sys
+
+import pytest
 
 
 is_windows = sys.platform.startswith('win32')
@@ -40,8 +41,8 @@ antlr = os.getenv('ANTLR')
 def test_cli(test, inp, exp, grammar, rule, input_format, args, tmpdir):
     out_dir = str(tmpdir)
     cmd = (sys.executable, '-m', 'picireny') \
-          + (f'--test={test}{script_ext}', f'--input={inp}', f'--out={out_dir}') \
-          + ('--log-level=TRACE', )
+        + (f'--test={test}{script_ext}', f'--input={inp}', f'--out={out_dir}') \
+        + ('--log-level=TRACE', )
     if grammar:
         cmd += (f'--grammar={grammar}', )
     if rule:
