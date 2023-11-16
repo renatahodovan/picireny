@@ -8,6 +8,7 @@
 
 from itertools import count
 from os import linesep
+from textwrap import indent
 
 
 class Position:
@@ -168,9 +169,6 @@ class HDDRule(HDDTree):
         self.children.remove(child)
 
     def __repr__(self):
-        def _indent(text, prefix):
-            return ''.join(prefix + line for line in text.splitlines(True))
-
         parts = [
             f'name={self.name!r}',
         ]
@@ -184,6 +182,6 @@ class HDDRule(HDDTree):
         if self.state != self.KEEP:
             parts.append(f'state={self.state!r}')
         if self.state == self.KEEP and self.children:
-            parts.append('children=[\n%s\n]' % _indent(',\n'.join(repr(child) for child in self.children), '  '))
+            parts.append('children=[\n%s\n]' % indent(',\n'.join(repr(child) for child in self.children), '  '))
 
         return f'{self.__class__.__name__}({", ".join(parts)})'
