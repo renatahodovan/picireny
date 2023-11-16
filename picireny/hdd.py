@@ -1,5 +1,5 @@
 # Copyright (c) 2007 Ghassan Misherghi.
-# Copyright (c) 2016-2022 Renata Hodovan, Akos Kiss.
+# Copyright (c) 2016-2023 Renata Hodovan, Akos Kiss.
 # Copyright (c) 2021 Daniel Vince
 #
 # Licensed under the BSD 3-Clause License
@@ -73,7 +73,8 @@ def hddmin(hdd_tree, *,
                 if not level_nodes:
                     continue
 
-            logger.info('Checking level %d / %d ...', level, height(hdd_tree))
+            if logger.isEnabledFor(logging.INFO):
+                logger.info('Checking level %d / %d ...', level, height(hdd_tree))
 
             for trans_cnt, transformation in enumerate(transformations):
                 hdd_tree, transformed = transformation(hdd_tree, level_nodes,
