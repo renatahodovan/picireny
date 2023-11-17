@@ -1,4 +1,4 @@
-# Copyright (c) 2016-2022 Renata Hodovan, Akos Kiss.
+# Copyright (c) 2016-2023 Renata Hodovan, Akos Kiss.
 #
 # Licensed under the BSD 3-Clause License
 # <LICENSE.rst or https://opensource.org/licenses/BSD-3-Clause>.
@@ -120,11 +120,12 @@ def process_args(args):
 
 
 def log_tree(title, hdd_tree):
-    logger.debug('%s\n\theight: %s\n\tshape: %s\n\tnodes: %s\n',
-                 title,
-                 info.height(hdd_tree),
-                 ', '.join(str(cnt) for cnt in info.shape(hdd_tree)),
-                 ', '.join(f'{cnt} {ty}' for ty, cnt in sorted(info.count(hdd_tree).items())))
+    if logger.isEnabledFor(logging.DEBUG):
+        logger.debug('%s\n\theight: %s\n\tshape: %s\n\tnodes: %s\n',
+                     title,
+                     info.height(hdd_tree),
+                     ', '.join(str(cnt) for cnt in info.shape(hdd_tree)),
+                     ', '.join(f'{cnt} {ty}' for ty, cnt in sorted(info.count(hdd_tree).items())))
     logger.trace('%r', hdd_tree)
 
 

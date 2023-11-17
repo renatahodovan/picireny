@@ -80,7 +80,8 @@ class MappingMin(AbstractDD):
         for run in itertools.count():
             logger.info('Run #%d', run)
             logger.info('\tMapping size: %d', len(mapping))
-            logger.debug('\tMapping: %r', {c.id: m.id for c, m in mapping.items()})
+            if logger.isEnabledFor(logging.DEBUG):
+                logger.debug('\tMapping: %r', {c.id: m.id for c, m in mapping.items()})
 
             for i, (c, m) in enumerate((c, m) for c in config for m in collect_hoistables(mapping.get(c, c))):
                 new_mapping = mapping.copy()
