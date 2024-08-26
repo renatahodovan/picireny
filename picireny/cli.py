@@ -1,4 +1,4 @@
-# Copyright (c) 2016-2023 Renata Hodovan, Akos Kiss.
+# Copyright (c) 2016-2024 Renata Hodovan, Akos Kiss.
 #
 # Licensed under the BSD 3-Clause License
 # <LICENSE.rst or https://opensource.org/licenses/BSD-3-Clause>.
@@ -330,6 +330,8 @@ def execute():
     elif args.builder == 'srcml':
         hdd_tree = build_with_srcml(args.src, language=args.srcml_language)
         unparse_with_whitespace = False
+    else:
+        assert False, f'Unknown builder: {args.builder}'
 
     hdd_tree = reduce(hdd_tree,
                       hddmin=args.hddmin,
