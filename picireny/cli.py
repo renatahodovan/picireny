@@ -8,13 +8,9 @@
 import json
 
 from argparse import ArgumentParser
+from importlib import metadata
 from os.path import abspath, dirname, exists, join, realpath
 from shutil import rmtree
-
-try:
-    from importlib import metadata
-except ImportError:
-    import importlib_metadata as metadata
 
 import antlerinator
 import inators
