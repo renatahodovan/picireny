@@ -1,1 +1,1 @@
-exclude picireny/antlr4/parser/ANTLRv4*.py
+exclude src/picireny/antlr4/parser/ANTLRv4*.py
