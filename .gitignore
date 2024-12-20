@@ -12,4 +12,4 @@ dist
 .coverage*
 *.interp
 *.tokens
-picireny/antlr4/parser/ANTLRv4*.py
+src/picireny/antlr4/parser/ANTLRv4*.py
