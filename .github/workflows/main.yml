@@ -35,7 +35,7 @@ jobs:
       - run: pip install --upgrade tox
       - run: tox -v -e lint
 
-  schema:
+  jsonschema:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -45,7 +45,7 @@ jobs:
         with:
           python-version: '3.x'
       - run: pip install --upgrade tox
-      - run: tox -v -e schema
+      - run: tox -v -e jsonschema
 
   cov:
     runs-on: ubuntu-latest
@@ -63,7 +63,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   publish:
-    needs: [test, lint, schema]
+    needs: [test, lint, jsonschema]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
