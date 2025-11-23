@@ -39,7 +39,7 @@ still "interesting" output.
 Requirements
 ============
 
-* Python_ >= 3.9
+* Python_ >= 3.10
 * Java_ SE >= 11 JRE or JDK (the latter is optional, only needed if Java is used
   as the parser language)
 
