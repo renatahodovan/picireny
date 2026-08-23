@@ -121,23 +121,15 @@ Compatibility
 
 *Picireny* was tested on:
 
-* Linux (Ubuntu 14.04 / 16.04 / 18.04 / 20.04)
-* OS X / macOS (10.11 / 10.12 / 10.13 / 10.14 / 10.15 / 11)
-* Windows (Server 2012 R2 / Server version 1809 / Windows 10)
+* Linux (Ubuntu 14.04 ... 26.04)
+* OS X / macOS (10.11 ... 26.6)
+* Windows (Server 2012 ... 2025)
 
 
-Acknowledgement and Citations
-=============================
+Citations and Acknowledgements
+==============================
 
-*Picireny* is motivated by the idea of Hierarchical Delta Debugging:
-
-* Ghassan Misherghi and Zhendong Su. HDD: Hierarchical Delta Debugging.
-  In Proceedings of the 28th International Conference on Software Engineering
-  (ICSE '06), pages 142-151, Shanghai, China, May 2006. ACM.
-  https://doi.org/10.1145/1134285.1134307
-
-The details of the modernized re-implementation and further improvements are
-published in:
+Background on *Picireny* is published in:
 
 * Renata Hodovan and Akos Kiss. Modernizing Hierarchical Delta Debugging.
   In Proceedings of the 7th International Workshop on Automating Test Case
@@ -173,6 +165,13 @@ published in:
   Journal of Software: Evolution and Process, 34(11):e2483,1-26, November 2022.
   Wiley.
   https://doi.org/10.1002/smr.2483
+
+*Picireny* was motivated by the idea of Hierarchical Delta Debugging:
+
+* Ghassan Misherghi and Zhendong Su. HDD: Hierarchical Delta Debugging.
+  In Proceedings of the 28th International Conference on Software Engineering
+  (ICSE '06), pages 142-151, Shanghai, China, May 2006. ACM.
+  https://doi.org/10.1145/1134285.1134307
 
 
 Copyright and Licensing
